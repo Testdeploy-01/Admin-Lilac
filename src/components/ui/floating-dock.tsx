@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 /**
  * Note: Use position fixed according to your needs
  * Desktop navbar is better positioned at the bottom
@@ -18,29 +18,45 @@ import {
 } from "motion/react";
 import { Link } from "react-router-dom";
 
-import { useRef, useState } from "react";
+import { useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
 
 type DockItem = {
   title: string;
   icon: React.ReactNode;
-  href: string;
+  href?: string;
+  onClick?: (event: ReactMouseEvent<HTMLElement>) => void;
+  onMouseEnter?: (event: ReactMouseEvent<HTMLElement>) => void;
+  onMouseLeave?: (event: ReactMouseEvent<HTMLElement>) => void;
   active?: boolean;
   disabled?: boolean;
-  variant?: "default" | "logo";
+  variant?: "default" | "logo" | "avatar";
+  badge?: number;
+  align?: "default" | "bottom";
 };
+
+type DockOrientation = "horizontal" | "vertical";
 
 export const FloatingDock = ({
   items,
   desktopClassName,
   mobileClassName,
+  desktopOrientation = "horizontal",
+  onDockHoverChange,
 }: {
   items: DockItem[];
   desktopClassName?: string;
   mobileClassName?: string;
+  desktopOrientation?: DockOrientation;
+  onDockHoverChange?: (hovered: boolean) => void;
 }) => {
   return (
     <>
-      <FloatingDockDesktop items={items} className={desktopClassName} />
+      <FloatingDockDesktop
+        items={items}
+        className={desktopClassName}
+        orientation={desktopOrientation}
+        onDockHoverChange={onDockHoverChange}
+      />
       <FloatingDockMobile items={items} className={mobileClassName} />
     </>
   );
@@ -78,14 +94,34 @@ const FloatingDockMobile = ({
                   },
                 }}
                 transition={{ delay: (items.length - 1 - idx) * 0.05 }}
+                className="relative"
               >
                 <DockLink
                   href={item.href}
+                  onClick={(event) => {
+                    item.onClick?.(event);
+                    setOpen(false);
+                  }}
                   disabled={item.disabled}
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-50 dark:bg-neutral-900"
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-50 dark:bg-neutral-900"
                 >
-                  <div className={cn(item.variant === "logo" ? "h-5 w-5 scale-150" : "h-4 w-4")}>{item.icon}</div>
+                  <div
+                    className={cn(
+                      item.variant === "logo"
+                        ? "h-full w-full overflow-hidden rounded-full"
+                        : item.variant === "avatar"
+                          ? "h-full w-full overflow-hidden rounded-full"
+                          : "h-4 w-4",
+                    )}
+                  >
+                    {item.icon}
+                  </div>
                 </DockLink>
+                {item.badge && item.badge > 0 ? (
+                  <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white">
+                    {item.badge}
+                  </span>
+                ) : null}
               </motion.div>
             ))}
           </motion.div>
@@ -93,7 +129,7 @@ const FloatingDockMobile = ({
       </AnimatePresence>
       <button
         onClick={() => setOpen(!open)}
-        className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-50 dark:bg-neutral-800"
+        className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-50 dark:bg-neutral-800"
       >
         <IconLayoutNavbarCollapse className="h-5 w-5 text-neutral-500 dark:text-neutral-400" />
       </button>
@@ -104,23 +140,33 @@ const FloatingDockMobile = ({
 const FloatingDockDesktop = ({
   items,
   className,
+  orientation,
+  onDockHoverChange,
 }: {
   items: DockItem[];
   className?: string;
+  orientation: DockOrientation;
+  onDockHoverChange?: (hovered: boolean) => void;
 }) => {
-  const mouseX = useMotionValue(Infinity);
+  const pointer = useMotionValue(Infinity);
   return (
     <motion.div
-      onMouseMove={(e) => mouseX.set(e.pageX)}
-      onMouseLeave={() => mouseX.set(Infinity)}
+      onMouseMove={(e) => pointer.set(orientation === "vertical" ? e.clientY : e.clientX)}
+      onMouseEnter={() => onDockHoverChange?.(true)}
+      onMouseLeave={() => {
+        pointer.set(Infinity);
+        onDockHoverChange?.(false);
+      }}
       className={cn(
-        "mx-auto hidden h-16 items-end gap-4 rounded-2xl bg-gray-50 px-4 pb-3 md:flex dark:bg-neutral-900",
+        orientation === "vertical"
+          ? "mx-auto hidden w-16 items-center gap-4 rounded-2xl bg-gray-50 px-3 py-4 md:flex md:flex-col dark:bg-neutral-900"
+          : "mx-auto hidden h-16 items-end gap-4 rounded-2xl bg-gray-50 px-4 pb-3 md:flex dark:bg-neutral-900",
         className,
       )}
     >
       <LayoutGroup id="dock-active-indicator">
         {items.map((item) => (
-          <IconContainer mouseX={mouseX} key={item.title} {...item} />
+          <IconContainer pointer={pointer} orientation={orientation} key={item.title} {...item} />
         ))}
       </LayoutGroup>
     </motion.div>
@@ -128,38 +174,55 @@ const FloatingDockDesktop = ({
 };
 
 function IconContainer({
-  mouseX,
+  pointer,
+  orientation,
   title,
   icon,
   href,
+  onClick,
+  onMouseEnter,
+  onMouseLeave,
   active = false,
   disabled,
   variant = "default",
+  badge,
+  align = "default",
 }: {
-  mouseX: MotionValue;
+  pointer: MotionValue;
+  orientation: DockOrientation;
   title: string;
   icon: React.ReactNode;
-  href: string;
+  href?: string;
+  onClick?: (event: ReactMouseEvent<HTMLElement>) => void;
+  onMouseEnter?: (event: ReactMouseEvent<HTMLElement>) => void;
+  onMouseLeave?: (event: ReactMouseEvent<HTMLElement>) => void;
   active?: boolean;
   disabled?: boolean;
-  variant?: "default" | "logo";
+  variant?: "default" | "logo" | "avatar";
+  badge?: number;
+  align?: "default" | "bottom";
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
-  const distance = useTransform(mouseX, (val) => {
-    const bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
-
-    return val - bounds.x - bounds.width / 2;
+  const distance = useTransform(pointer, (val) => {
+    const bounds = ref.current?.getBoundingClientRect() ?? { x: 0, y: 0, width: 0, height: 0 };
+    return orientation === "vertical"
+      ? val - bounds.y - bounds.height / 2
+      : val - bounds.x - bounds.width / 2;
   });
 
-  const widthTransform = useTransform(distance, [-150, 0, 150], [40, 80, 40]);
-  const heightTransform = useTransform(distance, [-150, 0, 150], [40, 80, 40]);
+  const widthTransform = useTransform(distance, [-150, 0, 150], variant === "logo" ? [48, 92, 48] : [40, 80, 40]);
+  const heightTransform = useTransform(distance, [-150, 0, 150], variant === "logo" ? [48, 92, 48] : [40, 80, 40]);
 
-  const widthTransformIcon = useTransform(distance, [-150, 0, 150], [20, 40, 20]);
+  const widthTransformIcon = useTransform(
+    distance,
+    [-150, 0, 150],
+    variant === "logo" ? [44, 88, 44] : variant === "avatar" ? [40, 80, 40] : [20, 40, 20],
+  );
   const heightTransformIcon = useTransform(
     distance,
     [-150, 0, 150],
-    [20, 40, 20],
+    variant === "logo" ? [44, 88, 44] : variant === "avatar" ? [40, 80, 40] : [20, 40, 20],
   );
 
   const width = useSpring(widthTransform, {
@@ -188,21 +251,34 @@ function IconContainer({
   const showLogo = variant === "logo";
 
   return (
-    <DockLink href={href} disabled={disabled}>
+    <DockLink
+      href={href}
+      onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      disabled={disabled}
+      className={cn(orientation === "vertical" && align === "bottom" && "mt-auto")}
+    >
       <motion.div
         ref={ref}
         style={{ width, height }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        className="relative flex aspect-square items-center justify-center rounded-full bg-gray-200 dark:bg-neutral-800"
+        className={cn(
+          "relative flex aspect-square items-center justify-center rounded-full bg-gray-200 dark:bg-neutral-800",
+          (variant === "avatar" || variant === "logo") && "overflow-hidden p-0",
+        )}
       >
         <AnimatePresence>
           {hovered && !showLogo && (
             <motion.div
-              initial={{ opacity: 0, y: 10, x: "-50%" }}
-              animate={{ opacity: 1, y: 0, x: "-50%" }}
-              exit={{ opacity: 0, y: 2, x: "-50%" }}
-              className="absolute -top-8 left-1/2 w-fit rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs whitespace-pre text-neutral-700 dark:border-neutral-900 dark:bg-neutral-800 dark:text-white"
+              initial={orientation === "vertical" ? { opacity: 0, x: 8, y: "-50%" } : { opacity: 0, y: 10, x: "-50%" }}
+              animate={orientation === "vertical" ? { opacity: 1, x: 0, y: "-50%" } : { opacity: 1, y: 0, x: "-50%" }}
+              exit={orientation === "vertical" ? { opacity: 0, x: 4, y: "-50%" } : { opacity: 0, y: 2, x: "-50%" }}
+              className={cn(
+                "w-fit rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs whitespace-pre text-neutral-700 dark:border-neutral-900 dark:bg-neutral-800 dark:text-white",
+                orientation === "vertical" ? "absolute left-full top-1/2 ml-2" : "absolute -top-8 left-1/2",
+              )}
             >
               {title}
             </motion.div>
@@ -210,15 +286,26 @@ function IconContainer({
         </AnimatePresence>
         <motion.div
           style={{ width: widthIcon, height: heightIcon }}
-          className={cn("flex items-center justify-center", showLogo && "scale-[1.45]")}
+          className={cn(
+            "flex items-center justify-center",
+            (variant === "avatar" || variant === "logo") && "h-full w-full overflow-hidden rounded-full",
+          )}
         >
           {icon}
         </motion.div>
+        {badge && badge > 0 && !showLogo ? (
+          <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white">
+            {badge}
+          </span>
+        ) : null}
         {active && !showLogo ? (
           <motion.span
             layoutId="dock-active-dot"
             transition={{ type: "spring", stiffness: 520, damping: 36, mass: 0.55 }}
-            className="absolute -bottom-1.5 h-1.5 w-1.5 rounded-full bg-primary"
+            className={cn(
+              "absolute h-1.5 w-1.5 rounded-full bg-primary",
+              orientation === "vertical" ? "-right-1.5 top-1/2 -translate-y-1/2" : "-bottom-1.5",
+            )}
           />
         ) : null}
       </motion.div>
@@ -228,11 +315,17 @@ function IconContainer({
 
 function DockLink({
   href,
+  onClick,
+  onMouseEnter,
+  onMouseLeave,
   disabled,
   children,
   className,
 }: {
-  href: string;
+  href?: string;
+  onClick?: (event: ReactMouseEvent<HTMLElement>) => void;
+  onMouseEnter?: (event: ReactMouseEvent<HTMLElement>) => void;
+  onMouseLeave?: (event: ReactMouseEvent<HTMLElement>) => void;
   disabled?: boolean;
   children: React.ReactNode;
   className?: string;
@@ -245,17 +338,39 @@ function DockLink({
     );
   }
 
-  if (href.startsWith("/")) {
+  if (href && href.startsWith("/")) {
     return (
-      <Link to={href} className={className}>
+      <Link to={href} className={className} onClick={onClick} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
         {children}
       </Link>
     );
   }
 
+  if (!href && onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        className={cn("cursor-pointer", className)}
+      >
+        {children}
+      </button>
+    );
+  }
+
+  if (href) {
+    return (
+      <a href={href} className={className} onClick={onClick} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
+        {children}
+      </a>
+    );
+  }
+
   return (
-    <a href={href} className={className}>
+    <div className={className} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       {children}
-    </a>
+    </div>
   );
 }

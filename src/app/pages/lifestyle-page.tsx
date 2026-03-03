@@ -1,35 +1,28 @@
-import { useMemo, useState } from "react";
-import { lifestyleCards, lifestyleUsageStats } from "../../mocks/dashboard-features.mock";
-
-type LifestyleStatusFilter = "ALL" | "Published" | "Draft";
+﻿import { useMemo, useState } from "react";
+import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { lifestyleAlarmSlots, lifestyleKpis, lifestyleMoodTrend, lifestyleRecommendations } from "../../mocks/dashboard-features.mock";
 
 export function LifestylePage() {
-  const [cards, setCards] = useState(lifestyleCards);
-  const [filter, setFilter] = useState<LifestyleStatusFilter>("ALL");
-  const [newTitle, setNewTitle] = useState("");
-  const [newType, setNewType] = useState("Quote Card");
+  const [tab, setTab] = useState<"food" | "series">("food");
 
-  const filteredCards = useMemo(() => {
-    return cards.filter((card) => filter === "ALL" || card.status === filter);
-  }, [cards, filter]);
-
-  const publishedCount = cards.filter((card) => card.status === "Published").length;
-  const draftCount = cards.filter((card) => card.status === "Draft").length;
+  const filteredRecommendations = useMemo(
+    () => lifestyleRecommendations.filter((item) => item.type === tab),
+    [tab],
+  );
 
   return (
     <section className="space-y-6">
       <header>
-        <h1 className="text-3xl font-bold tracking-tight">Lifestyle Content</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Manage daily cards, prompts, and wellness content distribution.
-        </p>
+        <h2 className="text-2xl font-bold tracking-tight">โมดูลไลฟ์สไตล์</h2>
+        <p className="mt-1 text-sm text-muted-foreground">ดูภาพรวมสุขภาพใจ พฤติกรรม และผลลัพธ์จาก AI Recommendation</p>
       </header>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        {lifestyleUsageStats.map((stat) => (
-          <article key={stat.metric} className="rounded-xl bg-card p-5 shadow-card">
-            <p className="text-sm text-muted-foreground">{stat.metric}</p>
-            <p className="mt-3 text-2xl font-bold">{stat.value}</p>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {lifestyleKpis.map((item) => (
+          <article key={item.label} className="rounded-xl bg-card p-5 shadow-card">
+            <p className="text-sm text-muted-foreground">{item.label}</p>
+            <p className="mt-3 text-2xl font-bold">{item.value}</p>
+            <p className="mt-2 text-xs text-muted-foreground">{item.note}</p>
           </article>
         ))}
       </div>
@@ -37,117 +30,81 @@ export function LifestylePage() {
       <article className="rounded-xl bg-card p-6 shadow-card">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-lg font-semibold">Card Manager</h2>
-            <p className="text-sm text-muted-foreground">Quote cards, banners, and wellness prompts.</p>
+            <h3 className="text-base font-semibold">AI Recommendations</h3>
+            <p className="text-sm text-muted-foreground">สลับดูเมนูอาหารหรือซีรีส์ พร้อม CTR</p>
           </div>
-          <div className="grid gap-2 sm:grid-cols-2">
-            <select
-              value={filter}
-              onChange={(event) => setFilter(event.target.value as LifestyleStatusFilter)}
-              className="rounded-md border border-input bg-background px-3 py-2 text-sm"
+          <div className="inline-flex rounded-lg border border-border bg-background p-1">
+            <button
+              type="button"
+              onClick={() => setTab("food")}
+              aria-pressed={tab === "food"}
+              className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+                tab === "food" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
+              }`}
             >
-              <option value="ALL">All Status</option>
-              <option value="Published">Published</option>
-              <option value="Draft">Draft</option>
-            </select>
-            <p className="rounded-md bg-background px-3 py-2 text-xs text-muted-foreground">
-              Published: {publishedCount} | Draft: {draftCount}
-            </p>
+              เมนูอาหาร
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab("series")}
+              aria-pressed={tab === "series"}
+              className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+                tab === "series" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
+              }`}
+            >
+              ภาพยนตร์/ซีรีส์
+            </button>
           </div>
         </div>
 
-        <div className="mt-4 grid gap-2 rounded-lg bg-background p-3 sm:grid-cols-[1fr_auto_auto]">
-          <input
-            value={newTitle}
-            onChange={(event) => setNewTitle(event.target.value)}
-            placeholder="New card title..."
-            className="rounded-md border border-input bg-card px-3 py-2 text-sm"
-          />
-          <select
-            value={newType}
-            onChange={(event) => setNewType(event.target.value)}
-            className="rounded-md border border-input bg-card px-3 py-2 text-sm"
-          >
-            <option>Quote Card</option>
-            <option>Health Prompt</option>
-            <option>Journal Prompt</option>
-            <option>Banner</option>
-          </select>
-          <button
-            type="button"
-            onClick={() => {
-              if (newTitle.trim().length === 0) return;
-              setCards((prev) => [
-                {
-                  id: `LC-${String(prev.length + 1).padStart(3, "0")}`,
-                  title: newTitle.trim(),
-                  type: newType,
-                  schedule: "Daily 18:00",
-                  status: "Draft",
-                },
-                ...prev,
-              ]);
-              setNewTitle("");
-            }}
-            className="rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition hover:opacity-90"
-          >
-            Add Card (Mock)
-          </button>
-        </div>
-
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[760px] text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-muted-foreground">
-                <th className="pb-2">ID</th>
-                <th className="pb-2">Title</th>
-                <th className="pb-2">Type</th>
-                <th className="pb-2">Schedule</th>
-                <th className="pb-2">Status</th>
-                <th className="pb-2">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredCards.map((card) => (
-                <tr key={card.id} className="border-b border-border/70 last:border-none">
-                  <td className="py-3 font-medium">{card.id}</td>
-                  <td className="py-3">{card.title}</td>
-                  <td className="py-3">{card.type}</td>
-                  <td className="py-3">{card.schedule}</td>
-                  <td className="py-3">
-                    <span
-                      className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                        card.status === "Published"
-                          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300"
-                          : "bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      {card.status}
-                    </span>
-                  </td>
-                  <td className="py-3">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setCards((prev) =>
-                          prev.map((candidate) =>
-                            candidate.id === card.id
-                              ? { ...candidate, status: candidate.status === "Published" ? "Draft" : "Published" }
-                              : candidate,
-                          ),
-                        )
-                      }
-                      className="rounded-md bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground transition hover:bg-accent"
-                    >
-                      {card.status === "Published" ? "Move to Draft" : "Publish"}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          {filteredRecommendations.map((item) => (
+            <div key={item.id} className="rounded-lg bg-background p-4 transition hover:-translate-y-0.5">
+              <p className="text-sm font-semibold">{item.title}</p>
+              <p className="mt-1 text-xs text-muted-foreground">โหมดอารมณ์: {item.moodTag}</p>
+              <p className="mt-3 text-xs font-medium text-emerald-600 dark:text-emerald-300">CTR {item.ctr}%</p>
+            </div>
+          ))}
         </div>
       </article>
+
+      <div className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
+        <article className="rounded-xl bg-card p-6 shadow-card">
+          <h3 className="text-base font-semibold">กราฟอารมณ์ภาพรวม</h3>
+          <p className="text-sm text-muted-foreground">Positive / Neutral / Stressed ต่อสัปดาห์</p>
+          <div className="mt-4 h-64 w-full">
+            <ResponsiveContainer>
+              <LineChart data={lifestyleMoodTrend} margin={{ left: 8, right: 8, top: 6 }}>
+                <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeOpacity={0.5} />
+                <XAxis dataKey="week" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} />
+                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="positive" stroke="#16a34a" strokeWidth={2.8} dot={false} activeDot={{ r: 4 }} name="Positive" />
+                <Line type="natural" dataKey="neutral" stroke="#0284c7" strokeWidth={2.4} strokeDasharray="7 4" dot={{ r: 2 }} name="Neutral" />
+                <Line type="linear" dataKey="stressed" stroke="#f59e0b" strokeWidth={2.4} strokeDasharray="3 3" dot={{ r: 2 }} name="Stressed" />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </article>
+
+        <article className="rounded-xl bg-card p-6 shadow-card">
+          <h3 className="text-base font-semibold">เวลาปลุกยอดฮิต</h3>
+          <p className="text-sm text-muted-foreground">ช่วงเวลาตั้งปลุกอัจฉริยะที่ถูกใช้บ่อย</p>
+          <div className="mt-4 h-64 w-full">
+            <ResponsiveContainer>
+              <BarChart data={lifestyleAlarmSlots} margin={{ left: 8, right: 8, top: 6 }}>
+                <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeOpacity={0.5} />
+                <XAxis dataKey="slot" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} />
+                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                <Tooltip />
+                <Bar dataKey="users" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} name="Users" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </article>
+      </div>
     </section>
   );
 }
+

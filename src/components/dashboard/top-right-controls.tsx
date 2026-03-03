@@ -1,8 +1,8 @@
+import { LogOut, Moon, Settings, Sun, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, LogOut, Moon, Settings, Sun, User } from "lucide-react";
-import { Link } from "react-router-dom";
-import { cn } from "../../lib/utils";
-import type { AdminProfile } from "../../types/admin-profile";
+import { Link, useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import type { AdminProfile } from "@/types/admin-profile";
 
 interface TopRightControlsProps {
   theme: "light" | "dark";
@@ -11,9 +11,11 @@ interface TopRightControlsProps {
 }
 
 export function TopRightControls({ theme, onToggleTheme, profile }: TopRightControlsProps) {
+  const navigate = useNavigate();
+  const menuRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [avatarFailed, setAvatarFailed] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+
   const initials = profile.name
     .split(" ")
     .filter(Boolean)
@@ -23,7 +25,9 @@ export function TopRightControls({ theme, onToggleTheme, profile }: TopRightCont
     .toUpperCase();
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      return;
+    }
 
     const handlePointerDown = (event: PointerEvent) => {
       const target = event.target as Node | null;
@@ -32,45 +36,50 @@ export function TopRightControls({ theme, onToggleTheme, profile }: TopRightCont
       }
     };
 
-    document.addEventListener("pointerdown", handlePointerDown);
-    return () => document.removeEventListener("pointerdown", handlePointerDown);
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setOpen(false);
       }
     };
 
+    document.addEventListener("pointerdown", handlePointerDown);
     document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
   }, [open]);
 
-  return (
-    <div className="fixed top-4 right-4 z-50 flex max-w-[calc(100vw-2rem)] items-center gap-2">
-      <button
-        type="button"
-        onClick={onToggleTheme}
-        className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-card/85 text-muted-foreground backdrop-blur transition hover:bg-primary-soft hover:text-foreground"
-        aria-label="Toggle theme"
-      >
-        {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-      </button>
+  const closeMenu = () => setOpen(false);
 
+  const onOpenProfile = () => {
+    closeMenu();
+    navigate("/user-management");
+  };
+
+  const onLogout = () => {
+    window.localStorage.removeItem("mockup-theme");
+    closeMenu();
+    navigate("/", { replace: true });
+  };
+
+  return (
+    <div className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(0.75rem,env(safe-area-inset-right))] z-40 flex w-12 flex-col items-center gap-2 sm:bottom-6 sm:right-4 md:w-16 xl:right-auto xl:bottom-10 xl:left-8">
       <div ref={menuRef} className="relative">
         <button
           type="button"
           onClick={() => setOpen((current) => !current)}
-          className="inline-flex h-9 items-center gap-2 rounded-full bg-card/85 px-2.5 text-sm backdrop-blur transition hover:bg-primary-soft"
+          className={cn(
+            "inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-card/85 p-0.5 shadow-lg backdrop-blur transition-colors duration-200 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:h-10 sm:w-10 md:h-11 md:w-11",
+            open && "bg-primary-soft",
+          )}
           aria-haspopup="menu"
           aria-expanded={open}
           aria-controls="admin-profile-menu"
+          aria-label="Open profile menu"
         >
           {avatarFailed || !profile.avatarUrl ? (
-            <div className="grid h-7 w-7 place-items-center rounded-full bg-primary-soft text-[10px] font-semibold text-foreground">
+            <div className="grid h-8 w-8 place-items-center rounded-full bg-primary-soft text-[10px] font-semibold text-foreground sm:h-9 sm:w-9 md:h-10 md:w-10 md:text-xs">
               {initials}
             </div>
           ) : (
@@ -86,18 +95,16 @@ export function TopRightControls({ theme, onToggleTheme, profile }: TopRightCont
                   setAvatarFailed(true);
                 }
               }}
-              className="h-7 w-7 rounded-full object-cover"
+              className="h-8 w-8 rounded-full object-cover sm:h-9 sm:w-9 md:h-10 md:w-10"
             />
           )}
-          <span className="max-w-32 truncate text-sm font-medium text-foreground">{profile.name}</span>
-          <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", open && "rotate-180")} />
         </button>
 
         {open ? (
           <div
             id="admin-profile-menu"
             role="menu"
-            className="absolute right-0 top-full mt-2 min-w-[190px] rounded-xl bg-card p-1.5 shadow-xl"
+            className="absolute bottom-full right-0 mb-2 min-w-[180px] rounded-xl bg-card p-1.5 shadow-xl md:min-w-[190px] xl:right-auto xl:left-full xl:bottom-auto xl:-bottom-1 xl:mb-0 xl:ml-3"
           >
             <div className="rounded-lg px-2.5 py-2">
               <p className="truncate text-sm font-semibold text-foreground">{profile.name}</p>
@@ -107,35 +114,44 @@ export function TopRightControls({ theme, onToggleTheme, profile }: TopRightCont
             <button
               type="button"
               role="menuitem"
-              onClick={() => setOpen(false)}
-              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-foreground transition hover:bg-primary-soft"
+              onClick={onOpenProfile}
+              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm text-foreground transition-colors duration-200 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <User className="h-4 w-4 text-muted-foreground" />
-              <span>Profile</span>
+              <span>ดูโปรไฟล์</span>
             </button>
 
             <Link
               to="/settings"
               role="menuitem"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-foreground transition hover:bg-primary-soft"
+              onClick={closeMenu}
+              className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-foreground transition-colors duration-200 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <Settings className="h-4 w-4 text-muted-foreground" />
-              <span>Settings</span>
+              <span>ตั้งค่า</span>
             </Link>
 
             <button
               type="button"
               role="menuitem"
-              onClick={() => setOpen(false)}
-              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-foreground transition hover:bg-primary-soft"
+              onClick={onLogout}
+              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm text-foreground transition-colors duration-200 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <LogOut className="h-4 w-4 text-muted-foreground" />
-              <span>Logout</span>
+              <span>ออกจากระบบ</span>
             </button>
           </div>
         ) : null}
       </div>
+
+      <button
+        type="button"
+        onClick={onToggleTheme}
+        className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-card/85 text-muted-foreground shadow-lg backdrop-blur transition-colors duration-200 hover:bg-primary-soft hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:h-10 sm:w-10 md:h-11 md:w-11"
+        aria-label="Toggle theme"
+      >
+        {theme === "dark" ? <Sun className="h-4 w-4 sm:h-[18px] sm:w-[18px] md:h-5 md:w-5" /> : <Moon className="h-4 w-4 sm:h-[18px] sm:w-[18px] md:h-5 md:w-5" />}
+      </button>
     </div>
   );
 }

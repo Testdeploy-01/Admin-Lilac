@@ -1,4 +1,4 @@
-import {
+﻿import {
   Activity,
   Bell,
   BookOpen,
@@ -6,6 +6,7 @@ import {
   CreditCard,
   LayoutDashboard,
   MessageSquare,
+  ScrollText,
   Sprout,
   Users,
   Wallet,
@@ -14,74 +15,100 @@ import {
 import { useLocation } from "react-router-dom";
 import { FloatingDock } from "@/components/ui/floating-dock";
 import { cn } from "@/lib/utils";
+import { pendingUsersCount } from "@/mocks/dashboard-features.mock";
 
 type DockItem = {
   title: string;
-  href: string;
-  icon: LucideIcon;
+  href?: string;
+  icon?: LucideIcon;
+  customIcon?: React.ReactNode;
   activePrefixes: string[];
+  badge?: number;
+  variant?: "default" | "logo" | "avatar";
+  align?: "default" | "bottom";
 };
 
 type DockRenderItem = {
   title: string;
-  href: string;
+  href?: string;
   icon: React.ReactNode;
   active?: boolean;
   disabled?: boolean;
-  variant?: "default" | "logo";
+  variant?: "default" | "logo" | "avatar";
+  align?: "default" | "bottom";
+  badge?: number;
+};
+
+const logoDockItem: DockItem = {
+  title: "โลโก้",
+  href: "/overview",
+  activePrefixes: ["/overview"],
+  customIcon: <img src="/Logo.png" alt="Lilac logo" className="h-full w-full rounded-full object-contain bg-primary-soft p-1" />,
+  variant: "logo",
 };
 
 const leftDockItems: DockItem[] = [
-  { title: "Overview", href: "/overview", icon: LayoutDashboard, activePrefixes: ["/overview"] },
-  { title: "Lifestyle", href: "/lifestyle", icon: Sprout, activePrefixes: ["/lifestyle"] },
-  { title: "Study", href: "/study-config", icon: BookOpen, activePrefixes: ["/study-config"] },
-  { title: "Finance", href: "/finance", icon: Wallet, activePrefixes: ["/finance"] },
+  { title: "ภาพรวม", href: "/overview", icon: LayoutDashboard, activePrefixes: ["/overview"] },
+  { title: "การเรียน", href: "/study-config", icon: BookOpen, activePrefixes: ["/study-config"] },
+  { title: "การเงิน", href: "/finance", icon: Wallet, activePrefixes: ["/finance"] },
+  { title: "ไลฟ์สไตล์", href: "/lifestyle", icon: Sprout, activePrefixes: ["/lifestyle"] },
 ];
 
 const rightDockItems: DockItem[] = [
-  { title: "AI Manager", href: "/ai-manager", icon: Bot, activePrefixes: ["/ai-manager"] },
-  { title: "Users", href: "/user-management", icon: Users, activePrefixes: ["/user-management"] },
-  { title: "Subscriptions", href: "/subscriptions", icon: CreditCard, activePrefixes: ["/subscriptions"] },
-  { title: "App Health", href: "/app-health", icon: Activity, activePrefixes: ["/app-health"] },
-  { title: "Notify", href: "/notifications", icon: Bell, activePrefixes: ["/notifications"] },
-  { title: "Feedback", href: "/feedback", icon: MessageSquare, activePrefixes: ["/feedback"] },
+  { title: "AI", href: "/ai-manager", icon: Bot, activePrefixes: ["/ai-manager"] },
+  { title: "ผู้ใช้", href: "/user-management", icon: Users, activePrefixes: ["/user-management"], badge: pendingUsersCount },
+  { title: "สมาชิก", href: "/subscriptions", icon: CreditCard, activePrefixes: ["/subscriptions"] },
+  { title: "สุขภาพระบบ", href: "/app-health", icon: Activity, activePrefixes: ["/app-health"] },
+  { title: "แจ้งเตือน", href: "/notifications", icon: Bell, activePrefixes: ["/notifications"] },
+  { title: "บันทึก", href: "/logs", icon: ScrollText, activePrefixes: ["/logs"] },
+  { title: "ความคิดเห็น", href: "/feedback", icon: MessageSquare, activePrefixes: ["/feedback"] },
 ];
 
 function isRouteActive(pathname: string, prefixes: string[]) {
   return prefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 
-export function FloatingDockNav() {
+type FloatingDockNavProps = {
+  onHoverChange?: (hovered: boolean) => void;
+};
+
+export function FloatingDockNav({ onHoverChange }: FloatingDockNavProps) {
   const { pathname } = useLocation();
 
   const toRenderItem = (item: DockItem): DockRenderItem => {
-    const Icon = item.icon;
     const active = isRouteActive(pathname, item.activePrefixes);
+    const iconNode = item.customIcon ? (
+      <span className={cn("block h-full w-full rounded-full", active && "ring-2 ring-primary/70 ring-offset-1 ring-offset-background")}>
+        {item.customIcon}
+      </span>
+    ) : item.icon ? (
+      <item.icon className={cn("h-full w-full", active ? "text-foreground" : "text-muted-foreground")} />
+    ) : null;
+
     return {
       title: item.title,
       href: item.href,
       active,
-      icon: <Icon className={cn("h-full w-full", active ? "text-foreground" : "text-muted-foreground")} />,
+      badge: item.badge,
+      variant: item.variant,
+      align: item.align,
+      icon: iconNode,
     };
   };
 
   const items: DockRenderItem[] = [
+    toRenderItem(logoDockItem),
     ...leftDockItems.map(toRenderItem),
-    {
-    title: "Lilac",
-    href: "#",
-    disabled: true,
-    variant: "logo",
-    icon: <img src="/Logo.png" alt="Lilac logo" className="h-full w-full object-contain" />,
-    },
     ...rightDockItems.map(toRenderItem),
   ];
 
   return (
     <FloatingDock
       items={items}
-      desktopClassName="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 bg-[rgb(249,250,251)] backdrop-blur-xl"
-      mobileClassName="fixed right-5 bottom-5 z-50"
+      desktopClassName="fixed left-6 top-[44%] z-30 -translate-y-1/2 lg:left-8"
+      mobileClassName="fixed right-4 bottom-6 z-30"
+      desktopOrientation="vertical"
+      onDockHoverChange={onHoverChange}
     />
   );
 }

@@ -180,47 +180,56 @@ export function AppHealthPage() {
 
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[780px] text-sm">
+            <caption className="sr-only">ตารางสถานะ API endpoint พร้อม latency และปุ่ม recheck</caption>
             <thead>
               <tr className="border-b border-border text-left font-medium text-foreground">
-                <th className="pb-2">Method</th>
-                <th className="pb-2">Endpoint</th>
-                <th className="pb-2">Status</th>
-                <th className="pb-2">Latency</th>
-                <th className="pb-2">Last Checked</th>
-                <th className="pb-2 text-right">Action</th>
+                <th scope="col" className="pb-2">Method</th>
+                <th scope="col" className="pb-2">Endpoint</th>
+                <th scope="col" className="pb-2">Status</th>
+                <th scope="col" className="pb-2">Latency</th>
+                <th scope="col" className="pb-2">Last Checked</th>
+                <th scope="col" className="pb-2 text-right">Action</th>
               </tr>
             </thead>
             <tbody>
-              {apis.map((api) => (
-                <tr key={api.id} className="border-b border-border/70 last:border-none">
-                  <td className="py-3">
-                    <span className="inline-flex rounded-md bg-background px-2 py-1 text-xs font-semibold">
-                      {api.method}
-                    </span>
-                  </td>
-                  <td className="py-3">
-                    <p className="font-medium">{api.name}</p>
-                    <p className="text-xs text-muted-foreground">{api.path}</p>
-                  </td>
-                  <td className="py-3">
-                    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold capitalize ${statusTone(api.status)}`}>
-                      {api.status}
-                    </span>
-                  </td>
-                  <td className="py-3">{api.latencyMs > 0 ? `${api.latencyMs} ms` : "-"}</td>
-                  <td className="py-3 text-muted-foreground">{api.lastChecked}</td>
-                  <td className="py-3 text-right">
-                    <button
-                      type="button"
-                      onClick={() => handleProbeApi(api.id)}
-                      className="inline-flex items-center gap-1 rounded-md bg-background px-2.5 py-1.5 text-xs font-semibold text-foreground transition hover:bg-primary-soft"
-                    >
-                      <ServerCrash className="h-3.5 w-3.5" />
-                      Recheck
-                    </button>
+              {apis.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-sm text-muted-foreground">
+                    ไม่มีรายการ API สำหรับตรวจสอบ
                   </td>
                 </tr>
-              ))}
+              ) : (
+                apis.map((api) => (
+                  <tr key={api.id} className="border-b border-border/70 last:border-none">
+                    <td className="py-3">
+                      <span className="inline-flex rounded-md bg-background px-2 py-1 text-xs font-semibold">
+                        {api.method}
+                      </span>
+                    </td>
+                    <td className="py-3">
+                      <p className="font-medium">{api.name}</p>
+                      <p className="text-xs text-muted-foreground">{api.path}</p>
+                    </td>
+                    <td className="py-3">
+                      <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold capitalize ${statusTone(api.status)}`}>
+                        {api.status}
+                      </span>
+                    </td>
+                    <td className="py-3">{api.latencyMs > 0 ? `${api.latencyMs} ms` : "-"}</td>
+                    <td className="py-3 text-muted-foreground">{api.lastChecked}</td>
+                    <td className="py-3 text-right">
+                      <button
+                        type="button"
+                        onClick={() => handleProbeApi(api.id)}
+                        className="inline-flex items-center gap-1 rounded-md bg-background px-2.5 py-1.5 text-xs font-semibold text-foreground transition hover:bg-primary-soft"
+                      >
+                        <ServerCrash className="h-3.5 w-3.5" />
+                        Recheck
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

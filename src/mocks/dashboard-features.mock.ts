@@ -1,151 +1,547 @@
-export type TrendType = "up" | "down" | "neutral";
+﻿export type TrendType = "up" | "down" | "neutral";
+
+export type AiPeriod = "today" | "7d" | "month" | "year";
+
+export type HealthStatus = "operational" | "degraded" | "down";
 
 export const overviewKpis = [
-  { label: "Total Users", value: "48,921", delta: "+5.2%", trend: "up" as TrendType },
-  { label: "New PLUS+ Subs", value: "1,208", delta: "+12.4%", trend: "up" as TrendType },
-  { label: "Revenue Summary", value: "$92,430", delta: "+7.9%", trend: "up" as TrendType },
-  { label: "System Health", value: "99.95%", delta: "-0.03%", trend: "down" as TrendType },
+  { label: "ผู้ใช้ทั้งหมด", value: "48,921", delta: "+5.2%", trend: "up" as TrendType },
+  { label: "ผู้ใช้วันนี้ (DAU)", value: "12,384", delta: "+3.1%", trend: "up" as TrendType },
+  { label: "แจ้งเตือนที่เปิดใช้งาน", value: "182", delta: "+2.4%", trend: "up" as TrendType },
+  { label: "ใช้ทางลัดวันนี้", value: "7,140", delta: "-1.3%", trend: "down" as TrendType },
 ];
 
-export const overviewTrend = [
-  { label: "Mon", value: 62 },
-  { label: "Tue", value: 68 },
-  { label: "Wed", value: 74 },
-  { label: "Thu", value: 70 },
-  { label: "Fri", value: 82 },
-  { label: "Sat", value: 76 },
-  { label: "Sun", value: 88 },
+export const overviewGrowth30d = [
+  { day: "1", users: 312 },
+  { day: "2", users: 326 },
+  { day: "3", users: 340 },
+  { day: "4", users: 355 },
+  { day: "5", users: 362 },
+  { day: "6", users: 371 },
+  { day: "7", users: 380 },
+  { day: "8", users: 392 },
+  { day: "9", users: 405 },
+  { day: "10", users: 412 },
+  { day: "11", users: 420 },
+  { day: "12", users: 432 },
+  { day: "13", users: 439 },
+  { day: "14", users: 451 },
+  { day: "15", users: 460 },
+  { day: "16", users: 470 },
+  { day: "17", users: 478 },
+  { day: "18", users: 488 },
+  { day: "19", users: 495 },
+  { day: "20", users: 502 },
+  { day: "21", users: 510 },
+  { day: "22", users: 520 },
+  { day: "23", users: 532 },
+  { day: "24", users: 540 },
+  { day: "25", users: 550 },
+  { day: "26", users: 559 },
+  { day: "27", users: 566 },
+  { day: "28", users: 575 },
+  { day: "29", users: 582 },
+  { day: "30", users: 594 },
+];
+
+export const overviewUsageByModule = [
+  { module: "การเรียน", value: 46 },
+  { module: "การเงิน", value: 31 },
+  { module: "ไลฟ์สไตล์", value: 23 },
 ];
 
 export const recentActivities = [
-  { id: "ACT-01", text: "User ID 1092 started Fast-Track study mode", time: "2 mins ago", kind: "user" },
-  { id: "ACT-02", text: "User ID 8831 upgraded to PLUS+ annual plan", time: "15 mins ago", kind: "payment" },
-  { id: "ACT-03", text: "Nightly system backup completed successfully", time: "1 hour ago", kind: "system" },
-  { id: "ACT-04", text: "Admin P. updated AI core model to v4.0", time: "3 hours ago", kind: "admin" },
-  { id: "ACT-05", text: "User ID 4421 reported login issue", time: "5 hours ago", kind: "feedback" },
+  { id: "ACT-01", text: "U-1092 สมัครแพ็กเกจ PLUS+ รายปี", time: "2 นาทีที่แล้ว", kind: "payment" },
+  { id: "ACT-02", text: "U-8831 เปิดใช้งาน Study Planner 3 ครั้ง", time: "9 นาทีที่แล้ว", kind: "user" },
+  { id: "ACT-03", text: "แจ้งเตือนแคมเปญการเงินถูกส่งครบทุกกลุ่ม", time: "17 นาทีที่แล้ว", kind: "system" },
+  { id: "ACT-04", text: "U-4421 รายงานปัญหาการรับ OTP", time: "24 นาทีที่แล้ว", kind: "feedback" },
+  { id: "ACT-05", text: "ทีมแอดมินอัปเดต fallback model เป็น v4.1", time: "41 นาทีที่แล้ว", kind: "admin" },
 ];
 
-export const coreModels = [
-  { id: "llm-4.1", name: "LLM Core v4.1", latency: "1.8s", status: "Active" },
-  { id: "llm-4.0", name: "LLM Core v4.0", latency: "2.1s", status: "Standby" },
-  { id: "llm-3.9", name: "LLM Legacy v3.9", latency: "2.9s", status: "Retired" },
+export const popularFeatures = [
+  { feature: "AI Study Summary", calls: 14230 },
+  { feature: "Budget Auto-Categorization", calls: 12894 },
+  { feature: "Lifestyle Mood Coach", calls: 11052 },
+  { feature: "Exam Reminder", calls: 9821 },
+  { feature: "Subscription Upgrade Prompt", calls: 7740 },
 ];
 
-export const knowledgeEntries = [
-  { topic: "University Admissions", version: "v2.1", updatedAt: "2026-03-01", owner: "Curriculum AI" },
-  { topic: "Personal Finance Basics", version: "v1.7", updatedAt: "2026-02-28", owner: "Finance Team" },
-  { topic: "Lifestyle Wellness", version: "v1.3", updatedAt: "2026-02-24", owner: "Content Ops" },
-];
-
-export const tokenUsage = {
-  monthlyTotal: "1.24M / 2.00M",
-  averageLatency: "1.86 sec",
-  successRate: "99.2%",
-  byModel: [
-    { model: "LLM Core v4.1", tokens: 820_000 },
-    { model: "LLM Core v4.0", tokens: 360_000 },
-    { model: "LLM Legacy v3.9", tokens: 60_000 },
-  ],
+export const aiAlert = {
+  enabled: true,
+  message: "พบการเรียกใช้งาน API สูงผิดปกติภายใน 1 ชั่วโมงล่าสุด",
 };
 
-export const courseLibrary = [
-  { code: "MATH-101", title: "Foundations of Algebra", lessons: 18, quizzes: 6, activeLearners: 1432 },
-  { code: "SCI-202", title: "Biology for Entrance Exams", lessons: 24, quizzes: 9, activeLearners: 980 },
-  { code: "LANG-304", title: "Academic English Essentials", lessons: 16, quizzes: 5, activeLearners: 1210 },
+export const aiPeriodStats: Record<
+  AiPeriod,
+  {
+    kpis: Array<{ label: string; value: string; note: string }>;
+    tokenCostBars: Array<{ label: string; tokens: number; costTHB: number }>;
+    categoryShare: Array<{ category: string; value: number }>;
+  }
+> = {
+  today: {
+    kpis: [
+      { label: "โทเคนทั้งหมด", value: "214,900", note: "เข้า 124,500 / ออก 90,400" },
+      { label: "ต้นทุน AI", value: "฿5,342", note: "USD rate 35.8" },
+      { label: "ความแม่นยำ Intent", value: "96.8%", note: "จาก 8,302 requests" },
+      { label: "กำไรขั้นต้น", value: "61.2%", note: "เทียบรายได้สมาชิก" },
+    ],
+    tokenCostBars: [
+      { label: "เช้า", tokens: 51200, costTHB: 1240 },
+      { label: "บ่าย", tokens: 60400, costTHB: 1510 },
+      { label: "เย็น", tokens: 56800, costTHB: 1392 },
+      { label: "ดึก", tokens: 46500, costTHB: 1200 },
+    ],
+    categoryShare: [
+      { category: "Study", value: 48 },
+      { category: "Finance", value: 30 },
+      { category: "Lifestyle", value: 22 },
+    ],
+  },
+  "7d": {
+    kpis: [
+      { label: "โทเคนทั้งหมด", value: "1,240,000", note: "เข้า 732,100 / ออก 507,900" },
+      { label: "ต้นทุน AI", value: "฿30,840", note: "USD rate 35.8" },
+      { label: "ความแม่นยำ Intent", value: "97.3%", note: "จาก 52,810 requests" },
+      { label: "กำไรขั้นต้น", value: "58.4%", note: "เทียบรายได้สมาชิก" },
+    ],
+    tokenCostBars: [
+      { label: "จันทร์", tokens: 178000, costTHB: 4320 },
+      { label: "อังคาร", tokens: 169000, costTHB: 4250 },
+      { label: "พุธ", tokens: 181000, costTHB: 4510 },
+      { label: "พฤหัส", tokens: 176000, costTHB: 4430 },
+      { label: "ศุกร์", tokens: 190000, costTHB: 4700 },
+      { label: "เสาร์", tokens: 172000, costTHB: 4325 },
+      { label: "อาทิตย์", tokens: 174000, costTHB: 4305 },
+    ],
+    categoryShare: [
+      { category: "Study", value: 45 },
+      { category: "Finance", value: 33 },
+      { category: "Lifestyle", value: 22 },
+    ],
+  },
+  month: {
+    kpis: [
+      { label: "โทเคนทั้งหมด", value: "5,920,000", note: "เข้า 3,441,000 / ออก 2,479,000" },
+      { label: "ต้นทุน AI", value: "฿147,530", note: "USD rate 35.8" },
+      { label: "ความแม่นยำ Intent", value: "97.1%", note: "จาก 243,100 requests" },
+      { label: "กำไรขั้นต้น", value: "57.9%", note: "เทียบรายได้สมาชิก" },
+    ],
+    tokenCostBars: [
+      { label: "สัปดาห์ 1", tokens: 1410000, costTHB: 35210 },
+      { label: "สัปดาห์ 2", tokens: 1470000, costTHB: 36720 },
+      { label: "สัปดาห์ 3", tokens: 1510000, costTHB: 37650 },
+      { label: "สัปดาห์ 4", tokens: 1530000, costTHB: 37950 },
+    ],
+    categoryShare: [
+      { category: "Study", value: 44 },
+      { category: "Finance", value: 34 },
+      { category: "Lifestyle", value: 22 },
+    ],
+  },
+  year: {
+    kpis: [
+      { label: "โทเคนทั้งหมด", value: "64,300,000", note: "เข้า 37,450,000 / ออก 26,850,000" },
+      { label: "ต้นทุน AI", value: "฿1,610,400", note: "USD rate 35.8" },
+      { label: "ความแม่นยำ Intent", value: "96.7%", note: "จาก 2.61M requests" },
+      { label: "กำไรขั้นต้น", value: "55.8%", note: "เทียบรายได้สมาชิก" },
+    ],
+    tokenCostBars: [
+      { label: "Q1", tokens: 15600000, costTHB: 390200 },
+      { label: "Q2", tokens: 16000000, costTHB: 401800 },
+      { label: "Q3", tokens: 16300000, costTHB: 409300 },
+      { label: "Q4", tokens: 16400000, costTHB: 409100 },
+    ],
+    categoryShare: [
+      { category: "Study", value: 43 },
+      { category: "Finance", value: 35 },
+      { category: "Lifestyle", value: 22 },
+    ],
+  },
+};
+
+export const aiModelUsage = [
+  { model: "Claude Haiku", tokens: 860000, costTHB: 20400 },
+  { model: "Claude Sonnet", tokens: 310000, costTHB: 9100 },
+  { model: "Claude Opus", tokens: 70000, costTHB: 5340 },
 ];
 
-export const learnerStatistics = [
-  { metric: "Most Popular Subject", value: "Mathematics", note: "31% of total enrollments" },
-  { metric: "Avg. Completion Rate", value: "74%", note: "Across all active cohorts" },
-  { metric: "Weekly Active Learners", value: "12,090", note: "Latest 7-day snapshot" },
+export type AiUsageRow = {
+  userId: string;
+  plan: "FREE" | "PLUS+";
+  inputTokens: number;
+  outputTokens: number;
+  revenueTHB: number;
+  costTHB: number;
+};
+
+export const aiUsageRows: AiUsageRow[] = [
+  { userId: "U-1092", plan: "PLUS+", inputTokens: 18230, outputTokens: 9220, revenueTHB: 420, costTHB: 121 },
+  { userId: "U-8831", plan: "FREE", inputTokens: 6240, outputTokens: 2880, revenueTHB: 0, costTHB: 57 },
+  { userId: "U-4421", plan: "PLUS+", inputTokens: 26110, outputTokens: 13110, revenueTHB: 420, costTHB: 176 },
+  { userId: "U-7340", plan: "PLUS+", inputTokens: 10420, outputTokens: 5122, revenueTHB: 420, costTHB: 84 },
+  { userId: "U-5521", plan: "FREE", inputTokens: 8120, outputTokens: 4200, revenueTHB: 0, costTHB: 71 },
 ];
 
-export const invoiceHistory = [
-  { invoice: "INV-202603-001", user: "U-1092", amount: "$120.00", method: "Credit Card", status: "Paid", date: "2026-03-02" },
-  { invoice: "INV-202603-002", user: "U-8831", amount: "$49.00", method: "PromptPay", status: "Pending", date: "2026-03-02" },
-  { invoice: "INV-202603-003", user: "U-4421", amount: "$12.00", method: "Bank Transfer", status: "Paid", date: "2026-03-01" },
+export const studyKpis = [
+  { label: "ผู้ใช้สร้างตารางเรียน", value: "68%", note: "ของผู้ใช้ทั้งหมด" },
+  { label: "อีเวนต์สอบ/โปรเจกต์รายสัปดาห์", value: "1,482", note: "เพิ่มขึ้น 9.4%" },
+  { label: "เปิดแอปตรงเวลาเรียน", value: "74%", note: "ความสม่ำเสมอเฉลี่ย" },
+  { label: "วิชายอดนิยม", value: "คณิตศาสตร์", note: "31% ของทั้งหมด" },
 ];
 
-export const manualApprovals = [
-  { requestId: "APR-9011", user: "U-5521", amount: "$49.00", submittedAt: "2026-03-02 09:20", bankRef: "TTB-9810021" },
-  { requestId: "APR-9012", user: "U-7340", amount: "$120.00", submittedAt: "2026-03-02 10:14", bankRef: "KTB-1209910" },
+export const studyWorkloadTrend = [
+  { label: "สัปดาห์ 1", events: 312, upcoming: 180 },
+  { label: "สัปดาห์ 2", events: 350, upcoming: 196 },
+  { label: "สัปดาห์ 3", events: 372, upcoming: 215 },
+  { label: "สัปดาห์ 4", events: 448, upcoming: 262 },
 ];
 
-export const lifestyleCards = [
-  { id: "LC-001", title: "Morning Focus Ritual", type: "Quote Card", schedule: "Daily 07:00", status: "Published" },
-  { id: "LC-002", title: "Hydration Reminder", type: "Health Prompt", schedule: "Daily 14:00", status: "Published" },
-  { id: "LC-003", title: "Evening Reflection", type: "Journal Prompt", schedule: "Daily 20:30", status: "Draft" },
+export const studyUpcomingShare = [
+  { name: "Upcoming", value: 62 },
+  { name: "Completed", value: 38 },
 ];
 
-export const lifestyleUsageStats = [
-  { metric: "Bookmarks", value: "18,230" },
-  { metric: "Likes", value: "51,904" },
-  { metric: "Shares", value: "7,112" },
+export type StudyTrendingEvent = {
+  id: string;
+  title: string;
+  university: string;
+  year: string;
+  dueIn: string;
+  insight: string;
+};
+
+export const studyTrendingEvents: StudyTrendingEvent[] = [
+  {
+    id: "STD-001",
+    title: "Midterm Calculus",
+    university: "จุฬาลงกรณ์มหาวิทยาลัย",
+    year: "ปี 1",
+    dueIn: "อีก 3 วัน",
+    insight: "คำถาม AI วิชานี้เพิ่มขึ้น +22%",
+  },
+  {
+    id: "STD-002",
+    title: "Data Structure Project",
+    university: "มหาวิทยาลัยธรรมศาสตร์",
+    year: "ปี 2",
+    dueIn: "อีก 5 วัน",
+    insight: "ผู้ใช้ถามเรื่องการออกแบบอัลกอริทึมเพิ่มขึ้น +18%",
+  },
+  {
+    id: "STD-003",
+    title: "Organic Chemistry Quiz",
+    university: "มหาวิทยาลัยเชียงใหม่",
+    year: "ปี 1",
+    dueIn: "อีก 2 วัน",
+    insight: "บทเรียนทบทวนถูกเรียกใช้สูงกว่าปกติ +17%",
+  },
+  {
+    id: "STD-004",
+    title: "Business Analytics Presentation",
+    university: "มหาวิทยาลัยเกษตรศาสตร์",
+    year: "ปี 3",
+    dueIn: "อีก 6 วัน",
+    insight: "AI สรุปสไลด์ถูกใช้งานเพิ่มขึ้น +26%",
+  },
 ];
 
-export const managedUsers = [
+export const financeKpis = [
+  { label: "ผู้ใช้คุมงบได้ (On-track)", value: "57%", note: "+2.8% จากสัปดาห์ก่อน" },
+  { label: "ผู้ใช้ใช้เงินทะลุงบ", value: "21%", note: "ต้องการการแจ้งเตือน" },
+  { label: "ใช้ AI ทำบัญชี", value: "63%", note: "แชท 41% / เสียง 22%" },
+  { label: "พิมพ์ลงบัญชีเอง", value: "37%", note: "Manual mode" },
+];
+
+export type FinanceCategoryUsage = {
+  category: string;
+  income: number;
+  expense: number;
+  ratio: number;
+};
+
+export const financeCategoryUsage: FinanceCategoryUsage[] = [
+  { category: "อาหาร", income: 840000, expense: 410000, ratio: 39 },
+  { category: "เดินทาง", income: 340000, expense: 190000, ratio: 18 },
+  { category: "ชอปปิง", income: 510000, expense: 276000, ratio: 26 },
+  { category: "บันเทิง", income: 290000, expense: 124000, ratio: 12 },
+  { category: "อื่น ๆ", income: 220000, expense: 64000, ratio: 5 },
+];
+
+export const financeDailyEntries = [
+  { day: "จ", total: 840 },
+  { day: "อ", total: 920 },
+  { day: "พ", total: 1010 },
+  { day: "พฤ", total: 980 },
+  { day: "ศ", total: 1102 },
+  { day: "ส", total: 942 },
+  { day: "อา", total: 890 },
+];
+
+export const financeInputMethodShare = [
+  { name: "กรอกเอง", value: 37 },
+  { name: "AI แชท", value: 41 },
+  { name: "AI พิมพ์เสียง", value: 22 },
+];
+
+export const lifestyleKpis = [
+  { label: "ผู้ใช้มี Routine", value: "72%", note: "ตั้งเตือนอย่างน้อย 1 รายการ" },
+  { label: "ไดอารี่แนบภาพ", value: "9,432", note: "ล่าสุด 30 วัน" },
+  { label: "Mood Index", value: "78/100", note: "ดีขึ้น +4 คะแนน" },
+  { label: "กลุ่มเสี่ยงเครียด", value: "11%", note: "พักผ่อนน้อย/นอนดึก" },
+];
+
+export type LifestyleRecommendation = {
+  id: string;
+  type: "food" | "series";
+  title: string;
+  ctr: number;
+  moodTag: string;
+};
+
+export const lifestyleRecommendations: LifestyleRecommendation[] = [
+  { id: "LIFE-001", type: "food", title: "ข้าวหน้าปลาแซลมอน", ctr: 42, moodTag: "ต้องการพลังงาน" },
+  { id: "LIFE-002", type: "food", title: "สลัดไก่อบ", ctr: 38, moodTag: "คุมแคลอรี" },
+  { id: "LIFE-003", type: "food", title: "ซุปฟักทอง", ctr: 29, moodTag: "ผ่อนคลาย" },
+  { id: "LIFE-101", type: "series", title: "The Last Lecture", ctr: 34, moodTag: "หาแรงบันดาลใจ" },
+  { id: "LIFE-102", type: "series", title: "Chef's Table", ctr: 27, moodTag: "พักสมอง" },
+  { id: "LIFE-103", type: "series", title: "Minimalism", ctr: 23, moodTag: "จัดระเบียบชีวิต" },
+];
+
+export const lifestyleMoodTrend = [
+  { week: "W1", positive: 58, neutral: 30, stressed: 12 },
+  { week: "W2", positive: 61, neutral: 28, stressed: 11 },
+  { week: "W3", positive: 64, neutral: 26, stressed: 10 },
+  { week: "W4", positive: 66, neutral: 25, stressed: 9 },
+];
+
+export const lifestyleAlarmSlots = [
+  { slot: "06:00", users: 1860 },
+  { slot: "07:00", users: 3022 },
+  { slot: "17:00", users: 2410 },
+  { slot: "21:00", users: 1902 },
+];
+
+export type UserTableRowExpanded = {
+  id: string;
+  name: string;
+  avatar: string;
+  plan: "PLUS+" | "FREE";
+  signupDate: string;
+  favoriteCategory: "Study" | "Finance" | "Lifestyle";
+  systemAlert: string;
+  monthlyTokens: number;
+  aiCostTHB: number;
+  status: "active" | "suspended" | "new";
+  lastLogin: string;
+};
+
+export const managedUsers: UserTableRowExpanded[] = [
   {
     id: "U-1092",
     name: "Napat K.",
+    avatar: "https://ui.shadcn.com/avatars/01.png",
     plan: "PLUS+",
-    status: "active",
+    signupDate: "2026-01-10",
     favoriteCategory: "Study",
+    systemAlert: "Normal",
+    monthlyTokens: 28230,
+    aiCostTHB: 121,
+    status: "active",
     lastLogin: "2026-03-03 08:14",
-    quotaRemaining: "42%",
-    purchases: 3,
   },
   {
     id: "U-8831",
     name: "Sirin P.",
+    avatar: "https://ui.shadcn.com/avatars/02.png",
     plan: "FREE",
-    status: "visitor",
+    signupDate: "2026-02-27",
     favoriteCategory: "Lifestyle",
+    systemAlert: "Needs follow-up",
+    monthlyTokens: 9120,
+    aiCostTHB: 57,
+    status: "new",
     lastLogin: "2026-03-03 07:51",
-    quotaRemaining: "100%",
-    purchases: 0,
   },
   {
     id: "U-4421",
     name: "Anon C.",
+    avatar: "https://ui.shadcn.com/avatars/03.png",
     plan: "PLUS+",
-    status: "suspended",
+    signupDate: "2025-11-02",
     favoriteCategory: "Finance",
+    systemAlert: "High token burn",
+    monthlyTokens: 39220,
+    aiCostTHB: 176,
+    status: "suspended",
     lastLogin: "2026-03-01 22:04",
-    quotaRemaining: "0%",
-    purchases: 8,
   },
   {
     id: "U-6604",
     name: "Mali R.",
+    avatar: "https://ui.shadcn.com/avatars/04.png",
     plan: "FREE",
-    status: "active",
+    signupDate: "2026-02-25",
     favoriteCategory: "Study",
+    systemAlert: "Normal",
+    monthlyTokens: 11540,
+    aiCostTHB: 84,
+    status: "new",
     lastLogin: "2026-03-03 11:42",
-    quotaRemaining: "76%",
-    purchases: 1,
+  },
+  {
+    id: "U-5521",
+    name: "Pimnara T.",
+    avatar: "https://ui.shadcn.com/avatars/05.png",
+    plan: "PLUS+",
+    signupDate: "2025-12-18",
+    favoriteCategory: "Lifestyle",
+    systemAlert: "Normal",
+    monthlyTokens: 20110,
+    aiCostTHB: 98,
+    status: "active",
+    lastLogin: "2026-03-03 10:02",
+  },
+  {
+    id: "U-7340",
+    name: "Tanawat L.",
+    avatar: "https://ui.shadcn.com/avatars/06.png",
+    plan: "PLUS+",
+    signupDate: "2025-10-03",
+    favoriteCategory: "Finance",
+    systemAlert: "Margin low",
+    monthlyTokens: 22350,
+    aiCostTHB: 111,
+    status: "active",
+    lastLogin: "2026-03-03 09:38",
   },
 ];
 
-export const subscriptionAnalytics = [
-  { label: "FREE Users", value: "36,500", note: "74.6%" },
-  { label: "PLUS+ Users", value: "12,421", note: "25.4%" },
-  { label: "Conversion Rate", value: "6.8%", note: "30-day rolling" },
+export const pendingUsersCount = managedUsers.filter((user) => user.status === "new").length;
+
+export const subscriptionOverviewKpis = [
+  { label: "MRR", value: "฿1,842,000", note: "+6.2%" },
+  { label: "ผู้ใช้ PLUS+", value: "12,421", note: "25.4% ของทั้งหมด" },
+  { label: "Conversion", value: "6.8%", note: "rolling 30 วัน" },
+  { label: "Churn", value: "2.1%", note: "ลดลง -0.4%" },
 ];
 
-export const pricingTiers = [
-  { id: "tier-monthly", name: "PLUS+ Monthly", cycle: "Monthly", price: "$12", badge: "Starter", highlighted: false },
-  { id: "tier-quarterly", name: "PLUS+ Quarterly", cycle: "Quarterly", price: "$30", badge: "Popular", highlighted: true },
-  { id: "tier-annual", name: "PLUS+ Annual", cycle: "Yearly", price: "$120", badge: "Best Value", highlighted: false },
+export const subscriptionPlans = [
+  {
+    id: "plan-monthly",
+    name: "PLUS+ Monthly",
+    cycle: "รายเดือน",
+    priceTHB: 399,
+    durationDays: 30,
+    active: true,
+    badge: "Starter",
+  },
+  {
+    id: "plan-semester",
+    name: "PLUS+ Semester",
+    cycle: "รายเทอม",
+    priceTHB: 990,
+    durationDays: 120,
+    active: true,
+    badge: "Popular",
+  },
+  {
+    id: "plan-yearly",
+    name: "PLUS+ Yearly",
+    cycle: "รายปี",
+    priceTHB: 3490,
+    durationDays: 365,
+    active: false,
+    badge: "Best Value",
+  },
 ];
 
 export const plusFeatures = [
-  { id: "pf-01", title: "Priority AI Responses", description: "Lower latency during peak hours", visible: true },
-  { id: "pf-02", title: "Extended Token Quota", description: "Higher monthly token allowance", visible: true },
-  { id: "pf-03", title: "Advanced Progress Insights", description: "Deep analytics breakdown", visible: false },
+  { id: "pf-01", title: "Priority AI Responses", description: "ลดเวลา response ช่วง peak", visible: true },
+  { id: "pf-02", title: "Extended Token Quota", description: "เพิ่มโควตาโทเคนรายเดือน", visible: true },
+  { id: "pf-03", title: "Advanced Insights", description: "รายงานเชิงลึกแบบรายบุคคล", visible: false },
 ];
 
-export const audienceTargets = ["All Users", "FREE Segment", "PLUS+ Segment", "Dormant Users"];
-export const noticeCategories = ["System Notice", "Promotion", "Learning Update", "Lifestyle Campaign"];
+export const invoices = [
+  {
+    invoice: "INV-202603-001",
+    user: "U-1092",
+    plan: "PLUS+ Semester",
+    amountTHB: 990,
+    issuedAt: "2026-03-02",
+    status: "Paid",
+  },
+  {
+    invoice: "INV-202603-002",
+    user: "U-8831",
+    plan: "PLUS+ Monthly",
+    amountTHB: 399,
+    issuedAt: "2026-03-02",
+    status: "Pending",
+  },
+  {
+    invoice: "INV-202603-003",
+    user: "U-5521",
+    plan: "PLUS+ Yearly",
+    amountTHB: 3490,
+    issuedAt: "2026-03-01",
+    status: "Paid",
+  },
+];
+
+export const audienceTargets = ["ทุกคน", "กลุ่ม FREE", "กลุ่ม PLUS+", "กลุ่มกำหนดเอง"];
+export const noticeCategories = ["รวม", "สำคัญ", "ระบบ", "การเงิน"];
+
+export type BroadcastLogRow = {
+  id: string;
+  title: string;
+  category: string;
+  audience: string;
+  sentAt: string;
+  status: "Sent" | "Draft";
+};
+
+export const broadcastLogs: BroadcastLogRow[] = [
+  {
+    id: "NTF-001",
+    title: "แจ้งเตือนระบบชำระเงิน",
+    category: "การเงิน",
+    audience: "ทุกคน",
+    sentAt: "2026-03-03 10:20",
+    status: "Sent",
+  },
+  {
+    id: "NTF-002",
+    title: "โปรโมชัน PLUS+ สุดสัปดาห์",
+    category: "สำคัญ",
+    audience: "กลุ่ม FREE",
+    sentAt: "2026-03-02 19:11",
+    status: "Sent",
+  },
+];
+
+export type SystemPolicyConfig = {
+  nsfwCheck: boolean;
+  autoSuspend150: boolean;
+};
+
+export const defaultSystemSettings = {
+  projectName: "Lilac Admin Platform",
+  baseUrl: "https://admin.lilac.mock",
+  supportEmail: "support@lilac.mock",
+  adminErrorEmail: true,
+  timezone: "Asia/Bangkok",
+};
+
+export const defaultApiSettings = {
+  anthropicKey: "sk-ant-xxxxx-xxxxx",
+  defaultModel: "claude-sonnet-4",
+};
+
+export const defaultSystemPolicy: SystemPolicyConfig = {
+  nsfwCheck: true,
+  autoSuspend150: false,
+};
 
 export const adminRoles = [
   { role: "Super Admin", access: "Full system + billing + AI tuning", users: 2 },
@@ -154,26 +550,90 @@ export const adminRoles = [
 ];
 
 export const systemLogs = [
-  { timestamp: "2026-03-03 12:11:02", level: "INFO", source: "scheduler", message: "Nightly lifestyle sync finished", traceId: "TRC-9011" },
-  { timestamp: "2026-03-03 12:04:29", level: "ERROR", source: "payment-gateway", message: "PromptPay callback timeout", traceId: "TRC-9008" },
-  { timestamp: "2026-03-03 11:58:16", level: "WARN", source: "ai-manager", message: "Token usage reached 82% of daily budget", traceId: "TRC-9001" },
-  { timestamp: "2026-03-03 11:41:50", level: "INFO", source: "user-service", message: "User segment cache refreshed", traceId: "TRC-8998" },
-];
-
-export const feedbackKpis = [
-  { label: "Total Reviews", value: "2,341" },
-  { label: "Average Rating", value: "4.4 / 5" },
-  { label: "Open Issues", value: "57" },
+  {
+    timestamp: "2026-03-03 12:11:02",
+    level: "INFO",
+    source: "scheduler",
+    message: "Nightly lifestyle sync finished",
+    traceId: "TRC-9011",
+    userId: "U-1092",
+    errorCode: "-",
+  },
+  {
+    timestamp: "2026-03-03 12:04:29",
+    level: "ERROR",
+    source: "payment-gateway",
+    message: "PromptPay callback timeout",
+    traceId: "TRC-9008",
+    userId: "U-8831",
+    errorCode: "PAY-504",
+  },
+  {
+    timestamp: "2026-03-03 11:58:16",
+    level: "WARN",
+    source: "ai-manager",
+    message: "Token usage reached 82% of daily budget",
+    traceId: "TRC-9001",
+    userId: "-",
+    errorCode: "AI-THRESHOLD",
+  },
+  {
+    timestamp: "2026-03-03 11:41:50",
+    level: "INFO",
+    source: "user-service",
+    message: "User segment cache refreshed",
+    traceId: "TRC-8998",
+    userId: "U-5521",
+    errorCode: "-",
+  },
 ];
 
 export const feedbackEntries = [
-  { id: "FB-101", userId: "U-1092", tag: "issues", rating: 2, comment: "Video lesson freezes at 12:10", date: "2026-03-03", status: "Open" },
-  { id: "FB-102", userId: "U-5521", tag: "feature", rating: 4, comment: "Need weekly finance challenge mode", date: "2026-03-02", status: "In Review" },
-  { id: "FB-103", userId: "U-7340", tag: "praise", rating: 5, comment: "AI explanation quality improved a lot", date: "2026-03-01", status: "Closed" },
-  { id: "FB-104", userId: "U-8831", tag: "issues", rating: 3, comment: "Push notifications are sometimes delayed", date: "2026-03-01", status: "Open" },
+  {
+    id: "FB-101",
+    userId: "U-1092",
+    userName: "Napat K.",
+    avatar: "https://ui.shadcn.com/avatars/01.png",
+    tag: "ปัญหา",
+    rating: 2,
+    comment: "วิดีโอค้างช่วงนาทีที่ 12:10",
+    date: "2026-03-03",
+    status: "รอดำเนินการ",
+  },
+  {
+    id: "FB-102",
+    userId: "U-5521",
+    userName: "Pimnara T.",
+    avatar: "https://ui.shadcn.com/avatars/05.png",
+    tag: "ข้อเสนอแนะ",
+    rating: 4,
+    comment: "อยากได้โหมด challenge รายสัปดาห์",
+    date: "2026-03-02",
+    status: "กำลังตรวจสอบ",
+  },
+  {
+    id: "FB-103",
+    userId: "U-7340",
+    userName: "Tanawat L.",
+    avatar: "https://ui.shadcn.com/avatars/06.png",
+    tag: "คำชม",
+    rating: 5,
+    comment: "คุณภาพคำตอบ AI ดีขึ้นมาก",
+    date: "2026-03-01",
+    status: "แก้แล้ว",
+  },
+  {
+    id: "FB-104",
+    userId: "U-8831",
+    userName: "Sirin P.",
+    avatar: "https://ui.shadcn.com/avatars/02.png",
+    tag: "ปัญหา",
+    rating: 3,
+    comment: "แจ้งเตือนเข้าไม่สม่ำเสมอ",
+    date: "2026-03-01",
+    status: "รอดำเนินการ",
+  },
 ];
-
-export type HealthStatus = "operational" | "degraded" | "down";
 
 export const appHealthKpis = [
   { label: "API Availability", value: "99.93%", note: "Last 24h rolling" },

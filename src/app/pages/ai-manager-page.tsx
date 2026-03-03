@@ -1,194 +1,209 @@
-import { useMemo, useState } from "react";
-import { coreModels, knowledgeEntries, tokenUsage } from "../../mocks/dashboard-features.mock";
+﻿import { useMemo, useState } from "react";
+import { CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { aiAlert, aiModelUsage, aiPeriodStats, aiUsageRows, type AiPeriod } from "../../mocks/dashboard-features.mock";
+import { formatCurrencyTHB, formatNumber } from "../../lib/formatters";
 
-const ownerFilters = ["All", ...new Set(knowledgeEntries.map((entry) => entry.owner))];
+const periodOptions: Array<{ key: AiPeriod; label: string }> = [
+  { key: "today", label: "วันนี้" },
+  { key: "7d", label: "7 วัน" },
+  { key: "month", label: "เดือนนี้" },
+  { key: "year", label: "ปีนี้" },
+];
 
 export function AiManagerPage() {
-  const [models, setModels] = useState(coreModels);
-  const [ownerFilter, setOwnerFilter] = useState(ownerFilters[0]);
-  const [query, setQuery] = useState("");
-  const [persona, setPersona] = useState("Mentor Coach");
-  const [prompt, setPrompt] = useState(
-    "Always answer with concise guidance, explain key terms, and provide one practical next step.",
-  );
-  const [lastSavedAt, setLastSavedAt] = useState("Not saved yet");
+  const [period, setPeriod] = useState<AiPeriod>("today");
+  const categoryColors = ["hsl(var(--primary))", "#14b8a6", "#f59e0b"];
 
-  const filteredKnowledge = useMemo(() => {
-    return knowledgeEntries.filter((entry) => {
-      const passOwner = ownerFilter === "All" || entry.owner === ownerFilter;
-      const passQuery =
-        query.trim().length === 0 ||
-        `${entry.topic} ${entry.version} ${entry.owner}`.toLowerCase().includes(query.toLowerCase());
-      return passOwner && passQuery;
+  const periodData = aiPeriodStats[period];
+  const maxModelTokens = Math.max(...aiModelUsage.map((entry) => entry.tokens));
+
+  const marginRows = useMemo(() => {
+    return aiUsageRows.map((row) => {
+      const margin = row.revenueTHB - row.costTHB;
+      return { ...row, margin };
     });
-  }, [ownerFilter, query]);
-
-  const maxTokens = Math.max(...tokenUsage.byModel.map((entry) => entry.tokens));
+  }, []);
 
   return (
     <section className="space-y-6">
       <header>
-        <h1 className="text-3xl font-bold tracking-tight">AI Manager</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Core model settings, knowledge base persona, and performance monitoring panel.
-        </p>
+        <h2 className="text-2xl font-bold tracking-tight">จัดการ AI</h2>
+        <p className="mt-1 text-sm text-muted-foreground">ติดตามต้นทุนโทเคน ประสิทธิภาพโมเดล และความเสี่ยงด้าน Margin</p>
       </header>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        {models.map((model) => (
-          <article key={model.id} className="rounded-xl bg-card p-5 shadow-card">
-            <p className="text-sm text-muted-foreground">Core Model</p>
-            <h2 className="mt-2 text-lg font-semibold">{model.name}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Avg latency: {model.latency}</p>
-            <span
-              className={`mt-4 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                model.status === "Active"
-                  ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300"
-                  : model.status === "Standby"
-                    ? "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300"
-                    : "bg-muted text-muted-foreground"
-              }`}
-            >
-              {model.status}
-            </span>
-            <button
-              type="button"
-              onClick={() =>
-                setModels((prev) =>
-                  prev.map((candidate) => ({
-                    ...candidate,
-                    status: candidate.id === model.id ? "Active" : candidate.status === "Retired" ? "Retired" : "Standby",
-                  })),
-                )
-              }
-              className="mt-4 rounded-md bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground transition hover:opacity-90"
-            >
-              Set Active
-            </button>
+      {aiAlert.enabled ? (
+        <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200">
+          <p className="font-semibold">แจ้งเตือนฉุกเฉิน</p>
+          <p className="mt-1">{aiAlert.message}</p>
+        </div>
+      ) : null}
+
+      <div className="inline-flex rounded-lg border border-border bg-card p-1">
+        {periodOptions.map((item) => (
+          <button
+            key={item.key}
+            type="button"
+            onClick={() => setPeriod(item.key)}
+            aria-pressed={period === item.key}
+            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+              period === item.key ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
+            }`}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {periodData.kpis.map((kpi) => (
+          <article key={kpi.label} className="rounded-xl bg-card p-5 shadow-card">
+            <p className="text-sm text-muted-foreground">{kpi.label}</p>
+            <p className="mt-3 text-2xl font-bold">{kpi.value}</p>
+            <p className="mt-2 text-xs text-muted-foreground">{kpi.note}</p>
           </article>
         ))}
       </div>
 
-      <article className="rounded-xl bg-card p-6 shadow-card">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2 className="text-lg font-semibold">Knowledge Base / Persona</h2>
-            <p className="text-sm text-muted-foreground">Prompt and personality datasets currently loaded.</p>
+      <div className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
+        <article className="rounded-xl bg-card p-6 shadow-card">
+          <h3 className="text-base font-semibold">โทเคนและต้นทุน</h3>
+          <p className="text-sm text-muted-foreground">เปรียบเทียบปริมาณ Token และค่าใช้จ่ายในช่วงที่เลือก</p>
+          <div className="mt-4 h-64 w-full">
+            <ResponsiveContainer>
+              <LineChart data={periodData.tokenCostBars} margin={{ left: 8, right: 8, top: 6 }}>
+                <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeOpacity={0.5} />
+                <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} />
+                <YAxis yAxisId="left" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis yAxisId="right" orientation="right" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                <Tooltip />
+                <Line
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="tokens"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={2.8}
+                  dot={false}
+                  activeDot={{ r: 5 }}
+                  name="Tokens"
+                />
+                <Line
+                  yAxisId="right"
+                  type="linear"
+                  dataKey="costTHB"
+                  stroke="#14b8a6"
+                  strokeWidth={2.4}
+                  strokeDasharray="8 4"
+                  dot={{ r: 2 }}
+                  activeDot={{ r: 5 }}
+                  name="Cost (THB)"
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
-          <div className="grid gap-2 sm:grid-cols-2">
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search topic/owner..."
-              className="rounded-md border border-input bg-background px-3 py-2 text-sm"
-            />
-            <select
-              value={ownerFilter}
-              onChange={(event) => setOwnerFilter(event.target.value)}
-              className="rounded-md border border-input bg-background px-3 py-2 text-sm"
-            >
-              {ownerFilters.map((owner) => (
-                <option key={owner}>{owner}</option>
-              ))}
-            </select>
-          </div>
-        </div>
+        </article>
 
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[560px] text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-foreground font-medium">
-                <th className="pb-2">Topic</th>
-                <th className="pb-2">Version</th>
-                <th className="pb-2">Updated</th>
-                <th className="pb-2">Owner</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredKnowledge.map((entry) => (
-                <tr key={entry.topic} className="border-b border-border/60 last:border-none">
-                  <td className="py-3 font-medium">{entry.topic}</td>
-                  <td className="py-3">{entry.version}</td>
-                  <td className="py-3">{entry.updatedAt}</td>
-                  <td className="py-3">{entry.owner}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </article>
-
-      <article className="rounded-xl bg-card p-6 shadow-card">
-        <h2 className="text-lg font-semibold">Persona / Prompt Control</h2>
-        <div className="mt-4 grid gap-3 text-sm">
-          <label className="block">
-            <span className="text-muted-foreground">Persona</span>
-            <select
-              value={persona}
-              onChange={(event) => setPersona(event.target.value)}
-              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2"
-            >
-              <option>Mentor Coach</option>
-              <option>Calm Study Buddy</option>
-              <option>Results-driven Tutor</option>
-            </select>
-          </label>
-          <label className="block">
-            <span className="text-muted-foreground">Master Prompt</span>
-            <textarea
-              rows={4}
-              value={prompt}
-              onChange={(event) => setPrompt(event.target.value)}
-              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2"
-            />
-          </label>
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setLastSavedAt(new Date().toLocaleString())}
-              className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
-            >
-              Save Prompt (Mock)
-            </button>
-            <p className="text-xs text-muted-foreground">Last saved: {lastSavedAt}</p>
+        <article className="rounded-xl bg-card p-6 shadow-card">
+          <h3 className="text-base font-semibold">สัดส่วนการใช้งานตามหมวด</h3>
+          <div className="mt-4 h-52 w-full">
+            <ResponsiveContainer>
+              <PieChart>
+                <Tooltip />
+                <Pie
+                  data={periodData.categoryShare}
+                  dataKey="value"
+                  nameKey="category"
+                  innerRadius={50}
+                  outerRadius={86}
+                  paddingAngle={3}
+                  stroke="hsl(var(--background))"
+                  strokeWidth={2}
+                >
+                  {periodData.categoryShare.map((item, index) => (
+                    <Cell key={item.category} fill={categoryColors[index % categoryColors.length]} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
           </div>
-        </div>
-      </article>
+          <div className="space-y-2">
+            {periodData.categoryShare.map((item) => (
+              <div key={item.category} className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">{item.category}</span>
+                <span className="font-semibold">{item.value}%</span>
+              </div>
+            ))}
+          </div>
+        </article>
+      </div>
 
       <article className="rounded-xl bg-card p-6 shadow-card">
-        <h2 className="text-lg font-semibold">Performance Monitoring</h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-3">
-          <div className="rounded-lg bg-background p-4">
-            <p className="text-xs text-muted-foreground">Token Usage</p>
-            <p className="mt-2 text-xl font-bold">{tokenUsage.monthlyTotal}</p>
-          </div>
-          <div className="rounded-lg bg-background p-4">
-            <p className="text-xs text-muted-foreground">Average Latency</p>
-            <p className="mt-2 text-xl font-bold">{tokenUsage.averageLatency}</p>
-          </div>
-          <div className="rounded-lg bg-background p-4">
-            <p className="text-xs text-muted-foreground">Success Rate</p>
-            <p className="mt-2 text-xl font-bold">{tokenUsage.successRate}</p>
-          </div>
-        </div>
-
-        <div className="mt-5 space-y-2">
-          {tokenUsage.byModel.map((entry) => {
-            const percent = (entry.tokens / maxTokens) * 100;
+        <h3 className="text-base font-semibold">การใช้โทเคนแยกตามโมเดล</h3>
+        <div className="mt-4 space-y-3">
+          {aiModelUsage.map((model) => {
+            const width = (model.tokens / maxModelTokens) * 100;
             return (
-              <div key={entry.model} className="rounded-lg bg-background p-3">
-                <div className="mb-2 flex items-center justify-between text-xs">
-                  <span className="font-semibold text-foreground">{entry.model}</span>
-                  <span className="text-muted-foreground">{entry.tokens.toLocaleString()} tokens</span>
+              <div key={model.model} className="rounded-lg bg-background p-3">
+                <div className="mb-2 flex items-center justify-between text-sm">
+                  <span className="font-medium">{model.model}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {formatNumber(model.tokens)} tokens • {formatCurrencyTHB(model.costTHB)}
+                  </span>
                 </div>
                 <div className="h-2 rounded-full bg-muted">
-                  <div className="h-2 rounded-full bg-primary" style={{ width: `${percent}%` }} />
+                  <div className="h-2 rounded-full bg-primary" style={{ width: `${width}%` }} />
                 </div>
               </div>
             );
           })}
         </div>
       </article>
+
+      <article className="rounded-xl bg-card p-6 shadow-card">
+        <h3 className="text-base font-semibold">ตารางสถิติรายบุคคล</h3>
+        <p className="text-sm text-muted-foreground">ติดตามการใช้ Token และส่วนต่างกำไรต่อผู้ใช้</p>
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full min-w-[820px] text-sm">
+            <caption className="sr-only">ตารางต้นทุน รายได้ และกำไรของผู้ใช้งาน AI รายบุคคล</caption>
+            <thead>
+              <tr className="border-b border-border text-left text-muted-foreground">
+                <th scope="col" className="pb-2">ผู้ใช้</th>
+                <th scope="col" className="pb-2">แพลน</th>
+                <th scope="col" className="pb-2">Input Tokens</th>
+                <th scope="col" className="pb-2">Output Tokens</th>
+                <th scope="col" className="pb-2">รายได้</th>
+                <th scope="col" className="pb-2">ต้นทุน</th>
+                <th scope="col" className="pb-2">Margin</th>
+              </tr>
+            </thead>
+            <tbody>
+              {marginRows.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-8 text-center text-sm text-muted-foreground">
+                    ไม่พบข้อมูลผู้ใช้งานในช่วงเวลาที่เลือก
+                  </td>
+                </tr>
+              ) : (
+                marginRows.map((row) => (
+                  <tr key={row.userId} className="border-b border-border/70 last:border-none">
+                    <td className="py-3 font-medium">{row.userId}</td>
+                    <td className="py-3">{row.plan}</td>
+                    <td className="py-3">{formatNumber(row.inputTokens)}</td>
+                    <td className="py-3">{formatNumber(row.outputTokens)}</td>
+                    <td className="py-3">{formatCurrencyTHB(row.revenueTHB)}</td>
+                    <td className="py-3">{formatCurrencyTHB(row.costTHB)}</td>
+                    <td className="py-3">
+                      <span className={row.margin >= 0 ? "text-emerald-600 dark:text-emerald-300" : "text-rose-600 dark:text-rose-300"}>
+                        {formatCurrencyTHB(row.margin)}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </article>
     </section>
   );
 }
+
