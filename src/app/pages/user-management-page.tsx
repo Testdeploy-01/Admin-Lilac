@@ -47,10 +47,8 @@ export function UserManagementPage() {
     });
 
     next.sort((a, b) => {
-      const aTotal = a.inputVoiceTokens + a.inputTextTokens + a.outputTextTokens;
-      const bTotal = b.inputVoiceTokens + b.inputTextTokens + b.outputTextTokens;
-      if (sortMode === "token-desc") return bTotal - aTotal;
-      if (sortMode === "token-asc") return aTotal - bTotal;
+      if (sortMode === "token-desc") return b.monthlyTokens - a.monthlyTokens;
+      if (sortMode === "token-asc") return a.monthlyTokens - b.monthlyTokens;
       const aDate = new Date(`${a.signupDate}T00:00:00`).getTime();
       const bDate = new Date(`${b.signupDate}T00:00:00`).getTime();
       if (sortMode === "signup-asc") return aDate - bDate;
@@ -176,7 +174,6 @@ export function UserManagementPage() {
                 <th scope="col" className="pb-2">หมวดที่สนใจ</th>
                 <th scope="col" className="pb-2">Alert</th>
                 <th scope="col" className="pb-2">Total Tokens (เดือน)</th>
-                <th scope="col" className="pb-2">Breakdown (Voice / Text In / Text Out)</th>
                 <th scope="col" className="pb-2">ต้นทุน AI</th>
                 <th scope="col" className="pb-2">สถานะ</th>
                 <th scope="col" className="pb-2">Action</th>
@@ -205,10 +202,7 @@ export function UserManagementPage() {
                     <td className="py-3">{user.signupDate}</td>
                     <td className="py-3">{user.favoriteCategory}</td>
                     <td className="py-3">{user.systemAlert}</td>
-                    <td className="py-3">{formatNumber(user.inputVoiceTokens + user.inputTextTokens + user.outputTextTokens)}</td>
-                    <td className="py-3 text-xs text-muted-foreground whitespace-nowrap">
-                      {formatNumber(user.inputVoiceTokens)} / {formatNumber(user.inputTextTokens)} / {formatNumber(user.outputTextTokens)}
-                    </td>
+                    <td className="py-3">{formatNumber(user.monthlyTokens)}</td>
                     <td className="py-3">{formatCurrencyTHB(user.aiCostTHB)}</td>
                     <td className="py-3">
                       <span
@@ -297,10 +291,7 @@ export function UserManagementPage() {
               <div className="mt-4 space-y-2 text-sm">
                 <p>แพลนปัจจุบัน: {PLAN_LABELS[selectedUser.plan]}</p>
                 <p>Login ล่าสุด: {selectedUser.lastLogin}</p>
-                <p>โควตาคงเหลือ (ประมาณ): {Math.max(0, 100 - Math.floor((selectedUser.inputVoiceTokens + selectedUser.inputTextTokens + selectedUser.outputTextTokens) / 500))}%</p>
-                <p>Voice Input: {formatNumber(selectedUser.inputVoiceTokens)} tokens</p>
-                <p>Text Input: {formatNumber(selectedUser.inputTextTokens)} tokens</p>
-                <p>Text Output: {formatNumber(selectedUser.outputTextTokens)} tokens</p>
+                <p>โควตาคงเหลือ (ประมาณ): {Math.max(0, 100 - Math.floor(selectedUser.monthlyTokens / 500))}%</p>
                 <p>Alert: {selectedUser.systemAlert}</p>
               </div>
             </div>
