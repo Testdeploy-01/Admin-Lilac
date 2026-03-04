@@ -46,33 +46,31 @@
     position: relative;
     border-radius: 0.75rem;
     padding: 1px;
-    background: linear-gradient(145deg,
+    background: linear-gradient(to top,
         hsl(var(--border)) 0%,
-        hsl(var(--muted)) 50%,
-        hsl(var(--border)) 100%);
-    transition: transform 0.2s, box-shadow 0.2s;
+        hsl(var(--muted)) 100%);
   }
 
   .kpi-card-inner {
     border-radius: calc(0.75rem - 1px);
     padding: 1.25rem;
-    background: linear-gradient(165deg,
+    background: linear-gradient(to top,
         hsl(var(--card)) 0%,
         hsl(var(--background)) 100%);
     height: 100%;
   }
 
   .dark .kpi-card {
-    background: linear-gradient(145deg,
-        hsl(0 0% 20%) 0%,
-        hsl(0 0% 12%) 40%,
-        hsl(var(--primary) / 0.15) 100%);
+    background: none;
+    border-radius: 0.75rem;
+    padding: 0;
   }
 
   .dark .kpi-card-inner {
-    background: linear-gradient(165deg,
-        hsl(0 0% 8%) 0%,
-        hsl(0 0% 5%) 100%);
+    border-radius: 0.75rem;
+    background: linear-gradient(to top,
+        hsl(0, 0%, 13%) 0%,
+        hsl(0, 0%, 9%) 100%);
   }
 }
 
