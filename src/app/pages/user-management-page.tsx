@@ -298,9 +298,9 @@ export function UserManagementPage() {
                 <p>แพลนปัจจุบัน: {PLAN_LABELS[selectedUser.plan]}</p>
                 <p>Login ล่าสุด: {selectedUser.lastLogin}</p>
                 <p>โควตาคงเหลือ (ประมาณ): {Math.max(0, 100 - Math.floor((selectedUser.inputVoiceTokens + selectedUser.inputTextTokens + selectedUser.outputTextTokens) / 500))}%</p>
-                <p>Voice Input: {formatNumber(selectedUser.inputVoiceTokens)} tokens</p>
-                <p>Text Input: {formatNumber(selectedUser.inputTextTokens)} tokens</p>
-                <p>Text Output: {formatNumber(selectedUser.outputTextTokens)} tokens</p>
+                <p>Voice Input: {formatNumber(selectedUser.inputVoiceTokens)} tokens <span className="text-muted-foreground ml-1">({formatCurrencyTHB((selectedUser.inputVoiceTokens / 0.35) * 0.0045 * 0.35)} โดยประมาณ)</span></p>
+                <p>Text Input: {formatNumber(selectedUser.inputTextTokens)} tokens <span className="text-muted-foreground ml-1">({formatCurrencyTHB((selectedUser.inputTextTokens / 0.25) * 0.0045 * 0.25)} โดยประมาณ)</span></p>
+                <p>Text Output: {formatNumber(selectedUser.outputTextTokens)} tokens <span className="text-muted-foreground ml-1">({formatCurrencyTHB((selectedUser.outputTextTokens / 0.40) * 0.0045 * 0.40)} โดยประมาณ)</span></p>
                 <p>Alert: {selectedUser.systemAlert}</p>
               </div>
             </div>
