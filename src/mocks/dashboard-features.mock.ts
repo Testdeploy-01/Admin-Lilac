@@ -306,9 +306,27 @@ export const aiPeriodStats: Record<
 };
 
 export const aiModelUsage = [
-  { model: "Claude Haiku", tokens: Math.round(totalMonthlyTokens * 0.62), costTHB: Math.round(totalAiCost * 0.42) },
-  { model: "Claude Sonnet", tokens: Math.round(totalMonthlyTokens * 0.28), costTHB: Math.round(totalAiCost * 0.35) },
-  { model: "Claude Opus", tokens: Math.round(totalMonthlyTokens * 0.10), costTHB: Math.round(totalAiCost * 0.23) },
+  {
+    model: "GPT-4o mini",
+    description: "ประมวลผลข้อความและการโต้ตอบ (Text Input/Output)",
+    pricing: "In: ฿5.37 / Out: ฿21.48 (ต่อ 1M Token)",
+    tokens: Math.round(totalMonthlyTokens * 0.55),
+    costTHB: Math.round(totalAiCost * 0.30)
+  },
+  {
+    model: "Claude 3.5 Haiku",
+    description: "สรุปเนื้อหายาว และจัดรูปแบบโน้ต (Text Output)",
+    pricing: "In: ฿9.00 / Out: ฿45.00 (ต่อ 1M Token)",
+    tokens: Math.round(totalMonthlyTokens * 0.25),
+    costTHB: Math.round(totalAiCost * 0.20)
+  },
+  {
+    model: "OpenAI Whisper",
+    description: "ถอดเสียงบรรยายเป็นข้อความ (Voice to Text)",
+    pricing: "฿0.21 ต่อความยาวเสียง 1 นาที",
+    tokens: Math.round(totalMonthlyTokens * 0.20),
+    costTHB: Math.round(totalAiCost * 0.50)
+  },
 ];
 
 export type AiUsageRow = {

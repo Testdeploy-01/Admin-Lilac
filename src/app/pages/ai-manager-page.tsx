@@ -171,13 +171,17 @@ export function AiManagerPage() {
             const width = (model.tokens / maxModelTokens) * 100;
             return (
               <div key={model.model} className="rounded-xl border border-border bg-background p-5 text-card-foreground">
-                <div className="mb-4 flex items-center justify-between">
-                  <h4 className="font-bold text-foreground">{model.model}</h4>
-                  <div className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground">
-                    <span>{formatCurrencyTHB(model.costTHB)}</span>
+                <div className="mb-4 flex items-start justify-between gap-4">
+                  <div>
+                    <h4 className="font-bold text-foreground">{model.model}</h4>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{model.description}</p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="text-[14px] font-bold text-foreground">{formatCurrencyTHB(model.costTHB)}</span>
+                    <span className="text-[10px] font-medium text-muted-foreground whitespace-nowrap">{model.pricing}</span>
                   </div>
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>Token Usage</span>
                     <span>{formatNumber(model.tokens)}</span>
