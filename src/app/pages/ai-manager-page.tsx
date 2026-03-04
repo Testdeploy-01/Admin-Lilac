@@ -4,26 +4,48 @@ import { aiAlert, aiModelUsage, aiPeriodStats, aiUsageRows, PLAN_LABELS, type Ai
 import { formatCurrencyTHB, formatNumber } from "../../lib/formatters";
 
 const periodOptions: Array<{ key: AiPeriod; label: string }> = [
-  { key: "today", label: "วันนี้" },
   { key: "7d", label: "7 วัน" },
-  { key: "month", label: "เดือนนี้" },
-  { key: "year", label: "ปีนี้" },
+  { key: "month", label: "1 เดือน" },
+  { key: "4months", label: "4 เดือน" },
+  { key: "year", label: "1 ปี" },
 ];
 
 
 export function AiManagerPage() {
-  const [period, setPeriod] = useState<AiPeriod>("today");
+  const [period, setPeriod] = useState<AiPeriod>("month");
   const categoryColors = ["hsl(var(--primary))", "#14b8a6", "#f59e0b"];
 
   const periodData = aiPeriodStats[period];
   const maxModelTokens = Math.max(...aiModelUsage.map((entry) => entry.tokens));
 
   const marginRows = useMemo(() => {
+    let multiplier = 1;
+    if (period === "7d") multiplier = 7 / 30;
+    else if (period === "month") multiplier = 1;
+    else if (period === "4months") multiplier = 4;
+    else if (period === "year") multiplier = 12;
+
     return aiUsageRows.map((row) => {
-      const margin = row.revenueTHB - row.costTHB;
-      return { ...row, margin };
+      const scaledVoice = Math.round(row.inputVoiceTokens * multiplier);
+      const scaledTextIn = Math.round(row.inputTextTokens * multiplier);
+      const scaledTextOut = Math.round(row.outputTextTokens * multiplier);
+
+      const scaledRevenue = Math.round(row.revenueTHB * multiplier);
+      const scaledCost = Math.round(row.costTHB * multiplier);
+
+      const margin = scaledRevenue - scaledCost;
+
+      return {
+        ...row,
+        inputVoiceTokens: scaledVoice,
+        inputTextTokens: scaledTextIn,
+        outputTextTokens: scaledTextOut,
+        revenueTHB: scaledRevenue,
+        costTHB: scaledCost,
+        margin
+      };
     });
-  }, []);
+  }, [period]);
 
   return (
     <section className="space-y-6">

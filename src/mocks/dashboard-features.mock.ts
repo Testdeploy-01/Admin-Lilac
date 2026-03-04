@@ -1,6 +1,6 @@
 ﻿export type TrendType = "up" | "down" | "neutral";
 
-export type AiPeriod = "today" | "7d" | "month" | "year";
+export type AiPeriod = "7d" | "month" | "4months" | "year";
 
 export type HealthStatus = "operational" | "degraded" | "down";
 
@@ -224,22 +224,22 @@ export const aiPeriodStats: Record<
     categoryShare: Array<{ category: string; value: number }>;
   }
 > = {
-  today: {
+  "4months": {
     kpis: [
-      { label: "Token ทั้งหมด", value: Math.round(totalMonthlyTokens / 30).toLocaleString(), note: `จาก ${totalUsers.toLocaleString()} ผู้ใช้` },
-      { label: "ต้นทุน AI", value: `฿${Math.round(totalAiCost / 30).toLocaleString()}`, note: "USD rate 35.8" },
-      { label: "ความแม่นยำ Intent", value: "96.8%", note: `จาก ${Math.round(dau * 1.8).toLocaleString()} requests` },
-      { label: "กำไรขั้นต้น", value: "61.2%", note: "เทียบกับรายได้สมาชิก" },
+      { label: "Token ทั้งหมด", value: (totalMonthlyTokens * 4).toLocaleString(), note: `4 เดือน • ${totalUsers.toLocaleString()} ผู้ใช้` },
+      { label: "ต้นทุน AI", value: `฿${(totalAiCost * 4).toLocaleString()}`, note: "USD rate 35.8" },
+      { label: "ความแม่นยำ Intent", value: "97.0%", note: `จาก ${(Math.round(dau * 1.8 * 120 / 100000) / 10).toFixed(1)}M requests` },
+      { label: "กำไรขั้นต้น", value: "59.1%", note: "เทียบกับรายได้สมาชิก" },
     ],
     tokenCostBars: [
-      { label: "เช้า", tokens: 51200, costTHB: 1240 },
-      { label: "บ่าย", tokens: 60400, costTHB: 1510 },
-      { label: "เย็น", tokens: 56800, costTHB: 1392 },
-      { label: "ดึก", tokens: 46500, costTHB: 1200 },
+      { label: "เดือน 1", tokens: totalMonthlyTokens, costTHB: totalAiCost },
+      { label: "เดือน 2", tokens: Math.round(totalMonthlyTokens * 1.05), costTHB: Math.round(totalAiCost * 1.05) },
+      { label: "เดือน 3", tokens: Math.round(totalMonthlyTokens * 1.02), costTHB: Math.round(totalAiCost * 1.02) },
+      { label: "เดือน 4", tokens: Math.round(totalMonthlyTokens * 1.08), costTHB: Math.round(totalAiCost * 1.08) },
     ],
     categoryShare: [
-      { category: "Study", value: 48 },
-      { category: "Finance", value: 30 },
+      { category: "Study", value: 46 },
+      { category: "Finance", value: 32 },
       { category: "Lifestyle", value: 22 },
     ],
   },
