@@ -18,7 +18,7 @@ import {
 } from "motion/react";
 import { Link } from "react-router-dom";
 
-import { useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
+import { useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent } from "react";
 
 type DockItem = {
   title: string;
@@ -137,6 +137,14 @@ const FloatingDockMobile = ({
   );
 };
 
+
+
+function clampNumber(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
+
+
 const FloatingDockDesktop = ({
   items,
   className,
@@ -149,6 +157,19 @@ const FloatingDockDesktop = ({
   onDockHoverChange?: (hovered: boolean) => void;
 }) => {
   const pointer = useMotionValue(Infinity);
+  // Always use scale 1 so UI relies on standard browser zoom vs shrinking the viewport multiplier
+  const dockScale = 1;
+  const verticalDockStyle: CSSProperties | undefined =
+    orientation === "vertical"
+      ? {
+        width: "var(--dock-rail-w, 4.5rem)",
+        borderRadius: "1.25rem",
+        paddingInline: "0.75rem",
+        paddingBlock: "1rem",
+        gap: "1rem",
+      }
+      : undefined;
+
   return (
     <motion.div
       onMouseMove={(e) => pointer.set(orientation === "vertical" ? e.clientY : e.clientX)}
@@ -157,16 +178,17 @@ const FloatingDockDesktop = ({
         pointer.set(Infinity);
         onDockHoverChange?.(false);
       }}
+      style={verticalDockStyle}
       className={cn(
         orientation === "vertical"
-          ? "mx-auto hidden w-16 items-center gap-4 rounded-2xl bg-gray-50 px-3 py-4 md:flex md:flex-col dark:bg-neutral-900"
+          ? "mx-auto hidden items-center bg-gray-50 md:flex md:flex-col dark:bg-neutral-900"
           : "mx-auto hidden h-16 items-end gap-4 rounded-2xl bg-gray-50 px-4 pb-3 md:flex dark:bg-neutral-900",
         className,
       )}
     >
       <LayoutGroup id="dock-active-indicator">
         {items.map((item) => (
-          <IconContainer pointer={pointer} orientation={orientation} key={item.title} {...item} />
+          <IconContainer pointer={pointer} orientation={orientation} dockScale={dockScale} key={item.title} {...item} />
         ))}
       </LayoutGroup>
     </motion.div>
@@ -176,6 +198,7 @@ const FloatingDockDesktop = ({
 function IconContainer({
   pointer,
   orientation,
+  dockScale,
   title,
   icon,
   href,
@@ -190,6 +213,7 @@ function IconContainer({
 }: {
   pointer: MotionValue;
   orientation: DockOrientation;
+  dockScale: number;
   title: string;
   icon: React.ReactNode;
   href?: string;
@@ -211,18 +235,24 @@ function IconContainer({
       : val - bounds.x - bounds.width / 2;
   });
 
-  const widthTransform = useTransform(distance, [-150, 0, 150], variant === "logo" ? [48, 92, 48] : [40, 80, 40]);
-  const heightTransform = useTransform(distance, [-150, 0, 150], variant === "logo" ? [48, 92, 48] : [40, 80, 40]);
+  const defaultContainerRange: number[] = [40 * dockScale, 80 * dockScale, 40 * dockScale];
+  const logoContainerRange: number[] = [48 * dockScale, 92 * dockScale, 48 * dockScale];
+  const widthTransform = useTransform(distance, [-150, 0, 150], variant === "logo" ? logoContainerRange : defaultContainerRange);
+  const heightTransform = useTransform(distance, [-150, 0, 150], variant === "logo" ? logoContainerRange : defaultContainerRange);
+
+  const defaultIconRange: number[] = [20 * dockScale, 40 * dockScale, 20 * dockScale];
+  const avatarIconRange: number[] = [40 * dockScale, 80 * dockScale, 40 * dockScale];
+  const logoIconRange: number[] = [44 * dockScale, 88 * dockScale, 44 * dockScale];
 
   const widthTransformIcon = useTransform(
     distance,
     [-150, 0, 150],
-    variant === "logo" ? [44, 88, 44] : variant === "avatar" ? [40, 80, 40] : [20, 40, 20],
+    variant === "logo" ? logoIconRange : variant === "avatar" ? avatarIconRange : defaultIconRange,
   );
   const heightTransformIcon = useTransform(
     distance,
     [-150, 0, 150],
-    variant === "logo" ? [44, 88, 44] : variant === "avatar" ? [40, 80, 40] : [20, 40, 20],
+    variant === "logo" ? logoIconRange : variant === "avatar" ? avatarIconRange : defaultIconRange,
   );
 
   const width = useSpring(widthTransform, {
@@ -249,6 +279,9 @@ function IconContainer({
 
   const [hovered, setHovered] = useState(false);
   const showLogo = variant === "logo";
+  const badgeSize = clampNumber(16 * dockScale, 14, 18);
+  const badgeFontSize = clampNumber(10 * dockScale, 9, 11);
+  const activeDotSize = clampNumber(6 * dockScale, 5, 7);
 
   return (
     <DockLink
@@ -294,7 +327,15 @@ function IconContainer({
           {icon}
         </motion.div>
         {badge && badge > 0 && !showLogo ? (
-          <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white">
+          <span
+            className="absolute -right-1 -top-1 inline-flex items-center justify-center rounded-full bg-rose-500 px-1 font-semibold text-white"
+            style={{
+              height: `${badgeSize}px`,
+              minWidth: `${badgeSize}px`,
+              fontSize: `${badgeFontSize}px`,
+              lineHeight: 1,
+            }}
+          >
             {badge}
           </span>
         ) : null}
@@ -303,9 +344,10 @@ function IconContainer({
             layoutId="dock-active-dot"
             transition={{ type: "spring", stiffness: 520, damping: 36, mass: 0.55 }}
             className={cn(
-              "absolute h-1.5 w-1.5 rounded-full bg-primary",
+              "absolute rounded-full bg-primary",
               orientation === "vertical" ? "-right-1.5 top-1/2 -translate-y-1/2" : "-bottom-1.5",
             )}
+            style={{ width: `${activeDotSize}px`, height: `${activeDotSize}px` }}
           />
         ) : null}
       </motion.div>

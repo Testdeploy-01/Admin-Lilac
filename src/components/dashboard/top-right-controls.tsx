@@ -1,5 +1,5 @@
 import { LogOut, Moon, Settings, Sun, User } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import type { AdminProfile } from "@/types/admin-profile";
@@ -23,6 +23,18 @@ export function TopRightControls({ theme, onToggleTheme, profile }: TopRightCont
     .join("")
     .slice(0, 2)
     .toUpperCase();
+  const controlButtonSizeStyle: CSSProperties = {
+    width: "var(--dock-control-size, 2.5rem)",
+    height: "var(--dock-control-size, 2.5rem)",
+  };
+  const avatarSizeStyle: CSSProperties = {
+    width: "calc(var(--dock-control-size, 2.5rem) - 0.5rem)",
+    height: "calc(var(--dock-control-size, 2.5rem) - 0.5rem)",
+  };
+  const iconSizeStyle: CSSProperties = {
+    width: "calc(var(--dock-control-size, 2.5rem) * 0.44)",
+    height: "calc(var(--dock-control-size, 2.5rem) * 0.44)",
+  };
 
   useEffect(() => {
     if (!open) {
@@ -64,13 +76,14 @@ export function TopRightControls({ theme, onToggleTheme, profile }: TopRightCont
   };
 
   return (
-    <div className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(0.75rem,env(safe-area-inset-right))] z-40 flex w-12 flex-col items-center gap-2 sm:bottom-6 sm:right-4 md:w-16 xl:right-auto xl:bottom-10 xl:left-8">
+    <div className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(0.75rem,env(safe-area-inset-right))] z-40 flex w-12 flex-col items-center gap-2 sm:bottom-6 sm:right-4 md:w-[calc(var(--dock-rail-w,4rem)+0.25rem)] xl:right-auto xl:bottom-10 xl:left-[var(--dock-left,1.5rem)]">
       <div ref={menuRef} className="relative">
         <button
           type="button"
           onClick={() => setOpen((current) => !current)}
+          style={controlButtonSizeStyle}
           className={cn(
-            "inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-card/85 p-0.5 shadow-lg backdrop-blur transition-colors duration-200 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:h-10 sm:w-10 md:h-11 md:w-11",
+            "inline-flex cursor-pointer items-center justify-center rounded-full bg-card/85 p-0.5 shadow-lg backdrop-blur transition-colors duration-200 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             open && "bg-primary-soft",
           )}
           aria-haspopup="menu"
@@ -79,7 +92,10 @@ export function TopRightControls({ theme, onToggleTheme, profile }: TopRightCont
           aria-label="Open profile menu"
         >
           {avatarFailed || !profile.avatarUrl ? (
-            <div className="grid h-8 w-8 place-items-center rounded-full bg-primary-soft text-[10px] font-semibold text-foreground sm:h-9 sm:w-9 md:h-10 md:w-10 md:text-xs">
+            <div
+              className="grid place-items-center rounded-full bg-primary-soft font-semibold text-foreground"
+              style={{ ...avatarSizeStyle, fontSize: "clamp(0.625rem, 0.75vw, 0.75rem)" }}
+            >
               {initials}
             </div>
           ) : (
@@ -95,7 +111,8 @@ export function TopRightControls({ theme, onToggleTheme, profile }: TopRightCont
                   setAvatarFailed(true);
                 }
               }}
-              className="h-8 w-8 rounded-full object-cover sm:h-9 sm:w-9 md:h-10 md:w-10"
+              className="rounded-full object-cover"
+              style={avatarSizeStyle}
             />
           )}
         </button>
@@ -147,10 +164,11 @@ export function TopRightControls({ theme, onToggleTheme, profile }: TopRightCont
       <button
         type="button"
         onClick={onToggleTheme}
-        className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-card/85 text-muted-foreground shadow-lg backdrop-blur transition-colors duration-200 hover:bg-primary-soft hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:h-10 sm:w-10 md:h-11 md:w-11"
+        style={controlButtonSizeStyle}
+        className="inline-flex cursor-pointer items-center justify-center rounded-full bg-card/85 text-muted-foreground shadow-lg backdrop-blur transition-colors duration-200 hover:bg-primary-soft hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         aria-label="Toggle theme"
       >
-        {theme === "dark" ? <Sun className="h-4 w-4 sm:h-[18px] sm:w-[18px] md:h-5 md:w-5" /> : <Moon className="h-4 w-4 sm:h-[18px] sm:w-[18px] md:h-5 md:w-5" />}
+        {theme === "dark" ? <Sun style={iconSizeStyle} /> : <Moon style={iconSizeStyle} />}
       </button>
     </div>
   );

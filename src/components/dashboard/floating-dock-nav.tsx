@@ -105,7 +105,7 @@ export function FloatingDockNav({ onHoverChange }: FloatingDockNavProps) {
   return (
     <FloatingDock
       items={items}
-      desktopClassName="fixed left-6 top-[44%] z-30 -translate-y-1/2 lg:left-8"
+      desktopClassName="fixed left-[var(--dock-left,1.5rem)] top-[44%] z-30 -translate-y-1/2"
       mobileClassName="fixed right-4 bottom-6 z-30"
       desktopOrientation="vertical"
       onDockHoverChange={onHoverChange}
