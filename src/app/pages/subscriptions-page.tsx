@@ -60,13 +60,15 @@ export function SubscriptionsPage() {
           {subscriptionOverviewKpis.map((item, index) => {
             const Icon = kpiIcons[index % kpiIcons.length];
             return (
-              <article key={item.label} className="rounded-xl bg-card p-5 shadow-card">
-                <div className="flex items-center gap-2">
-                  <Icon className="h-4 w-4 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">{item.label}</p>
+              <article key={item.label} className="kpi-card">
+                <div className="kpi-card-inner">
+                  <div className="flex items-center gap-2">
+                    <Icon className="h-4 w-4 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">{item.label}</p>
+                  </div>
+                  <p className="mt-3 text-3xl font-bold tracking-tight">{item.value}</p>
+                  <p className="mt-2 text-xs text-muted-foreground">{item.note}</p>
                 </div>
-                <p className="mt-2 text-2xl font-bold">{item.value}</p>
-                <p className="mt-2 text-xs text-muted-foreground">{item.note}</p>
               </article>
             );
           })}
@@ -157,8 +159,8 @@ export function SubscriptionsPage() {
                         )
                       }
                       className={`rounded-full px-3 py-1 text-xs font-semibold ${feature.visible
-                          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300"
-                          : "bg-muted text-muted-foreground"
+                        ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300"
+                        : "bg-muted text-muted-foreground"
                         }`}
                     >
                       {feature.visible ? "Visible" : "Hidden"}

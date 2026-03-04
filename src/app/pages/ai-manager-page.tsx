@@ -60,13 +60,15 @@ export function AiManagerPage() {
         {periodData.kpis.map((kpi, index) => {
           const Icon = kpiIcons[index % kpiIcons.length];
           return (
-            <article key={kpi.label} className="rounded-xl bg-card p-5 shadow-card">
-              <div className="flex items-center gap-2">
-                <Icon className="h-4 w-4 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">{kpi.label}</p>
+            <article key={kpi.label} className="kpi-card">
+              <div className="kpi-card-inner">
+                <div className="flex items-center gap-2">
+                  <Icon className="h-4 w-4 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">{kpi.label}</p>
+                </div>
+                <p className="mt-3 text-3xl font-bold tracking-tight">{kpi.value}</p>
+                <p className="mt-2 text-xs text-muted-foreground">{kpi.note}</p>
               </div>
-              <p className="mt-2 text-2xl font-bold">{kpi.value}</p>
-              <p className="mt-2 text-xs text-muted-foreground">{kpi.note}</p>
             </article>
           );
         })}

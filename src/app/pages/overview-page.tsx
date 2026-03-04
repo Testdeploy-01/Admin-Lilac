@@ -61,26 +61,26 @@ export function OverviewPage() {
         {overviewKpis.map((item, index) => {
           const Icon = kpiIcons[index % kpiIcons.length];
           return (
-            <article
-              key={item.label}
-              className={`rounded-xl bg-card p-5 shadow-card transition hover:-translate-y-0.5 border-l-4 ${item.trend === "up" ? "border-l-emerald-500" : item.trend === "down" ? "border-l-rose-500" : "border-l-border"
-                }`}
-            >
-              <div className="flex items-center gap-2">
-                <Icon className="h-4 w-4 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">{item.label}</p>
+            <article key={item.label} className="kpi-card">
+              <div className="kpi-card-inner">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Icon className="h-4 w-4 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">{item.label}</p>
+                  </div>
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${item.trend === "up"
+                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                        : item.trend === "down"
+                          ? "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                  >
+                    {item.trend === "up" ? "↗" : item.trend === "down" ? "↘" : "→"} {item.delta}
+                  </span>
+                </div>
+                <p className="mt-3 text-3xl font-bold tracking-tight text-foreground">{item.value}</p>
               </div>
-              <p className="mt-2 text-2xl font-bold text-foreground">{item.value}</p>
-              <p
-                className={`mt-2 text-xs font-semibold ${item.trend === "up"
-                  ? "text-emerald-600 dark:text-emerald-300"
-                  : item.trend === "down"
-                    ? "text-rose-600 dark:text-rose-300"
-                    : "text-muted-foreground"
-                  }`}
-              >
-                {item.delta}
-              </p>
             </article>
           );
         })}
