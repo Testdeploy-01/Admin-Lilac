@@ -27,8 +27,9 @@ function rowsByKey(key: DashboardRouteKey): Array<Record<string, string | number
       return aiUsageRows.map((row) => ({
         ผู้ใช้: row.userId,
         แพลน: PLAN_LABELS[row.plan],
-        InputTokens: row.inputTokens,
-        OutputTokens: row.outputTokens,
+        "Voice Input": row.inputVoiceTokens,
+        "Text Input": row.inputTextTokens,
+        "Text Output": row.outputTextTokens,
         รายได้THB: row.revenueTHB,
         ต้นทุนTHB: row.costTHB,
       }));
@@ -64,7 +65,9 @@ function rowsByKey(key: DashboardRouteKey): Array<Record<string, string | number
         สมัครเมื่อ: user.signupDate,
         หมวดหลัก: user.favoriteCategory,
         Alert: user.systemAlert,
-        MonthlyTokens: user.monthlyTokens,
+        "Voice InputTokens": user.inputVoiceTokens,
+        "Text InputTokens": user.inputTextTokens,
+        "Text OutputTokens": user.outputTextTokens,
         AICostTHB: user.aiCostTHB,
         สถานะ: user.status,
       }));

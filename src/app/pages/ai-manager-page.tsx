@@ -180,8 +180,9 @@ export function AiManagerPage() {
               <tr className="border-b border-border text-left text-muted-foreground">
                 <th scope="col" className="pb-2">ผู้ใช้</th>
                 <th scope="col" className="pb-2">แพลน</th>
-                <th scope="col" className="pb-2">Input Tokens</th>
-                <th scope="col" className="pb-2">Output Tokens</th>
+                <th scope="col" className="pb-2">Voice Input</th>
+                <th scope="col" className="pb-2">Text Input</th>
+                <th scope="col" className="pb-2">Text Output</th>
                 <th scope="col" className="pb-2">รายได้</th>
                 <th scope="col" className="pb-2">ต้นทุน</th>
                 <th scope="col" className="pb-2">Margin</th>
@@ -199,8 +200,9 @@ export function AiManagerPage() {
                   <tr key={row.userId} className="border-b border-border/70 last:border-none">
                     <td className="py-3 font-medium">{row.userId}</td>
                     <td className="py-3">{PLAN_LABELS[row.plan]}</td>
-                    <td className="py-3">{formatNumber(row.inputTokens)}</td>
-                    <td className="py-3">{formatNumber(row.outputTokens)}</td>
+                    <td className="py-3">{formatNumber(row.inputVoiceTokens)}</td>
+                    <td className="py-3">{formatNumber(row.inputTextTokens)}</td>
+                    <td className="py-3">{formatNumber(row.outputTextTokens)}</td>
                     <td className="py-3">{formatCurrencyTHB(row.revenueTHB)}</td>
                     <td className="py-3">{formatCurrencyTHB(row.costTHB)}</td>
                     <td className="py-3">
