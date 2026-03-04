@@ -1,6 +1,6 @@
 ﻿import { useMemo, useState } from "react";
 import { CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { aiAlert, aiModelUsage, aiPeriodStats, aiUsageRows, type AiPeriod } from "../../mocks/dashboard-features.mock";
+import { aiAlert, aiModelUsage, aiPeriodStats, aiUsageRows, PLAN_LABELS, type AiPeriod } from "../../mocks/dashboard-features.mock";
 import { formatCurrencyTHB, formatNumber } from "../../lib/formatters";
 
 const periodOptions: Array<{ key: AiPeriod; label: string }> = [
@@ -198,7 +198,7 @@ export function AiManagerPage() {
                 marginRows.map((row) => (
                   <tr key={row.userId} className="border-b border-border/70 last:border-none">
                     <td className="py-3 font-medium">{row.userId}</td>
-                    <td className="py-3">{row.plan}</td>
+                    <td className="py-3">{PLAN_LABELS[row.plan]}</td>
                     <td className="py-3">{formatNumber(row.inputTokens)}</td>
                     <td className="py-3">{formatNumber(row.outputTokens)}</td>
                     <td className="py-3">{formatCurrencyTHB(row.revenueTHB)}</td>

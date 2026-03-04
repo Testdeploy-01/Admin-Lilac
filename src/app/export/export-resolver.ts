@@ -8,6 +8,7 @@ import {
   lifestyleRecommendations,
   managedUsers,
   overviewKpis,
+  PLAN_LABELS,
   popularFeatures,
   studyTrendingEvents,
   subscriptionPlans,
@@ -25,7 +26,7 @@ function rowsByKey(key: DashboardRouteKey): Array<Record<string, string | number
     case "ai-manager":
       return aiUsageRows.map((row) => ({
         ผู้ใช้: row.userId,
-        แพลน: row.plan,
+        แพลน: PLAN_LABELS[row.plan],
         InputTokens: row.inputTokens,
         OutputTokens: row.outputTokens,
         รายได้THB: row.revenueTHB,
@@ -59,7 +60,7 @@ function rowsByKey(key: DashboardRouteKey): Array<Record<string, string | number
       return managedUsers.map((user) => ({
         รหัสผู้ใช้: user.id,
         ชื่อ: user.name,
-        แพลน: user.plan,
+        แพลน: PLAN_LABELS[user.plan],
         สมัครเมื่อ: user.signupDate,
         หมวดหลัก: user.favoriteCategory,
         Alert: user.systemAlert,

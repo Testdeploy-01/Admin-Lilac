@@ -1,6 +1,6 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { managedUsers } from "../../mocks/dashboard-features.mock";
+import { managedUsers, PLAN_LABELS, type PlanKey } from "../../mocks/dashboard-features.mock";
 import { formatCurrencyTHB, formatNumber } from "../../lib/formatters";
 
 type UserFilter = "all" | "plus" | "free" | "suspended" | "new7";
@@ -8,7 +8,7 @@ type SortMode = "signup-desc" | "signup-asc" | "token-desc" | "token-asc";
 
 const filterButtons: Array<{ key: UserFilter; label: string }> = [
   { key: "all", label: "ทั้งหมด" },
-  { key: "plus", label: "PLUS+" },
+  { key: "plus", label: "Plus+" },
   { key: "free", label: "FREE" },
   { key: "suspended", label: "Suspended" },
   { key: "new7", label: "ใหม่ 7 วัน" },
@@ -35,12 +35,12 @@ export function UserManagementPage() {
   const [selectedUserId, setSelectedUserId] = useState<string>(initialUserId);
   const [drawerOpen, setDrawerOpen] = useState(Boolean(initialUserId));
 
-  const pageSize = 4;
+  const pageSize = 15;
 
   const filtered = useMemo(() => {
     const next = rows.filter((row) => {
       if (filter === "all") return true;
-      if (filter === "plus") return row.plan === "PLUS+";
+      if (filter === "plus") return row.plan !== "FREE";
       if (filter === "free") return row.plan === "FREE";
       if (filter === "suspended") return row.status === "suspended";
       return within7Days(row.signupDate) || row.status === "new";
@@ -133,8 +133,8 @@ export function UserManagementPage() {
                   setPage(1);
                 }}
                 className={`rounded-full px-3 py-1 text-xs font-semibold transition ${filter === option.key
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-background text-muted-foreground hover:bg-accent"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-background text-muted-foreground hover:bg-accent"
                   }`}
               >
                 {option.label}
@@ -198,7 +198,7 @@ export function UserManagementPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="py-3">{user.plan}</td>
+                    <td className="py-3">{PLAN_LABELS[user.plan]}</td>
                     <td className="py-3">{user.signupDate}</td>
                     <td className="py-3">{user.favoriteCategory}</td>
                     <td className="py-3">{user.systemAlert}</td>
@@ -207,10 +207,10 @@ export function UserManagementPage() {
                     <td className="py-3">
                       <span
                         className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${user.status === "active"
-                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300"
-                            : user.status === "suspended"
-                              ? "bg-rose-100 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300"
-                              : "bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300"
+                          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300"
+                          : user.status === "suspended"
+                            ? "bg-rose-100 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300"
+                            : "bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300"
                           }`}
                       >
                         {user.status}
@@ -289,7 +289,7 @@ export function UserManagementPage() {
               </div>
 
               <div className="mt-4 space-y-2 text-sm">
-                <p>แพลนปัจจุบัน: {selectedUser.plan}</p>
+                <p>แพลนปัจจุบัน: {PLAN_LABELS[selectedUser.plan]}</p>
                 <p>Login ล่าสุด: {selectedUser.lastLogin}</p>
                 <p>โควตาคงเหลือ (ประมาณ): {Math.max(0, 100 - Math.floor(selectedUser.monthlyTokens / 500))}%</p>
                 <p>Alert: {selectedUser.systemAlert}</p>
@@ -304,15 +304,16 @@ export function UserManagementPage() {
                   onChange={(event) =>
                     setRows((prev) =>
                       prev.map((row) =>
-                        row.id === selectedUser.id ? { ...row, plan: event.target.value as "PLUS+" | "FREE" } : row,
+                        row.id === selectedUser.id ? { ...row, plan: event.target.value as PlanKey } : row,
                       ),
                     )
                   }
                   aria-label="แก้ไขแพลนผู้ใช้งาน"
                   className="mt-1 w-full rounded-md border border-input bg-card px-3 py-2 text-sm"
                 >
-                  <option>FREE</option>
-                  <option>PLUS+</option>
+                  {(Object.entries(PLAN_LABELS) as Array<[PlanKey, string]>).map(([key, label]) => (
+                    <option key={key} value={key}>{label}</option>
+                  ))}
                 </select>
               </label>
 
