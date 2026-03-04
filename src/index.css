@@ -39,3 +39,36 @@
     scrollbar-width: none;
   }
 }
+
+/* ─── Data Table UX ─── */
+@layer components {
+  /* Zebra-striped rows */
+  table tbody tr:nth-child(even) {
+    @apply bg-muted/30;
+  }
+
+  /* Row hover highlight */
+  table tbody tr {
+    @apply transition-colors duration-150;
+  }
+  table tbody tr:hover {
+    @apply bg-accent/60;
+  }
+
+  /* Sticky table header */
+  table thead {
+    @apply sticky top-0 z-10 bg-card;
+  }
+  table thead th {
+    @apply pb-3 pt-1 text-xs font-semibold uppercase tracking-wider;
+  }
+
+  /* Section divider after heading */
+  .section-divider {
+    @apply relative pb-4;
+  }
+  .section-divider::after {
+    content: "";
+    @apply absolute bottom-0 left-0 h-px w-full bg-border/60;
+  }
+}

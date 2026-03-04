@@ -1,7 +1,10 @@
 ﻿import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bot, PiggyBank, ShieldAlert, TrendingUp } from "lucide-react";
 import { useMemo } from "react";
 import { financeCategoryUsage, financeDailyEntries, financeInputMethodShare, financeKpis } from "../../mocks/dashboard-features.mock";
 import { formatCurrencyTHB, formatNumber } from "../../lib/formatters";
+
+const kpiIcons = [TrendingUp, ShieldAlert, Bot, PiggyBank];
 
 export function FinancePage() {
   const inputMethodColors = useMemo(() => ["hsl(var(--primary))", "#14b8a6", "#f59e0b"], []);
@@ -14,13 +17,19 @@ export function FinancePage() {
       </header>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {financeKpis.map((item) => (
-          <article key={item.label} className="rounded-xl bg-card p-5 shadow-card">
-            <p className="text-sm text-muted-foreground">{item.label}</p>
-            <p className="mt-3 text-2xl font-bold">{item.value}</p>
-            <p className="mt-2 text-xs text-muted-foreground">{item.note}</p>
-          </article>
-        ))}
+        {financeKpis.map((item, index) => {
+          const Icon = kpiIcons[index % kpiIcons.length];
+          return (
+            <article key={item.label} className="rounded-xl bg-card p-5 shadow-card">
+              <div className="flex items-center gap-2">
+                <Icon className="h-4 w-4 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">{item.label}</p>
+              </div>
+              <p className="mt-2 text-2xl font-bold">{item.value}</p>
+              <p className="mt-2 text-xs text-muted-foreground">{item.note}</p>
+            </article>
+          );
+        })}
       </div>
 
       <article className="rounded-xl bg-card p-6 shadow-card">

@@ -1,4 +1,5 @@
-﻿import { useMemo, useState } from "react";
+﻿import { AlertTriangle, Brain, DollarSign, Target } from "lucide-react";
+import { useMemo, useState } from "react";
 import { CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { aiAlert, aiModelUsage, aiPeriodStats, aiUsageRows, type AiPeriod } from "../../mocks/dashboard-features.mock";
 import { formatCurrencyTHB, formatNumber } from "../../lib/formatters";
@@ -9,6 +10,8 @@ const periodOptions: Array<{ key: AiPeriod; label: string }> = [
   { key: "month", label: "เดือนนี้" },
   { key: "year", label: "ปีนี้" },
 ];
+
+const kpiIcons = [Brain, DollarSign, Target, AlertTriangle];
 
 export function AiManagerPage() {
   const [period, setPeriod] = useState<AiPeriod>("today");
@@ -54,19 +57,27 @@ export function AiManagerPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {periodData.kpis.map((kpi) => (
-          <article key={kpi.label} className="rounded-xl bg-card p-5 shadow-card">
-            <p className="text-sm text-muted-foreground">{kpi.label}</p>
-            <p className="mt-3 text-2xl font-bold">{kpi.value}</p>
-            <p className="mt-2 text-xs text-muted-foreground">{kpi.note}</p>
-          </article>
-        ))}
+        {periodData.kpis.map((kpi, index) => {
+          const Icon = kpiIcons[index % kpiIcons.length];
+          return (
+            <article key={kpi.label} className="rounded-xl bg-card p-5 shadow-card">
+              <div className="flex items-center gap-2">
+                <Icon className="h-4 w-4 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">{kpi.label}</p>
+              </div>
+              <p className="mt-2 text-2xl font-bold">{kpi.value}</p>
+              <p className="mt-2 text-xs text-muted-foreground">{kpi.note}</p>
+            </article>
+          );
+        })}
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
         <article className="rounded-xl bg-card p-6 shadow-card">
-          <h3 className="text-base font-semibold">Token และต้นทุน</h3>
-          <p className="text-sm text-muted-foreground">เปรียบเทียบปริมาณ Token และค่าใช้จ่ายในช่วงเวลาที่เลือก</p>
+          <div className="section-divider">
+            <h3 className="text-base font-semibold">Token และต้นทุน</h3>
+            <p className="text-sm text-muted-foreground">เปรียบเทียบปริมาณ Token และค่าใช้จ่ายในช่วงเวลาที่เลือก</p>
+          </div>
           <div className="mt-4 h-64 w-full">
             <ResponsiveContainer>
               <LineChart data={periodData.tokenCostBars} margin={{ left: 8, right: 8, top: 6 }}>

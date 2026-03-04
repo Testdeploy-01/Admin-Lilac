@@ -1,7 +1,10 @@
-﻿import { useMemo, useState } from "react";
+﻿import { ArrowUpDown, CreditCard, TrendingDown, Users } from "lucide-react";
+import { useMemo, useState } from "react";
 import { downloadText } from "../../lib/exporters";
 import { formatCurrencyTHB } from "../../lib/formatters";
 import { invoices, plusFeatures, subscriptionOverviewKpis, subscriptionPlans } from "../../mocks/dashboard-features.mock";
+
+const kpiIcons = [CreditCard, Users, ArrowUpDown, TrendingDown];
 
 type TabKey = "overview" | "plans" | "invoices";
 
@@ -27,9 +30,8 @@ export function SubscriptionsPage() {
           type="button"
           onClick={() => setActiveTab("overview")}
           aria-pressed={activeTab === "overview"}
-          className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
-            activeTab === "overview" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
-          }`}
+          className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${activeTab === "overview" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
+            }`}
         >
           ภาพรวม
         </button>
@@ -37,9 +39,8 @@ export function SubscriptionsPage() {
           type="button"
           onClick={() => setActiveTab("plans")}
           aria-pressed={activeTab === "plans"}
-          className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
-            activeTab === "plans" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
-          }`}
+          className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${activeTab === "plans" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
+            }`}
         >
           แพ็กเกจ
         </button>
@@ -47,9 +48,8 @@ export function SubscriptionsPage() {
           type="button"
           onClick={() => setActiveTab("invoices")}
           aria-pressed={activeTab === "invoices"}
-          className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
-            activeTab === "invoices" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
-          }`}
+          className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${activeTab === "invoices" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
+            }`}
         >
           ใบแจ้งหนี้
         </button>
@@ -57,13 +57,19 @@ export function SubscriptionsPage() {
 
       {activeTab === "overview" ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {subscriptionOverviewKpis.map((item) => (
-            <article key={item.label} className="rounded-xl bg-card p-5 shadow-card">
-              <p className="text-sm text-muted-foreground">{item.label}</p>
-              <p className="mt-3 text-2xl font-bold">{item.value}</p>
-              <p className="mt-2 text-xs text-muted-foreground">{item.note}</p>
-            </article>
-          ))}
+          {subscriptionOverviewKpis.map((item, index) => {
+            const Icon = kpiIcons[index % kpiIcons.length];
+            return (
+              <article key={item.label} className="rounded-xl bg-card p-5 shadow-card">
+                <div className="flex items-center gap-2">
+                  <Icon className="h-4 w-4 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">{item.label}</p>
+                </div>
+                <p className="mt-2 text-2xl font-bold">{item.value}</p>
+                <p className="mt-2 text-xs text-muted-foreground">{item.note}</p>
+              </article>
+            );
+          })}
         </div>
       ) : null}
 
@@ -88,9 +94,8 @@ export function SubscriptionsPage() {
                     onClick={() =>
                       setPlans((prev) => prev.map((row) => (row.id === plan.id ? { ...row, active: !row.active } : row)))
                     }
-                    className={`mt-3 rounded-md px-3 py-1 text-xs font-semibold ${
-                      plan.active ? "bg-emerald-600 text-white" : "bg-muted text-muted-foreground"
-                    }`}
+                    className={`mt-3 rounded-md px-3 py-1 text-xs font-semibold ${plan.active ? "bg-emerald-600 text-white" : "bg-muted text-muted-foreground"
+                      }`}
                   >
                     {plan.active ? "เปิดใช้งาน" : "ปิดใช้งาน"}
                   </button>
@@ -151,11 +156,10 @@ export function SubscriptionsPage() {
                           prev.map((row) => (row.id === feature.id ? { ...row, visible: !row.visible } : row)),
                         )
                       }
-                      className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                        feature.visible
+                      className={`rounded-full px-3 py-1 text-xs font-semibold ${feature.visible
                           ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300"
                           : "bg-muted text-muted-foreground"
-                      }`}
+                        }`}
                     >
                       {feature.visible ? "Visible" : "Hidden"}
                     </button>

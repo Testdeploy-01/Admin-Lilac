@@ -1,4 +1,5 @@
-﻿import { useMemo, useState } from "react";
+﻿import { Bell, CalendarCheck, Users, Zap } from "lucide-react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Area, AreaChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import {
@@ -12,6 +13,7 @@ import {
 export function OverviewPage() {
   const [range, setRange] = useState<"7d" | "30d">("30d");
   const usageColors = ["hsl(var(--primary))", "#14b8a6", "#f59e0b"];
+  const kpiIcons = [Users, CalendarCheck, Bell, Zap];
 
   const growthData = useMemo(() => {
     if (range === "30d") {
@@ -56,28 +58,40 @@ export function OverviewPage() {
       </header>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {overviewKpis.map((item) => (
-          <article key={item.label} className="rounded-xl bg-card p-5 shadow-card transition hover:-translate-y-0.5">
-            <p className="text-sm text-muted-foreground">{item.label}</p>
-            <p className="mt-3 text-2xl font-bold text-foreground">{item.value}</p>
-            <p
-              className={`mt-2 text-xs font-semibold ${item.trend === "up"
+        {overviewKpis.map((item, index) => {
+          const Icon = kpiIcons[index % kpiIcons.length];
+          return (
+            <article
+              key={item.label}
+              className={`rounded-xl bg-card p-5 shadow-card transition hover:-translate-y-0.5 border-l-4 ${item.trend === "up" ? "border-l-emerald-500" : item.trend === "down" ? "border-l-rose-500" : "border-l-border"
+                }`}
+            >
+              <div className="flex items-center gap-2">
+                <Icon className="h-4 w-4 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">{item.label}</p>
+              </div>
+              <p className="mt-2 text-2xl font-bold text-foreground">{item.value}</p>
+              <p
+                className={`mt-2 text-xs font-semibold ${item.trend === "up"
                   ? "text-emerald-600 dark:text-emerald-300"
                   : item.trend === "down"
                     ? "text-rose-600 dark:text-rose-300"
                     : "text-muted-foreground"
-                }`}
-            >
-              {item.delta}
-            </p>
-          </article>
-        ))}
+                  }`}
+              >
+                {item.delta}
+              </p>
+            </article>
+          );
+        })}
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[1.6fr_1fr]">
         <article className="rounded-xl bg-card p-6 shadow-card">
-          <h3 className="text-base font-semibold">กราฟการเติบโตของผู้ใช้ ({range === "30d" ? "30 วัน" : "7 วัน"})</h3>
-          <p className="text-sm text-muted-foreground">แนวโน้มจำนวนผู้ใช้งานรายวัน</p>
+          <div className="section-divider">
+            <h3 className="text-base font-semibold">กราฟการเติบโตของผู้ใช้ ({range === "30d" ? "30 วัน" : "7 วัน"})</h3>
+            <p className="text-sm text-muted-foreground">แนวโน้มจำนวนผู้ใช้งานรายวัน</p>
+          </div>
           <div className="mt-4 h-64 w-full">
             <ResponsiveContainer>
               <AreaChart data={growthData} margin={{ left: 8, right: 8, top: 6, bottom: 0 }}>
@@ -164,8 +178,10 @@ export function OverviewPage() {
         </article>
 
         <article className="rounded-xl bg-card p-6 shadow-card">
-          <h3 className="text-base font-semibold">Feature ยอดนิยม</h3>
-          <p className="text-sm text-muted-foreground">จัดอันดับฟังก์ชันที่ถูกใช้งานมากที่สุด</p>
+          <div className="section-divider">
+            <h3 className="text-base font-semibold">Feature ยอดนิยม</h3>
+            <p className="text-sm text-muted-foreground">จัดอันดับฟังก์ชันที่ถูกใช้งานมากที่สุด</p>
+          </div>
           <div className="mt-4 space-y-3">
             {popularFeatures.map((item, index) => {
               const width = (item.calls / maxFeatureCalls) * 100;

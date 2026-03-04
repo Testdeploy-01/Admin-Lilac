@@ -1,7 +1,9 @@
-﻿import { useMemo, useState } from "react";
+﻿import { BookOpen, CalendarDays, Clock, Star } from "lucide-react";
+import { useMemo, useState } from "react";
 import { CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { studyKpis, studyUpcomingShare, studyWorkloadTrend, studyTrendingEvents } from "../../mocks/dashboard-features.mock";
 
+const kpiIcons = [BookOpen, CalendarDays, Clock, Star];
 export function StudyConfigPage() {
   const [university, setUniversity] = useState("ทั้งหมด");
   const [year, setYear] = useState("ทั้งหมด");
@@ -26,13 +28,19 @@ export function StudyConfigPage() {
       </header>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {studyKpis.map((item) => (
-          <article key={item.label} className="rounded-xl bg-card p-5 shadow-card">
-            <p className="text-sm text-muted-foreground">{item.label}</p>
-            <p className="mt-3 text-2xl font-bold">{item.value}</p>
-            <p className="mt-2 text-xs text-muted-foreground">{item.note}</p>
-          </article>
-        ))}
+        {studyKpis.map((item, index) => {
+          const Icon = kpiIcons[index % kpiIcons.length];
+          return (
+            <article key={item.label} className="rounded-xl bg-card p-5 shadow-card">
+              <div className="flex items-center gap-2">
+                <Icon className="h-4 w-4 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">{item.label}</p>
+              </div>
+              <p className="mt-2 text-2xl font-bold">{item.value}</p>
+              <p className="mt-2 text-xs text-muted-foreground">{item.note}</p>
+            </article>
+          );
+        })}
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
