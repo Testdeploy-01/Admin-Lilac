@@ -162,11 +162,14 @@ export function OverviewPage() {
               ดูทั้งหมด
             </Link>
           </div>
-          <div className="mt-4 space-y-2.5">
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
             {recentActivities.map((activity) => (
-              <div key={activity.id} className="rounded-lg bg-background p-3">
-                <p className="text-sm font-medium">{activity.text}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{activity.time}</p>
+              <div key={activity.id} className="rounded-xl border border-border bg-background p-4">
+                <p className="text-sm font-semibold">{activity.text}</p>
+                <div className="mt-3 flex items-center justify-between border-t border-border/50 pt-2">
+                  <p className="text-xs text-muted-foreground">{activity.time}</p>
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary/40" />
+                </div>
               </div>
             ))}
           </div>
@@ -177,19 +180,19 @@ export function OverviewPage() {
             <h3 className="text-base font-semibold">Feature ยอดนิยม</h3>
             <p className="text-sm text-muted-foreground">จัดอันดับฟังก์ชันที่ถูกใช้งานมากที่สุด</p>
           </div>
-          <div className="mt-4 space-y-3">
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
             {popularFeatures.map((item, index) => {
               const width = (item.calls / maxFeatureCalls) * 100;
               return (
-                <div key={item.feature} className="rounded-lg bg-background p-3">
-                  <div className="mb-2 flex items-center justify-between gap-2 text-sm">
-                    <span className="font-medium">
+                <div key={item.feature} className="rounded-xl border border-border bg-background p-4">
+                  <div className="mb-3 flex items-center justify-between gap-2 text-sm">
+                    <span className="font-bold">
                       #{index + 1} {item.feature}
                     </span>
-                    <span className="text-xs text-muted-foreground">{item.calls.toLocaleString()} ครั้ง</span>
+                    <span className="text-xs font-medium text-muted-foreground">{item.calls.toLocaleString()}</span>
                   </div>
-                  <div className="h-2 rounded-full bg-muted">
-                    <div className="h-2 rounded-full bg-primary" style={{ width: `${width}%` }} />
+                  <div className="h-2.5 rounded-full bg-muted">
+                    <div className="h-2.5 rounded-full bg-primary" style={{ width: `${width}%` }} />
                   </div>
                 </div>
               );

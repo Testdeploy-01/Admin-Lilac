@@ -73,28 +73,34 @@ export function SubscriptionsPage() {
         <>
           <article className="rounded-xl bg-card p-6 shadow-card">
             <h3 className="text-base font-semibold">Pricing Configuration</h3>
-            <div className="mt-4 grid gap-4 lg:grid-cols-3">
+            <div className="mt-4 grid gap-5 sm:grid-cols-2">
               {plans.map((plan) => (
-                <div key={plan.id} className="rounded-lg bg-background p-4">
+                <div key={plan.id} className="rounded-xl border border-border bg-background p-6">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <p className="text-sm text-muted-foreground">{plan.cycle}</p>
-                      <p className="text-base font-semibold">{plan.name}</p>
+                      <p className="text-xs font-bold uppercase tracking-wider text-primary">{plan.cycle}</p>
+                      <p className="mt-1 text-lg font-bold">{plan.name}</p>
                     </div>
-                    <span className="rounded-full bg-muted px-2 py-1 text-[10px] font-semibold">{plan.badge}</span>
+                    <span className="rounded-full bg-primary/10 px-3 py-1 text-[11px] font-bold text-primary">{plan.badge}</span>
                   </div>
-                  <p className="mt-3 text-2xl font-bold">{formatCurrencyTHB(plan.priceTHB)}</p>
-                  <p className="text-xs text-muted-foreground">อายุแพ็กเกจ {plan.durationDays} วัน</p>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setPlans((prev) => prev.map((row) => (row.id === plan.id ? { ...row, active: !row.active } : row)))
-                    }
-                    className={`mt-3 rounded-md px-3 py-1 text-xs font-semibold ${plan.active ? "bg-emerald-600 text-white" : "bg-muted text-muted-foreground"
-                      }`}
-                  >
-                    {plan.active ? "เปิดใช้งาน" : "ปิดใช้งาน"}
-                  </button>
+                  <div className="mt-5">
+                    <p className="text-3xl font-black">{formatCurrencyTHB(plan.priceTHB)}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">อายุแพ็กเกจ {plan.durationDays} วัน</p>
+                  </div>
+                  <div className="mt-6 border-t border-border pt-5">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setPlans((prev) => prev.map((row) => (row.id === plan.id ? { ...row, active: !row.active } : row)))
+                      }
+                      className={`w-full rounded-lg px-4 py-2.5 text-sm font-bold transition-all ${plan.active
+                        ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/20 hover:bg-emerald-700"
+                        : "bg-muted text-muted-foreground hover:bg-accent"
+                        }`}
+                    >
+                      {plan.active ? "เปิดใช้งานอยู่" : "คลิกเพื่อเปิดใช้งาน"}
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

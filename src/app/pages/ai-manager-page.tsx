@@ -144,19 +144,25 @@ export function AiManagerPage() {
 
       <article className="rounded-xl bg-card p-6 shadow-card">
         <h3 className="text-base font-semibold">การใช้ Token แยกตาม Model</h3>
-        <div className="mt-4 space-y-3">
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
           {aiModelUsage.map((model) => {
             const width = (model.tokens / maxModelTokens) * 100;
             return (
-              <div key={model.model} className="rounded-lg bg-background p-3">
-                <div className="mb-2 flex items-center justify-between text-sm">
-                  <span className="font-medium">{model.model}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {formatNumber(model.tokens)} tokens • {formatCurrencyTHB(model.costTHB)}
-                  </span>
+              <div key={model.model} className="rounded-xl border border-border bg-background p-5 text-card-foreground">
+                <div className="mb-4 flex items-center justify-between">
+                  <h4 className="font-bold text-foreground">{model.model}</h4>
+                  <div className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground">
+                    <span>{formatCurrencyTHB(model.costTHB)}</span>
+                  </div>
                 </div>
-                <div className="h-2 rounded-full bg-muted">
-                  <div className="h-2 rounded-full bg-primary" style={{ width: `${width}%` }} />
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Token Usage</span>
+                    <span>{formatNumber(model.tokens)}</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-muted">
+                    <div className="h-2 rounded-full bg-primary/80" style={{ width: `${width}%` }} />
+                  </div>
                 </div>
               </div>
             );

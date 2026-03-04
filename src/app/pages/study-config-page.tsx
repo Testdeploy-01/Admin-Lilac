@@ -120,22 +120,25 @@ export function StudyConfigPage() {
           </div>
         </div>
 
-        <div className="mt-5 space-y-3">
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
           {filteredEvents.length === 0 ? (
-            <p className="rounded-lg bg-background p-4 text-sm text-muted-foreground">ไม่พบข้อมูลตามตัวกรองที่เลือก</p>
+            <p className="col-span-full rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">ไม่พบข้อมูลตามตัวกรองที่เลือก</p>
           ) : (
-            filteredEvents.map((event, index) => (
-              <div key={event.id} className="relative rounded-lg bg-background p-4">
-                {index < filteredEvents.length - 1 ? <span className="absolute left-[19px] top-12 h-8 w-px bg-border" /> : null}
-                <div className="flex items-start gap-3">
-                  <span className="mt-0.5 inline-flex h-3 w-3 shrink-0 rounded-full bg-primary" />
+            filteredEvents.map((event) => (
+              <div key={event.id} className="group rounded-xl border border-border bg-background p-5 transition-colors hover:border-primary/30">
+                <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-foreground">{event.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {event.university} • {event.year} • {event.dueIn}
+                    <p className="text-sm font-bold text-foreground truncate">{event.title}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {event.university} • {event.year}
                     </p>
-                    <p className="mt-1 text-xs font-medium text-amber-600 dark:text-amber-300">{event.insight}</p>
                   </div>
+                  <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-bold text-primary">
+                    {event.dueIn}
+                  </span>
+                </div>
+                <div className="mt-4 border-t border-border/50 pt-3">
+                  <p className="text-xs font-semibold text-amber-600 dark:text-amber-400">💡 {event.insight}</p>
                 </div>
               </div>
             ))
