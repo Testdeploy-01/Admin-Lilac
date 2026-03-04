@@ -64,7 +64,9 @@ export type UserTableRowExpanded = {
   signupDate: string;
   favoriteCategory: "Study" | "Finance" | "Lifestyle";
   systemAlert: string;
-  monthlyTokens: number;
+  inputVoiceTokens: number;
+  inputTextTokens: number;
+  outputTextTokens: number;
   aiCostTHB: number;
   status: "active" | "suspended" | "new";
   lastLogin: string;
@@ -120,9 +122,15 @@ export const managedUsers: UserTableRowExpanded[] = Array.from({ length: TOTAL_U
   const plan = pickPlan();
   const firstName = FIRST_NAMES[Math.floor(rand() * FIRST_NAMES.length)];
   const lastInit = LAST_INITIALS[Math.floor(rand() * LAST_INITIALS.length)];
-  const monthlyTokens = plan === "FREE"
+  const expectedTotalTokens = plan === "FREE"
     ? Math.floor(rand() * 8000 + 2000)
     : Math.floor(rand() * 40000 + 5000);
+
+  // Distribute total tokens into Voice Input, Text Input, and Text Output
+  const inputVoiceTokens = Math.floor(expectedTotalTokens * 0.35); // Approx 35% Voice Input
+  const inputTextTokens = Math.floor(expectedTotalTokens * 0.25); // Approx 25% Text Input
+  const outputTextTokens = expectedTotalTokens - inputVoiceTokens - inputTextTokens; // Remaining 40% Text Output
+
   const costPerToken = 0.0045 + rand() * 0.002;
   return {
     id: `U-${String(i + 1).padStart(4, "0")}`,
@@ -132,8 +140,10 @@ export const managedUsers: UserTableRowExpanded[] = Array.from({ length: TOTAL_U
     signupDate: genDate(2025, 2026),
     favoriteCategory: CATEGORIES[Math.floor(rand() * CATEGORIES.length)],
     systemAlert: ALERTS[Math.floor(rand() * ALERTS.length)],
-    monthlyTokens,
-    aiCostTHB: Math.round(monthlyTokens * costPerToken),
+    inputVoiceTokens,
+    inputTextTokens,
+    outputTextTokens,
+    aiCostTHB: Math.round(expectedTotalTokens * costPerToken),
     status: STATUSES[Math.floor(rand() * STATUSES.length)],
     lastLogin: genLastLogin(),
   };
@@ -151,7 +161,7 @@ const plusMonthly = managedUsers.filter((u) => u.plan === "PLUS_MONTHLY").length
 const plusTerm = managedUsers.filter((u) => u.plan === "PLUS_TERM").length;
 const plusYearly = managedUsers.filter((u) => u.plan === "PLUS_YEARLY").length;
 // activeUsers / suspendedUsers / newUsers can be computed where needed
-const totalMonthlyTokens = managedUsers.reduce((s, u) => s + u.monthlyTokens, 0);
+const totalMonthlyTokens = managedUsers.reduce((s, u) => s + u.inputVoiceTokens + u.inputTextTokens + u.outputTextTokens, 0);
 const totalAiCost = managedUsers.reduce((s, u) => s + u.aiCostTHB, 0);
 
 // MRR calculation from real plan mix
@@ -304,21 +314,22 @@ export const aiModelUsage = [
 export type AiUsageRow = {
   userId: string;
   plan: PlanKey;
-  inputTokens: number;
-  outputTokens: number;
+  inputVoiceTokens: number;
+  inputTextTokens: number;
+  outputTextTokens: number;
   revenueTHB: number;
   costTHB: number;
 };
 
-// Top 20 users by token usage for the AI per-user table
 export const aiUsageRows: AiUsageRow[] = [...managedUsers]
-  .sort((a, b) => b.monthlyTokens - a.monthlyTokens)
+  .sort((a, b) => (b.inputVoiceTokens + b.inputTextTokens + b.outputTextTokens) - (a.inputVoiceTokens + a.inputTextTokens + a.outputTextTokens))
   .slice(0, 20)
   .map((u) => ({
     userId: u.id,
     plan: u.plan,
-    inputTokens: Math.round(u.monthlyTokens * 0.6),
-    outputTokens: Math.round(u.monthlyTokens * 0.4),
+    inputVoiceTokens: u.inputVoiceTokens,
+    inputTextTokens: u.inputTextTokens,
+    outputTextTokens: u.outputTextTokens,
     revenueTHB: PLAN_PRICES[u.plan],
     costTHB: u.aiCostTHB,
   }));
