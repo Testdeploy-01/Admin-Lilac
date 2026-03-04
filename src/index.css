@@ -61,42 +61,19 @@
   }
 }
 
-/* ─── Gradient KPI Card ─── */
-@layer components {
-  .kpi-card {
-    position: relative;
-    border-radius: 0.75rem;
-    padding: 1px;
-    background: linear-gradient(to top,
-        hsl(var(--border)) 0%,
-        hsl(var(--muted)) 100%);
-  }
-
-  .kpi-card-inner {
-    border-radius: calc(0.75rem - 1px);
-    padding: 1.25rem;
-    background: linear-gradient(to top,
-        hsl(var(--card)) 0%,
-        hsl(var(--background)) 100%);
-    height: 100%;
-  }
-
-  .dark .kpi-card {
-    background: none;
-    border-radius: 0.75rem;
-    padding: 0;
-  }
-
-  .dark .kpi-card-inner {
-    border-radius: 0.75rem;
-    background: linear-gradient(to top,
-        hsl(0, 0%, 13%) 0%,
-        hsl(0, 0%, 9%) 100%);
-  }
-}
-
 /* ─── Data Table UX ─── */
 @layer components {
+  .card-gray-gradient {
+    background: linear-gradient(160deg,
+        hsl(0, 0%, 100%) 0%,
+        hsl(220, 14%, 96%) 100%);
+  }
+
+  .dark .card-gray-gradient {
+    background: linear-gradient(160deg,
+        hsl(0, 0%, 11%) 0%,
+        hsl(0, 0%, 7%) 100%);
+  }
 
   /* Zebra-striped rows */
   table tbody tr:nth-child(even) {
@@ -119,31 +96,6 @@
 
   table thead th {
     @apply pb-3 pt-1 text-xs font-semibold uppercase tracking-wider;
-  }
-
-  /* Section divider after heading */
-  .section-divider {
-    @apply relative pb-4;
-  }
-
-  .section-divider::after {
-    content: "";
-    @apply absolute bottom-0 left-0 h-px w-full bg-border/60;
-  }
-
-  /* ─── Gradient Content Card (charts, tables, articles) ─── */
-  article.shadow-card {
-    background: linear-gradient(to top,
-        hsl(220, 14%, 96%) 0%,
-        hsl(0, 0%, 100%) 100%);
-    border: 1px solid hsl(var(--border));
-  }
-
-  .dark article.shadow-card {
-    background: linear-gradient(to top,
-        hsl(0, 0%, 13%) 0%,
-        hsl(0, 0%, 9%) 100%);
-    border-color: hsl(0 0% 16%);
   }
 }
 
@@ -170,5 +122,16 @@
         hsl(0, 0%, 4%) 60%,
         hsl(261, 15%, 6%) 100%);
     min-height: 100vh;
+  }
+}
+
+/* ─── Subtle Lilac glow on cards (dark mode) ─── */
+@layer components {
+
+  .dark article[class*="border"],
+  .dark .rounded-xl[class*="border"],
+  .dark .rounded-lg[class*="border"] {
+    box-shadow: 0 1px 6px 0 hsla(261, 40%, 50%, 0.10),
+      0 0 1px 0 hsla(261, 30%, 60%, 0.12);
   }
 }

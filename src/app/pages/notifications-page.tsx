@@ -1,195 +1,409 @@
-﻿import { useMemo, useState } from "react";
-import { audienceTargets, broadcastLogs, noticeCategories, type BroadcastLogRow } from "../../mocks/dashboard-features.mock";
+import { useState } from "react";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { DashboardPageShell } from "@/components/dashboard/ui/dashboard-page-shell";
+import { MetricCard } from "@/components/dashboard/ui/metric-card";
+import { AppTabs } from "@/components/dashboard/ui/app-tabs";
+import { DataTableShell } from "@/components/dashboard/ui/data-table-shell";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { NotificationList, type NotificationListItem } from "@/components/ui/notification-list";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  abTests,
+  audienceTargets,
+  broadcastLogs,
+  noticeCategories,
+  notificationCategoryPerformance,
+  notificationDeliveryTrend,
+  notificationEffectivenessKpis,
+  notificationTypes,
+  scheduleRecurrence,
+  type ABTest,
+  type BroadcastLogRow,
+} from "../../mocks/dashboard-features.mock";
 
-type Tab = "ทั้งหมด" | "รวม" | "สำคัญ" | "ระบบ" | "การเงิน";
+type TabKey = "compose" | "history" | "abtest";
 
 export function NotificationsPage() {
-  const [tab, setTab] = useState<Tab>("ทั้งหมด");
-  const [title, setTitle] = useState("");
-  const [message, setMessage] = useState("");
-  const [category, setCategory] = useState(noticeCategories[0]);
-  const [audience, setAudience] = useState(audienceTargets[0]);
+  const [tab, setTab] = useState<TabKey>("compose");
   const [logs, setLogs] = useState<BroadcastLogRow[]>(broadcastLogs);
+  const [tests, setTests] = useState<ABTest[]>(abTests);
 
-  const filteredLogs = useMemo(() => {
-    if (tab === "ทั้งหมด") {
-      return logs;
-    }
-    return logs.filter((log) => log.category === tab);
-  }, [logs, tab]);
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [category, setCategory] = useState(noticeCategories[0]);
+  const [type, setType] = useState(notificationTypes[0]);
+  const [audience, setAudience] = useState(audienceTargets[0]);
+  const [scheduleMode, setScheduleMode] = useState<"now" | "scheduled">("now");
+  const [scheduleDate, setScheduleDate] = useState("");
+  const [scheduleTime, setScheduleTime] = useState("");
+  const [recurrence, setRecurrence] = useState(scheduleRecurrence[0]);
+  const [preview, setPreview] = useState(false);
 
-  const canSubmit = title.trim().length >= 3 && message.trim().length >= 8;
+  const drafts = logs.filter((log) => log.status === "Draft");
+  const sentLogs = logs.filter((log) => log.status !== "Draft");
 
-  const pushLog = (status: "Sent" | "Draft") => {
-    if (!canSubmit) {
-      return;
-    }
-    const next: BroadcastLogRow = {
+  const handleSend = () => {
+    if (!title.trim() || !body.trim()) return;
+    const newLog: BroadcastLogRow = {
       id: `NTF-${String(logs.length + 1).padStart(3, "0")}`,
-      title: title.trim(),
+      title,
       category,
+      type,
       audience,
-      sentAt: new Date().toLocaleString(),
-      status,
+      sentAt: scheduleMode === "now" ? new Date().toLocaleString("th-TH") : `${scheduleDate} ${scheduleTime}`,
+      status: scheduleMode === "now" ? "Sent" : "Scheduled",
+      metrics: scheduleMode === "now" ? { sent: 0, delivered: 0, opened: 0, clicked: 0 } : undefined,
     };
-    setLogs((prev) => [next, ...prev]);
+    setLogs((prev) => [newLog, ...prev]);
     setTitle("");
-    setMessage("");
+    setBody("");
+    setTab("history");
   };
 
+  const handleSaveDraft = () => {
+    if (!title.trim()) return;
+    const newLog: BroadcastLogRow = {
+      id: `NTF-${String(logs.length + 1).padStart(3, "0")}`,
+      title,
+      category,
+      type,
+      audience,
+      sentAt: "",
+      status: "Draft",
+    };
+    setLogs((prev) => [newLog, ...prev]);
+    setTitle("");
+    setBody("");
+  };
+
+  const draftItems: NotificationListItem[] = drafts.map((draft) => ({
+    id: draft.id,
+    title: draft.title,
+    description: `${draft.type} • ${draft.audience}`,
+    action: (
+      <Button
+        size="sm"
+        variant="secondary"
+        onClick={() => {
+          setTitle(draft.title);
+          setType(draft.type);
+          setCategory(draft.category);
+          setAudience(draft.audience);
+          setLogs((prev) => prev.filter((item) => item.id !== draft.id));
+        }}
+      >
+        แก้ไข
+      </Button>
+    ),
+  }));
+
   return (
-    <section className="space-y-6">
-      <header>
-        <h2 className="text-2xl font-bold tracking-tight">แจ้งเตือน / Broadcast</h2>
-        <p className="mt-1 text-sm text-muted-foreground">สร้างข้อความแจ้งเตือน เลือกกลุ่มเป้าหมาย และตรวจสอบประวัติการส่ง</p>
-      </header>
-
-      <div className="grid gap-4 xl:grid-cols-[1.4fr_1fr]">
-        <article className="rounded-xl bg-card p-6 shadow-card">
-          <h3 className="text-base font-semibold">Broadcaster Tool</h3>
-          <div className="mt-4 space-y-3 text-sm">
-            <label className="block">
-              <span className="text-muted-foreground">หัวข้อ</span>
-              <input
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                aria-label="หัวข้อการแจ้งเตือน"
-                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2"
-              />
-            </label>
-            <label className="block">
-              <span className="text-muted-foreground">รายละเอียด</span>
-              <textarea
-                value={message}
-                onChange={(event) => setMessage(event.target.value)}
-                aria-label="รายละเอียดการแจ้งเตือน"
-                rows={5}
-                className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2"
-              />
-            </label>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label className="block">
-                <span className="text-muted-foreground">หมวดหมู่</span>
-                <select
-                  value={category}
-                  onChange={(event) => setCategory(event.target.value)}
-                  aria-label="เลือกหมวดหมู่การแจ้งเตือน"
-                  className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2"
-                >
-                  {noticeCategories.map((entry) => (
-                    <option key={entry}>{entry}</option>
-                  ))}
-                </select>
-              </label>
-              <label className="block">
-                <span className="text-muted-foreground">กลุ่มเป้าหมาย</span>
-                <select
-                  value={audience}
-                  onChange={(event) => setAudience(event.target.value)}
-                  aria-label="เลือกกลุ่มเป้าหมาย"
-                  className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2"
-                >
-                  {audienceTargets.map((entry) => (
-                    <option key={entry}>{entry}</option>
-                  ))}
-                </select>
-              </label>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                disabled={!canSubmit}
-                onClick={() => pushLog("Sent")}
-                className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
-              >
-                ส่งทันที
-              </button>
-              <button
-                type="button"
-                disabled={!canSubmit}
-                onClick={() => pushLog("Draft")}
-                className="rounded-md border border-input bg-background px-4 py-2 text-sm font-semibold disabled:opacity-50"
-              >
-                บันทึกแบบร่าง
-              </button>
-            </div>
-          </div>
-        </article>
-
-        <article className="rounded-xl bg-card p-6 shadow-card">
-          <h3 className="text-base font-semibold">Preview</h3>
-          <div className="mt-4 rounded-lg border border-dashed border-border bg-background p-4">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">{category}</p>
-            <p className="mt-2 text-sm font-semibold">{title || "(ยังไม่ได้ระบุหัวข้อ)"}</p>
-            <p className="mt-2 text-sm text-muted-foreground">{message || "(ยังไม่ได้ระบุรายละเอียด)"}</p>
-            <p className="mt-3 text-xs text-muted-foreground">กลุ่มเป้าหมาย: {audience}</p>
-          </div>
-        </article>
+    <DashboardPageShell title="แจ้งเตือนและประกาศ" description="สร้างข้อความ ส่งประกาศ ดูผลลัพธ์ และทดสอบเปรียบเทียบ">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {notificationEffectivenessKpis.map((item) => (
+          <MetricCard key={item.label} label={item.label} value={item.value} note={item.note} />
+        ))}
       </div>
 
-      <article className="rounded-xl bg-card p-6 shadow-card">
-        <div className="flex flex-wrap items-center gap-2">
-          {(["ทั้งหมด", ...noticeCategories] as Tab[]).map((item) => (
-            <button
-              key={item}
-              type="button"
-              onClick={() => setTab(item)}
-              aria-pressed={tab === item}
-              className={`rounded-full px-3 py-1 text-xs font-semibold ${tab === item ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:bg-accent"
-                }`}
-            >
-              {item}
-            </button>
-          ))}
-        </div>
+      <AppTabs
+        value={tab}
+        onValueChange={(value) => setTab(value as TabKey)}
+        items={[
+          { value: "compose", label: "สร้างข้อความ" },
+          { value: "history", label: "ประวัติและผลลัพธ์" },
+          { value: "abtest", label: "ทดสอบเปรียบเทียบ" },
+        ]}
+      />
 
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[860px] text-sm">
-            <caption className="sr-only">ตารางประวัติการส่งข้อความและสถานะแบบร่าง</caption>
-            <thead>
-              <tr className="border-b border-border text-left text-muted-foreground">
-                <th scope="col" className="pb-2">รหัส</th>
-                <th scope="col" className="pb-2">หัวข้อ</th>
-                <th scope="col" className="pb-2">หมวด</th>
-                <th scope="col" className="pb-2">กลุ่มเป้าหมาย</th>
-                <th scope="col" className="pb-2">เวลา</th>
-                <th scope="col" className="pb-2">สถานะ</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredLogs.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="py-8 text-center text-sm text-muted-foreground">
-                    ไม่พบประวัติการส่งในหมวดที่เลือก
-                  </td>
-                </tr>
-              ) : (
-                filteredLogs.map((row) => (
-                  <tr key={row.id} className="border-b border-border/70 last:border-none">
-                    <td className="py-3 font-medium">{row.id}</td>
-                    <td className="py-3">{row.title}</td>
-                    <td className="py-3">{row.category}</td>
-                    <td className="py-3">{row.audience}</td>
-                    <td className="py-3">{row.sentAt}</td>
-                    <td className="py-3">
-                      <span
-                        className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${row.status === "Sent"
-                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300"
-                            : "bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300"
-                          }`}
-                      >
-                        {row.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+      {tab === "compose" ? (
+        <div className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
+          <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
+            <h3 className="text-base font-semibold">สร้างข้อความ</h3>
+            <div className="mt-4 space-y-4">
+              <div>
+                <p className="mb-1 text-sm text-muted-foreground">หัวข้อ</p>
+                <Input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="ใส่หัวข้อแจ้งเตือน..." />
+              </div>
+              <div>
+                <p className="mb-1 text-sm text-muted-foreground">เนื้อหา</p>
+                <Textarea
+                  value={body}
+                  onChange={(event) => setBody(event.target.value)}
+                  rows={4}
+                  placeholder="พิมพ์ข้อความ... ({{name}} = ชื่อผู้ใช้, {{plan}} = แพ็กเกจ)"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="mb-1 text-sm text-muted-foreground">หมวดหมู่</p>
+                  <Select value={category} onValueChange={setCategory}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {noticeCategories.map((item) => (
+                        <SelectItem key={item} value={item}>
+                          {item}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <p className="mb-1 text-sm text-muted-foreground">ประเภท</p>
+                  <Select value={type} onValueChange={setType}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {notificationTypes.map((item) => (
+                        <SelectItem key={item} value={item}>
+                          {item}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <p className="mb-1 text-sm text-muted-foreground">กลุ่มเป้าหมาย</p>
+                <Select value={audience} onValueChange={setAudience}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {audienceTargets.map((item) => (
+                      <SelectItem key={item} value={item}>
+                        {item}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="rounded-lg border border-border bg-background p-4">
+                <p className="mb-2 text-sm font-semibold">ตั้งเวลาส่ง</p>
+                <RadioGroup value={scheduleMode} onValueChange={(value) => setScheduleMode(value as "now" | "scheduled")} className="mb-3 flex gap-4">
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="now" id="schedule-now" />
+                    <label htmlFor="schedule-now" className="text-sm">ส่งทันที</label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="scheduled" id="schedule-planned" />
+                    <label htmlFor="schedule-planned" className="text-sm">ตั้งเวลา</label>
+                  </div>
+                </RadioGroup>
+                {scheduleMode === "scheduled" ? (
+                  <div className="grid grid-cols-3 gap-2">
+                    <Input type="date" value={scheduleDate} onChange={(event) => setScheduleDate(event.target.value)} />
+                    <Input type="time" value={scheduleTime} onChange={(event) => setScheduleTime(event.target.value)} />
+                    <Select value={recurrence} onValueChange={setRecurrence}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {scheduleRecurrence.map((item) => (
+                          <SelectItem key={item} value={item}>
+                            {item}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : null}
+              </div>
+
+              <Button variant="ghost" className="px-0 text-primary" onClick={() => setPreview(!preview)}>
+                {preview ? "ซ่อนตัวอย่าง" : "ดูตัวอย่าง"}
+              </Button>
+
+              {preview && title.trim() ? (
+                <div className="rounded-lg border border-primary/30 bg-primary/5 p-4">
+                  <p className="mb-1 text-xs text-muted-foreground">ตัวอย่าง ({type})</p>
+                  <p className="font-bold">{title}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{body || "(ยังไม่มีเนื้อหา)"}</p>
+                  <p className="mt-2 text-xs text-muted-foreground">กลุ่ม: {audience} • หมวด: {category}</p>
+                </div>
+              ) : null}
+
+              <div className="flex gap-2">
+                <Button onClick={handleSend} disabled={!title.trim() || !body.trim()}>
+                  {scheduleMode === "now" ? "ส่งประกาศ" : "ตั้งเวลาส่ง"}
+                </Button>
+                <Button variant="secondary" onClick={handleSaveDraft} disabled={!title.trim()}>
+                  บันทึกแบบร่าง
+                </Button>
+              </div>
+            </div>
+          </article>
+
+          <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
+            <h3 className="text-base font-semibold">แบบร่าง ({drafts.length})</h3>
+            {draftItems.length === 0 ? <p className="mt-4 text-sm text-muted-foreground">ไม่มีแบบร่าง</p> : <NotificationList className="mt-4" items={draftItems} />}
+          </article>
         </div>
-      </article>
-    </section>
+      ) : tab === "history" ? (
+        <>
+          <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
+            <h3 className="text-base font-semibold">สถิติการส่ง (7 วัน)</h3>
+            <div className="mt-4 h-72 w-full">
+              <ResponsiveContainer>
+                <BarChart data={notificationDeliveryTrend} margin={{ left: 8, right: 8, top: 6 }}>
+                  <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeOpacity={0.5} />
+                  <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} />
+                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                  <Tooltip />
+                  <Bar dataKey="sent" fill="#94a3b8" name="ส่งแล้ว" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="opened" fill="hsl(var(--primary))" name="เปิดอ่าน" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="clicked" fill="#14b8a6" name="คลิก" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="acted" fill="#f59e0b" name="ดำเนินการ" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </article>
+
+          <DataTableShell caption="ประสิทธิภาพการส่งแจ้งเตือนแยกตามหมวดหมู่" minWidthClass="min-w-[600px]">
+            <div className="mb-3">
+              <h3 className="text-base font-semibold">ผลลัพธ์แยกตามหมวด</h3>
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>หมวด</TableHead>
+                  <TableHead>ส่งแล้ว</TableHead>
+                  <TableHead>อัตราเปิดอ่าน</TableHead>
+                  <TableHead>อัตราคลิก</TableHead>
+                  <TableHead>อัตราดำเนินการ</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {notificationCategoryPerformance.map((categoryItem) => (
+                  <TableRow key={categoryItem.category}>
+                    <TableCell className="font-medium">{categoryItem.category}</TableCell>
+                    <TableCell>{categoryItem.sent.toLocaleString()}</TableCell>
+                    <TableCell>{categoryItem.openRate}%</TableCell>
+                    <TableCell>{categoryItem.clickRate}%</TableCell>
+                    <TableCell>{categoryItem.actionRate}%</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </DataTableShell>
+
+          <DataTableShell caption="ประวัติการส่งแจ้งเตือน" minWidthClass="min-w-[900px]">
+            <div className="mb-3">
+              <h3 className="text-base font-semibold">ประวัติการส่ง</h3>
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID</TableHead>
+                  <TableHead>หัวข้อ</TableHead>
+                  <TableHead>ประเภท</TableHead>
+                  <TableHead>กลุ่ม</TableHead>
+                  <TableHead>วันส่ง</TableHead>
+                  <TableHead>สถานะ</TableHead>
+                  <TableHead>ผลลัพธ์</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sentLogs.map((log) => (
+                  <TableRow key={log.id}>
+                    <TableCell className="font-medium">{log.id}</TableCell>
+                    <TableCell>{log.title}</TableCell>
+                    <TableCell>{log.type}</TableCell>
+                    <TableCell>{log.audience}</TableCell>
+                    <TableCell>{log.sentAt}</TableCell>
+                    <TableCell>
+                      <Badge
+                        className={
+                          log.status === "Sent"
+                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300"
+                            : log.status === "Scheduled"
+                              ? "bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300"
+                              : "bg-muted text-muted-foreground"
+                        }
+                      >
+                        {log.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {log.metrics ? (
+                        <span>ส่ง {log.metrics.sent} → ส่งถึง {log.metrics.delivered} → เปิด {log.metrics.opened} → คลิก {log.metrics.clicked}</span>
+                      ) : (
+                        "-"
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </DataTableShell>
+        </>
+      ) : (
+        <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
+          <h3 className="text-base font-semibold">ทดสอบเปรียบเทียบ</h3>
+          <p className="text-sm text-muted-foreground">ทดสอบข้อความ 2 แบบ เพื่อหาแบบที่ได้ผลดีกว่า</p>
+          <div className="mt-4 space-y-4">
+            {tests.map((test) => (
+              <div key={test.id} className="rounded-xl border border-border bg-background p-5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="font-semibold">{test.name}</p>
+                    <p className="text-xs text-muted-foreground">ตัวชี้วัด: {test.metric}</p>
+                  </div>
+                  <Badge className={test.status === "running" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300" : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300"}>
+                    {test.status === "running" ? "กำลังทดสอบ" : "เสร็จสิ้น"}
+                  </Badge>
+                </div>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div className={`rounded-lg border p-4 ${test.winner === "A" ? "border-emerald-400 bg-emerald-50 dark:bg-emerald-950/30" : "border-border"}`}>
+                    <p className="text-xs font-semibold text-muted-foreground">แบบ A {test.winner === "A" ? "🏆" : ""}</p>
+                    <p className="mt-1 text-sm">{test.variantA}</p>
+                    <p className="mt-2 text-xl font-bold">{test.resultA}%</p>
+                  </div>
+                  <div className={`rounded-lg border p-4 ${test.winner === "B" ? "border-emerald-400 bg-emerald-50 dark:bg-emerald-950/30" : "border-border"}`}>
+                    <p className="text-xs font-semibold text-muted-foreground">แบบ B {test.winner === "B" ? "🏆" : ""}</p>
+                    <p className="mt-1 text-sm">{test.variantB}</p>
+                    <p className="mt-2 text-xl font-bold">{test.resultB}%</p>
+                  </div>
+                </div>
+                {test.status === "running" ? (
+                  <Button
+                    className="mt-3"
+                    size="sm"
+                    onClick={() =>
+                      setTests((prev) =>
+                        prev.map((item) =>
+                          item.id === test.id
+                            ? { ...item, status: "completed" as const, winner: item.resultB > item.resultA ? ("B" as const) : ("A" as const) }
+                            : item,
+                        ),
+                      )
+                    }
+                  >
+                    สิ้นสุดการทดสอบ
+                  </Button>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </article>
+      )}
+    </DashboardPageShell>
   );
 }
 

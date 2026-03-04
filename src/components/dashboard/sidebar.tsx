@@ -1,16 +1,10 @@
 import { motion } from "motion/react";
 import { useState } from "react";
 import {
-  Activity,
   Bell,
-  BookOpen,
   Bot,
-  CreditCard,
   LayoutDashboard,
-  MessageSquare,
-  ScrollText,
   Settings,
-  Sprout,
   Users,
   Wallet,
 } from "lucide-react";
@@ -20,33 +14,22 @@ import { cn } from "@/lib/utils";
 
 const navGroups = [
   {
-    title: "Overview",
-    items: [{ to: "/overview", label: "Overview Dashboard", icon: LayoutDashboard }],
+    title: "หลัก",
+    items: [{ to: "/overview", label: "แดชบอร์ด", icon: LayoutDashboard }],
   },
   {
-    title: "Manage",
+    title: "การจัดการ",
     items: [
-      { to: "/ai-manager", label: "AI Manager", icon: Bot },
-      { to: "/study-config", label: "Study Config", icon: BookOpen },
-      { to: "/finance", label: "Finance", icon: Wallet },
-      { to: "/lifestyle", label: "Lifestyle Content", icon: Sprout },
+      { to: "/user-management", label: "ผู้ใช้งาน", icon: Users },
+      { to: "/ai-monitor", label: "AI Monitor", icon: Bot },
+      { to: "/finance", label: "การเงิน", icon: Wallet },
     ],
   },
   {
-    title: "Users & Sales",
+    title: "ระบบ",
     items: [
-      { to: "/user-management", label: "User Management", icon: Users },
-      { to: "/subscriptions", label: "Subscriptions Plan", icon: CreditCard },
-    ],
-  },
-  {
-    title: "System",
-    items: [
-      { to: "/notifications", label: "Notifications Broadcast", icon: Bell },
-      { to: "/settings", label: "System Settings", icon: Settings },
-      { to: "/app-health", label: "App Health", icon: Activity },
-      { to: "/logs", label: "System Logs Feed", icon: ScrollText },
-      { to: "/feedback", label: "Customer Feedback", icon: MessageSquare },
+      { to: "/notifications", label: "แจ้งเตือน", icon: Bell },
+      { to: "/settings", label: "ตั้งค่า", icon: Settings },
     ],
   },
 ];
@@ -125,7 +108,7 @@ function SidebarNav() {
         <NavLink
           to="/settings"
           className={cn(
-            "group/sidebar relative flex items-center gap-2 rounded-xl border border-white/10 bg-card/60 px-2 py-2 text-sm shadow-inner",
+            "group/sidebar relative flex items-center gap-2 rounded-xl border border-border bg-card/60 px-2 py-2 text-sm shadow-inner",
             iconOnly && "justify-center border-transparent bg-transparent px-0",
           )}
         >

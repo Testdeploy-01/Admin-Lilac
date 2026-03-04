@@ -1,8 +1,8 @@
-import { useEffect, useLayoutEffect, useState, type CSSProperties } from "react";
+import { startTransition, useEffect, useLayoutEffect, useState, type CSSProperties } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { DashboardUIProvider, useDashboardUI } from "@/app/context/dashboard-ui-context";
 import { DashboardCommandCenter } from "@/components/dashboard/dashboard-command-center";
-import { cn } from "@/lib/utils";
+import { BackgroundBeams } from "@/components/ui/background-beams";
 import { FloatingDockNav } from "../../components/dashboard/floating-dock-nav";
 import { TopRightControls } from "../../components/dashboard/top-right-controls";
 import { adminProfileMock } from "../../mocks/admin-profile.mock";
@@ -55,6 +55,11 @@ type DashboardLayoutFrameProps = {
 function DashboardLayoutFrame({ theme, pathname, onToggleTheme }: DashboardLayoutFrameProps) {
   const { refreshTick } = useDashboardUI();
   const [dockHovered, setDockHovered] = useState(false);
+  const handleDockHoverChange = (hovered: boolean) => {
+    startTransition(() => {
+      setDockHovered(hovered);
+    });
+  };
   const dockLayoutVars: CSSProperties & Record<string, string> = {
     "--dock-left": "1.5rem",
     "--dock-rail-w": "4.5rem",
@@ -64,12 +69,15 @@ function DashboardLayoutFrame({ theme, pathname, onToggleTheme }: DashboardLayou
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground" style={dockLayoutVars}>
+    <div className="relative min-h-screen bg-background text-foreground" style={dockLayoutVars}>
+      <div className="pointer-events-none absolute inset-0 -z-10 opacity-25">
+        <BackgroundBeams />
+      </div>
       <div className="flex min-h-screen flex-col">
         {/* Desktop Sidebar Wrapper */}
         <aside className="pointer-events-none fixed inset-y-0 left-[var(--dock-left,1.5rem)] z-30 hidden w-[var(--dock-rail-w,4.5rem)] flex-col items-center justify-center gap-6 md:flex">
           <div className="pointer-events-auto">
-            <FloatingDockNav onHoverChange={setDockHovered} />
+            <FloatingDockNav onHoverChange={handleDockHoverChange} />
           </div>
           <div className="pointer-events-auto">
             <TopRightControls theme={theme} onToggleTheme={onToggleTheme} profile={adminProfileMock} />
@@ -87,7 +95,16 @@ function DashboardLayoutFrame({ theme, pathname, onToggleTheme }: DashboardLayou
         </div>
 
         <main className="flex-1 bg-background px-4 pt-10 pb-24 sm:px-6 sm:pt-10 sm:pb-28 md:pl-[var(--dock-main-offset)] lg:pr-8 lg:pl-[var(--dock-main-offset)] lg:pt-10 lg:pb-32">
-          <div className={cn("ml-auto w-full max-w-[110rem] transition-[filter] duration-200", dockHovered && "blur-[2px]")}>
+          {/* Overlay to handle blur cleanly without lagging the first hover calculation */}
+          <div
+            className="pointer-events-none fixed inset-0 z-20 bg-background/5 transition-opacity duration-300"
+            style={{
+              opacity: dockHovered ? 1 : 0,
+              backdropFilter: "blur(2px)",
+              WebkitBackdropFilter: "blur(2px)"
+            }}
+          />
+          <div className="ml-auto w-full max-w-[110rem]">
             <Outlet key={`${pathname}-${refreshTick}`} />
           </div>
         </main>
@@ -95,7 +112,7 @@ function DashboardLayoutFrame({ theme, pathname, onToggleTheme }: DashboardLayou
 
         {/* Mobile view of the dock */}
         <div className="md:hidden">
-          <FloatingDockNav onHoverChange={setDockHovered} />
+          <FloatingDockNav onHoverChange={handleDockHoverChange} />
         </div>
       </div>
     </div>

@@ -89,7 +89,7 @@ export const DesktopSidebar = ({
     <>
       <motion.div
         className={cn(
-          "hidden h-full shrink-0 md:flex md:flex-col sidebar-gradient text-card-foreground backdrop-blur-lg border border-white/10 shadow-[0_10px_40px_-24px_rgba(0,0,0,0.6)]",
+          "hidden h-full shrink-0 md:flex md:flex-col sidebar-gradient text-card-foreground backdrop-blur-lg border border-border shadow-[0_10px_40px_-24px_rgba(0,0,0,0.6)]",
           className
         )}
         initial={{ width: `${collapsed}px` }}

@@ -2,18 +2,12 @@ import { NavLink } from "react-router-dom";
 import { cn } from "../../lib/utils";
 
 const mobileNavItems = [
-  { to: "/overview", label: "Overview" },
-  { to: "/ai-manager", label: "AI" },
-  { to: "/study-config", label: "Study" },
-  { to: "/finance", label: "Finance" },
-  { to: "/lifestyle", label: "Lifestyle" },
-  { to: "/user-management", label: "Users" },
-  { to: "/subscriptions", label: "Plans" },
-  { to: "/app-health", label: "Health" },
-  { to: "/notifications", label: "Notify" },
-  { to: "/settings", label: "Settings" },
-  { to: "/logs", label: "Logs" },
-  { to: "/feedback", label: "Feedback" },
+  { to: "/overview", label: "แดชบอร์ด" },
+  { to: "/user-management", label: "ผู้ใช้" },
+  { to: "/ai-monitor", label: "AI Monitor" },
+  { to: "/finance", label: "การเงิน" },
+  { to: "/notifications", label: "แจ้งเตือน" },
+  { to: "/settings", label: "ตั้งค่า" },
 ];
 
 export function MobileNav() {

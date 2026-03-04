@@ -103,7 +103,7 @@ const FloatingDockMobile = ({
                     setOpen(false);
                   }}
                   disabled={item.disabled}
-                  className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-50 dark:bg-neutral-900"
+                  className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card shadow-sm"
                 >
                   <div
                     className={cn(
@@ -129,7 +129,7 @@ const FloatingDockMobile = ({
       </AnimatePresence>
       <button
         onClick={() => setOpen(!open)}
-        className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-50 dark:bg-neutral-800"
+        className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card shadow-sm"
       >
         <IconLayoutNavbarCollapse className="h-5 w-5 text-neutral-500 dark:text-neutral-400" />
       </button>
@@ -157,6 +157,12 @@ const FloatingDockDesktop = ({
   onDockHoverChange?: (hovered: boolean) => void;
 }) => {
   const pointer = useMotionValue(Infinity);
+  const hoverProgressRaw = useMotionValue(0);
+  const hoverProgress = useSpring(hoverProgressRaw, {
+    mass: 0.25,
+    stiffness: 180,
+    damping: 24,
+  });
   // Always use scale 1 so UI relies on standard browser zoom vs shrinking the viewport multiplier
   const dockScale = 1;
   const verticalDockStyle: CSSProperties | undefined =
@@ -173,22 +179,33 @@ const FloatingDockDesktop = ({
   return (
     <motion.div
       onMouseMove={(e) => pointer.set(orientation === "vertical" ? e.clientY : e.clientX)}
-      onMouseEnter={() => onDockHoverChange?.(true)}
+      onMouseEnter={() => {
+        hoverProgressRaw.set(1);
+        onDockHoverChange?.(true);
+      }}
       onMouseLeave={() => {
         pointer.set(Infinity);
+        hoverProgressRaw.set(0);
         onDockHoverChange?.(false);
       }}
       style={verticalDockStyle}
       className={cn(
         orientation === "vertical"
-          ? "mx-auto hidden items-center bg-gray-50 md:flex md:flex-col dark:bg-neutral-900"
-          : "mx-auto hidden h-16 items-end gap-4 rounded-2xl bg-gray-50 px-4 pb-3 md:flex dark:bg-neutral-900",
+          ? "mx-auto hidden items-center rounded-2xl border border-border bg-card shadow-sm md:flex md:flex-col"
+          : "mx-auto hidden h-16 items-end gap-4 rounded-2xl border border-border bg-card px-4 pb-3 shadow-sm md:flex",
         className,
       )}
     >
       <LayoutGroup id="dock-active-indicator">
         {items.map((item) => (
-          <IconContainer pointer={pointer} orientation={orientation} dockScale={dockScale} key={item.title} {...item} />
+          <IconContainer
+            pointer={pointer}
+            hoverProgress={hoverProgress}
+            orientation={orientation}
+            dockScale={dockScale}
+            key={item.title}
+            {...item}
+          />
         ))}
       </LayoutGroup>
     </motion.div>
@@ -197,6 +214,7 @@ const FloatingDockDesktop = ({
 
 function IconContainer({
   pointer,
+  hoverProgress,
   orientation,
   dockScale,
   title,
@@ -212,6 +230,7 @@ function IconContainer({
   align = "default",
 }: {
   pointer: MotionValue;
+  hoverProgress: MotionValue<number>;
   orientation: DockOrientation;
   dockScale: number;
   title: string;
@@ -235,47 +254,64 @@ function IconContainer({
       : val - bounds.x - bounds.width / 2;
   });
 
-  const defaultContainerRange: number[] = [40 * dockScale, 80 * dockScale, 40 * dockScale];
-  const logoContainerRange: number[] = [48 * dockScale, 92 * dockScale, 48 * dockScale];
-  const widthTransform = useTransform(distance, [-150, 0, 150], variant === "logo" ? logoContainerRange : defaultContainerRange);
-  const heightTransform = useTransform(distance, [-150, 0, 150], variant === "logo" ? logoContainerRange : defaultContainerRange);
+  const distanceRange: number[] = [-150 * dockScale, 0, 150 * dockScale];
+  const defaultContainerRange: number[] = [40 * dockScale, 74 * dockScale, 40 * dockScale];
+  const logoContainerRange: number[] = [48 * dockScale, 84 * dockScale, 48 * dockScale];
+  const widthTransform = useTransform(
+    distance,
+    distanceRange,
+    variant === "logo" ? logoContainerRange : defaultContainerRange,
+  );
+  const heightTransform = useTransform(
+    distance,
+    distanceRange,
+    variant === "logo" ? logoContainerRange : defaultContainerRange,
+  );
 
-  const defaultIconRange: number[] = [20 * dockScale, 40 * dockScale, 20 * dockScale];
-  const avatarIconRange: number[] = [40 * dockScale, 80 * dockScale, 40 * dockScale];
-  const logoIconRange: number[] = [44 * dockScale, 88 * dockScale, 44 * dockScale];
+  const defaultIconRange: number[] = [20 * dockScale, 34 * dockScale, 20 * dockScale];
+  const avatarIconRange: number[] = [22 * dockScale, 40 * dockScale, 22 * dockScale];
+  const logoIconRange: number[] = [24 * dockScale, 44 * dockScale, 24 * dockScale];
 
   const widthTransformIcon = useTransform(
     distance,
-    [-150, 0, 150],
+    distanceRange,
     variant === "logo" ? logoIconRange : variant === "avatar" ? avatarIconRange : defaultIconRange,
   );
   const heightTransformIcon = useTransform(
     distance,
-    [-150, 0, 150],
+    distanceRange,
     variant === "logo" ? logoIconRange : variant === "avatar" ? avatarIconRange : defaultIconRange,
   );
 
-  const width = useSpring(widthTransform, {
-    mass: 0.1,
-    stiffness: 150,
-    damping: 12,
+  const containerMin = variant === "logo" ? logoContainerRange[0] : defaultContainerRange[0];
+  const iconMin = variant === "logo" ? logoIconRange[0] : variant === "avatar" ? avatarIconRange[0] : defaultIconRange[0];
+
+  const widthTarget = useTransform([widthTransform, hoverProgress], ([target, progress]) => {
+    const targetValue = Number(target);
+    const progressValue = Number(progress);
+    return containerMin + (targetValue - containerMin) * progressValue;
   });
-  const height = useSpring(heightTransform, {
-    mass: 0.1,
-    stiffness: 150,
-    damping: 12,
+  const heightTarget = useTransform([heightTransform, hoverProgress], ([target, progress]) => {
+    const targetValue = Number(target);
+    const progressValue = Number(progress);
+    return containerMin + (targetValue - containerMin) * progressValue;
+  });
+  const widthIconTarget = useTransform([widthTransformIcon, hoverProgress], ([target, progress]) => {
+    const targetValue = Number(target);
+    const progressValue = Number(progress);
+    return iconMin + (targetValue - iconMin) * progressValue;
+  });
+  const heightIconTarget = useTransform([heightTransformIcon, hoverProgress], ([target, progress]) => {
+    const targetValue = Number(target);
+    const progressValue = Number(progress);
+    return iconMin + (targetValue - iconMin) * progressValue;
   });
 
-  const widthIcon = useSpring(widthTransformIcon, {
-    mass: 0.1,
-    stiffness: 150,
-    damping: 12,
-  });
-  const heightIcon = useSpring(heightTransformIcon, {
-    mass: 0.1,
-    stiffness: 150,
-    damping: 12,
-  });
+  const springConfig = { mass: 0.25, stiffness: 140, damping: 22 };
+  const width = useSpring(widthTarget, springConfig);
+  const height = useSpring(heightTarget, springConfig);
+  const widthIcon = useSpring(widthIconTarget, springConfig);
+  const heightIcon = useSpring(heightIconTarget, springConfig);
 
   const [hovered, setHovered] = useState(false);
   const showLogo = variant === "logo";
@@ -298,7 +334,7 @@ function IconContainer({
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         className={cn(
-          "relative flex aspect-square items-center justify-center rounded-full bg-gray-200 dark:bg-neutral-800",
+          "relative flex aspect-square items-center justify-center rounded-full border border-border bg-card shadow-sm",
           (variant === "avatar" || variant === "logo") && "overflow-hidden p-0",
         )}
       >
@@ -308,6 +344,7 @@ function IconContainer({
               initial={orientation === "vertical" ? { opacity: 0, x: 8, y: "-50%" } : { opacity: 0, y: 10, x: "-50%" }}
               animate={orientation === "vertical" ? { opacity: 1, x: 0, y: "-50%" } : { opacity: 1, y: 0, x: "-50%" }}
               exit={orientation === "vertical" ? { opacity: 0, x: 4, y: "-50%" } : { opacity: 0, y: 2, x: "-50%" }}
+              transition={{ type: "spring", stiffness: 280, damping: 24 }}
               className={cn(
                 "w-fit rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs whitespace-pre text-neutral-700 dark:border-neutral-900 dark:bg-neutral-800 dark:text-white",
                 orientation === "vertical" ? "absolute left-full top-1/2 ml-2" : "absolute -top-8 left-1/2",
@@ -320,7 +357,7 @@ function IconContainer({
         <motion.div
           style={{ width: widthIcon, height: heightIcon }}
           className={cn(
-            "flex items-center justify-center",
+            "flex items-center justify-center transform-gpu will-change-transform",
             (variant === "avatar" || variant === "logo") && "h-full w-full overflow-hidden rounded-full",
           )}
         >

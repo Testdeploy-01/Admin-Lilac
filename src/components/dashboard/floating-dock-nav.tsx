@@ -1,13 +1,8 @@
 ﻿import {
-  Activity,
   Bell,
-  BookOpen,
   Bot,
-  CreditCard,
   LayoutDashboard,
-  MessageSquare,
-  ScrollText,
-  Sprout,
+  Settings,
   Users,
   Wallet,
   type LucideIcon,
@@ -48,20 +43,15 @@ const logoDockItem: DockItem = {
 };
 
 const leftDockItems: DockItem[] = [
-  { title: "ภาพรวม", href: "/overview", icon: LayoutDashboard, activePrefixes: ["/overview"] },
-  { title: "การเรียน", href: "/study-config", icon: BookOpen, activePrefixes: ["/study-config"] },
-  { title: "การเงิน", href: "/finance", icon: Wallet, activePrefixes: ["/finance"] },
-  { title: "ไลฟ์สไตล์", href: "/lifestyle", icon: Sprout, activePrefixes: ["/lifestyle"] },
+  { title: "แดชบอร์ด", href: "/overview", icon: LayoutDashboard, activePrefixes: ["/overview"] },
+  { title: "ผู้ใช้", href: "/user-management", icon: Users, activePrefixes: ["/user-management"], badge: pendingUsersCount },
+  { title: "AI Monitor", href: "/ai-monitor", icon: Bot, activePrefixes: ["/ai-monitor"] },
 ];
 
 const rightDockItems: DockItem[] = [
-  { title: "AI", href: "/ai-manager", icon: Bot, activePrefixes: ["/ai-manager"] },
-  { title: "ผู้ใช้", href: "/user-management", icon: Users, activePrefixes: ["/user-management"], badge: pendingUsersCount },
-  { title: "สมาชิก", href: "/subscriptions", icon: CreditCard, activePrefixes: ["/subscriptions"] },
-  { title: "สุขภาพระบบ", href: "/app-health", icon: Activity, activePrefixes: ["/app-health"] },
+  { title: "การเงิน", href: "/finance", icon: Wallet, activePrefixes: ["/finance"] },
   { title: "แจ้งเตือน", href: "/notifications", icon: Bell, activePrefixes: ["/notifications"] },
-  { title: "บันทึก", href: "/logs", icon: ScrollText, activePrefixes: ["/logs"] },
-  { title: "ความคิดเห็น", href: "/feedback", icon: MessageSquare, activePrefixes: ["/feedback"] },
+  { title: "ตั้งค่า", href: "/settings", icon: Settings, activePrefixes: ["/settings"] },
 ];
 
 function isRouteActive(pathname: string, prefixes: string[]) {
