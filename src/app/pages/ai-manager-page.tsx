@@ -1,5 +1,4 @@
-﻿import { AlertTriangle, Brain, DollarSign, Target } from "lucide-react";
-import { useMemo, useState } from "react";
+﻿import { useMemo, useState } from "react";
 import { CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { aiAlert, aiModelUsage, aiPeriodStats, aiUsageRows, type AiPeriod } from "../../mocks/dashboard-features.mock";
 import { formatCurrencyTHB, formatNumber } from "../../lib/formatters";
@@ -11,7 +10,6 @@ const periodOptions: Array<{ key: AiPeriod; label: string }> = [
   { key: "year", label: "ปีนี้" },
 ];
 
-const kpiIcons = [Brain, DollarSign, Target, AlertTriangle];
 
 export function AiManagerPage() {
   const [period, setPeriod] = useState<AiPeriod>("today");
@@ -57,17 +55,13 @@ export function AiManagerPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {periodData.kpis.map((kpi, index) => {
-          const Icon = kpiIcons[index % kpiIcons.length];
+        {periodData.kpis.map((kpi) => {
           return (
             <article key={kpi.label} className="kpi-card">
-              <div className="kpi-card-inner">
-                <div className="flex items-center gap-2">
-                  <Icon className="h-4 w-4 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">{kpi.label}</p>
-                </div>
-                <p className="mt-3 text-3xl font-bold tracking-tight">{kpi.value}</p>
-                <p className="mt-2 text-xs text-muted-foreground">{kpi.note}</p>
+              <div className="kpi-card-inner flex flex-col justify-center">
+                <p className="text-sm font-medium text-muted-foreground">{kpi.label}</p>
+                <p className="mt-2 text-3xl font-bold tracking-tight">{kpi.value}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{kpi.note}</p>
               </div>
             </article>
           );

@@ -1,5 +1,4 @@
-﻿import { Bell, CalendarCheck, Users, Zap } from "lucide-react";
-import { useMemo, useState } from "react";
+﻿import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Area, AreaChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import {
@@ -13,8 +12,6 @@ import {
 export function OverviewPage() {
   const [range, setRange] = useState<"7d" | "30d">("30d");
   const usageColors = ["hsl(var(--primary))", "#14b8a6", "#f59e0b"];
-  const kpiIcons = [Users, CalendarCheck, Bell, Zap];
-
   const growthData = useMemo(() => {
     if (range === "30d") {
       return overviewGrowth30d;
@@ -58,22 +55,20 @@ export function OverviewPage() {
       </header>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {overviewKpis.map((item, index) => {
-          const Icon = kpiIcons[index % kpiIcons.length];
+        {overviewKpis.map((item) => {
           return (
             <article key={item.label} className="kpi-card">
-              <div className="kpi-card-inner">
+              <div className="kpi-card-inner flex flex-col justify-center">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Icon className="h-4 w-4 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">{item.label}</p>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">{item.label}</p>
                   </div>
                   <span
                     className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${item.trend === "up"
-                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                        : item.trend === "down"
-                          ? "bg-rose-500/10 text-rose-600 dark:text-rose-400"
-                          : "bg-muted text-muted-foreground"
+                      ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                      : item.trend === "down"
+                        ? "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                        : "bg-muted text-muted-foreground"
                       }`}
                   >
                     {item.trend === "up" ? "↗" : item.trend === "down" ? "↘" : "→"} {item.delta}

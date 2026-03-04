@@ -1,10 +1,8 @@
-﻿import { ArrowUpDown, CreditCard, TrendingDown, Users } from "lucide-react";
-import { useMemo, useState } from "react";
+﻿import { useMemo, useState } from "react";
 import { downloadText } from "../../lib/exporters";
 import { formatCurrencyTHB } from "../../lib/formatters";
 import { invoices, plusFeatures, subscriptionOverviewKpis, subscriptionPlans } from "../../mocks/dashboard-features.mock";
 
-const kpiIcons = [CreditCard, Users, ArrowUpDown, TrendingDown];
 
 type TabKey = "overview" | "plans" | "invoices";
 
@@ -57,17 +55,13 @@ export function SubscriptionsPage() {
 
       {activeTab === "overview" ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {subscriptionOverviewKpis.map((item, index) => {
-            const Icon = kpiIcons[index % kpiIcons.length];
+          {subscriptionOverviewKpis.map((item) => {
             return (
               <article key={item.label} className="kpi-card">
-                <div className="kpi-card-inner">
-                  <div className="flex items-center gap-2">
-                    <Icon className="h-4 w-4 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">{item.label}</p>
-                  </div>
-                  <p className="mt-3 text-3xl font-bold tracking-tight">{item.value}</p>
-                  <p className="mt-2 text-xs text-muted-foreground">{item.note}</p>
+                <div className="kpi-card-inner flex flex-col justify-center">
+                  <p className="text-sm font-medium text-muted-foreground">{item.label}</p>
+                  <p className="mt-2 text-3xl font-bold tracking-tight">{item.value}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{item.note}</p>
                 </div>
               </article>
             );

@@ -1,9 +1,6 @@
-﻿import { Heart, ImagePlus, ListChecks, ShieldAlert } from "lucide-react";
-import { useMemo, useState } from "react";
+﻿import { useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { lifestyleAlarmSlots, lifestyleKpis, lifestyleMoodTrend, lifestyleRecommendations } from "../../mocks/dashboard-features.mock";
-
-const kpiIcons = [ListChecks, ImagePlus, Heart, ShieldAlert];
 
 export function LifestylePage() {
   const [tab, setTab] = useState<"food" | "series">("food");
@@ -21,17 +18,13 @@ export function LifestylePage() {
       </header>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {lifestyleKpis.map((item, index) => {
-          const Icon = kpiIcons[index % kpiIcons.length];
+        {lifestyleKpis.map((item) => {
           return (
             <article key={item.label} className="kpi-card">
-              <div className="kpi-card-inner">
-                <div className="flex items-center gap-2">
-                  <Icon className="h-4 w-4 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">{item.label}</p>
-                </div>
-                <p className="mt-3 text-3xl font-bold tracking-tight">{item.value}</p>
-                <p className="mt-2 text-xs text-muted-foreground">{item.note}</p>
+              <div className="kpi-card-inner flex flex-col justify-center">
+                <p className="text-sm font-medium text-muted-foreground">{item.label}</p>
+                <p className="mt-2 text-3xl font-bold tracking-tight">{item.value}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{item.note}</p>
               </div>
             </article>
           );
@@ -40,7 +33,7 @@ export function LifestylePage() {
 
       <article className="rounded-xl bg-card p-6 shadow-card">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
+          <div className="section-divider">
             <h3 className="text-base font-semibold">AI Recommendations</h3>
             <p className="text-sm text-muted-foreground">สลับดูเมนูอาหารหรือซีรีส์ พร้อมดู CTR</p>
           </div>
@@ -66,12 +59,18 @@ export function LifestylePage() {
           </div>
         </div>
 
-        <div className="mt-4 grid gap-3 md:grid-cols-3">
+        <div className="mt-5 grid gap-4 md:grid-cols-3">
           {filteredRecommendations.map((item) => (
-            <div key={item.id} className="rounded-lg bg-background p-4 transition hover:-translate-y-0.5">
-              <p className="text-sm font-semibold">{item.title}</p>
-              <p className="mt-1 text-xs text-muted-foreground">อารมณ์: {item.moodTag}</p>
-              <p className="mt-3 text-xs font-medium text-emerald-600 dark:text-emerald-300">CTR {item.ctr}%</p>
+            <div
+              key={item.id}
+              className="rounded-xl border border-border bg-background p-5"
+            >
+              <h4 className="font-semibold">{item.title}</h4>
+              <p className="mt-1 text-xs font-medium text-muted-foreground">อารมณ์: <span className="text-foreground">{item.moodTag}</span></p>
+              <div className="mt-4 flex items-center justify-between">
+                <p className="text-xs font-medium text-muted-foreground">Click Rate</p>
+                <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{item.ctr}%</p>
+              </div>
             </div>
           ))}
         </div>
