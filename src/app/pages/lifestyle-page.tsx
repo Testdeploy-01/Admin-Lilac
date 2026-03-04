@@ -31,16 +31,15 @@ export function LifestylePage() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h3 className="text-base font-semibold">AI Recommendations</h3>
-            <p className="text-sm text-muted-foreground">สลับดูเมนูอาหารหรือซีรีส์ พร้อม CTR</p>
+            <p className="text-sm text-muted-foreground">สลับดูเมนูอาหารหรือซีรีส์ พร้อมดู CTR</p>
           </div>
           <div className="inline-flex rounded-lg border border-border bg-background p-1">
             <button
               type="button"
               onClick={() => setTab("food")}
               aria-pressed={tab === "food"}
-              className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
-                tab === "food" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
-              }`}
+              className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${tab === "food" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
+                }`}
             >
               เมนูอาหาร
             </button>
@@ -48,9 +47,8 @@ export function LifestylePage() {
               type="button"
               onClick={() => setTab("series")}
               aria-pressed={tab === "series"}
-              className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
-                tab === "series" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
-              }`}
+              className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${tab === "series" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
+                }`}
             >
               ภาพยนตร์/ซีรีส์
             </button>
@@ -61,7 +59,7 @@ export function LifestylePage() {
           {filteredRecommendations.map((item) => (
             <div key={item.id} className="rounded-lg bg-background p-4 transition hover:-translate-y-0.5">
               <p className="text-sm font-semibold">{item.title}</p>
-              <p className="mt-1 text-xs text-muted-foreground">โหมดอารมณ์: {item.moodTag}</p>
+              <p className="mt-1 text-xs text-muted-foreground">อารมณ์: {item.moodTag}</p>
               <p className="mt-3 text-xs font-medium text-emerald-600 dark:text-emerald-300">CTR {item.ctr}%</p>
             </div>
           ))}
@@ -70,7 +68,7 @@ export function LifestylePage() {
 
       <div className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
         <article className="rounded-xl bg-card p-6 shadow-card">
-          <h3 className="text-base font-semibold">กราฟอารมณ์ภาพรวม</h3>
+          <h3 className="text-base font-semibold">แนวโน้มอารมณ์ภาพรวม</h3>
           <p className="text-sm text-muted-foreground">Positive / Neutral / Stressed ต่อสัปดาห์</p>
           <div className="mt-4 h-64 w-full">
             <ResponsiveContainer>
@@ -90,7 +88,7 @@ export function LifestylePage() {
 
         <article className="rounded-xl bg-card p-6 shadow-card">
           <h3 className="text-base font-semibold">เวลาปลุกยอดฮิต</h3>
-          <p className="text-sm text-muted-foreground">ช่วงเวลาตั้งปลุกอัจฉริยะที่ถูกใช้บ่อย</p>
+          <p className="text-sm text-muted-foreground">ช่วงเวลาตั้งปลุกอัจฉริยะที่ใช้งานบ่อยที่สุด</p>
           <div className="mt-4 h-64 w-full">
             <ResponsiveContainer>
               <BarChart data={lifestyleAlarmSlots} margin={{ left: 8, right: 8, top: 6 }}>

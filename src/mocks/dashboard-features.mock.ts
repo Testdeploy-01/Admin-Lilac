@@ -7,8 +7,8 @@ export type HealthStatus = "operational" | "degraded" | "down";
 export const overviewKpis = [
   { label: "ผู้ใช้ทั้งหมด", value: "48,921", delta: "+5.2%", trend: "up" as TrendType },
   { label: "ผู้ใช้วันนี้ (DAU)", value: "12,384", delta: "+3.1%", trend: "up" as TrendType },
-  { label: "แจ้งเตือนที่เปิดใช้งาน", value: "182", delta: "+2.4%", trend: "up" as TrendType },
-  { label: "ใช้ทางลัดวันนี้", value: "7,140", delta: "-1.3%", trend: "down" as TrendType },
+  { label: "การแจ้งเตือนที่ใช้งานอยู่", value: "182", delta: "+2.4%", trend: "up" as TrendType },
+  { label: "ใช้งาน Shortcut วันนี้", value: "7,140", delta: "-1.3%", trend: "down" as TrendType },
 ];
 
 export const overviewGrowth30d = [
@@ -53,7 +53,7 @@ export const overviewUsageByModule = [
 export const recentActivities = [
   { id: "ACT-01", text: "U-1092 สมัครแพ็กเกจ PLUS+ รายปี", time: "2 นาทีที่แล้ว", kind: "payment" },
   { id: "ACT-02", text: "U-8831 เปิดใช้งาน Study Planner 3 ครั้ง", time: "9 นาทีที่แล้ว", kind: "user" },
-  { id: "ACT-03", text: "แจ้งเตือนแคมเปญการเงินถูกส่งครบทุกกลุ่ม", time: "17 นาทีที่แล้ว", kind: "system" },
+  { id: "ACT-03", text: "ส่งแจ้งเตือนแคมเปญการเงินครบทุกกลุ่มแล้ว", time: "17 นาทีที่แล้ว", kind: "system" },
   { id: "ACT-04", text: "U-4421 รายงานปัญหาการรับ OTP", time: "24 นาทีที่แล้ว", kind: "feedback" },
   { id: "ACT-05", text: "ทีมแอดมินอัปเดต fallback model เป็น v4.1", time: "41 นาทีที่แล้ว", kind: "admin" },
 ];
@@ -68,7 +68,7 @@ export const popularFeatures = [
 
 export const aiAlert = {
   enabled: true,
-  message: "พบการเรียกใช้งาน API สูงผิดปกติภายใน 1 ชั่วโมงล่าสุด",
+  message: "พบการเรียก API สูงผิดปกติในช่วง 1 ชั่วโมงที่ผ่านมา",
 };
 
 export const aiPeriodStats: Record<
@@ -81,10 +81,10 @@ export const aiPeriodStats: Record<
 > = {
   today: {
     kpis: [
-      { label: "โทเคนทั้งหมด", value: "214,900", note: "เข้า 124,500 / ออก 90,400" },
+      { label: "Token ทั้งหมด", value: "214,900", note: "เข้า 124,500 / ออก 90,400" },
       { label: "ต้นทุน AI", value: "฿5,342", note: "USD rate 35.8" },
       { label: "ความแม่นยำ Intent", value: "96.8%", note: "จาก 8,302 requests" },
-      { label: "กำไรขั้นต้น", value: "61.2%", note: "เทียบรายได้สมาชิก" },
+      { label: "กำไรขั้นต้น", value: "61.2%", note: "เทียบกับรายได้สมาชิก" },
     ],
     tokenCostBars: [
       { label: "เช้า", tokens: 51200, costTHB: 1240 },
@@ -100,10 +100,10 @@ export const aiPeriodStats: Record<
   },
   "7d": {
     kpis: [
-      { label: "โทเคนทั้งหมด", value: "1,240,000", note: "เข้า 732,100 / ออก 507,900" },
+      { label: "Token ทั้งหมด", value: "1,240,000", note: "เข้า 732,100 / ออก 507,900" },
       { label: "ต้นทุน AI", value: "฿30,840", note: "USD rate 35.8" },
       { label: "ความแม่นยำ Intent", value: "97.3%", note: "จาก 52,810 requests" },
-      { label: "กำไรขั้นต้น", value: "58.4%", note: "เทียบรายได้สมาชิก" },
+      { label: "กำไรขั้นต้น", value: "58.4%", note: "เทียบกับรายได้สมาชิก" },
     ],
     tokenCostBars: [
       { label: "จันทร์", tokens: 178000, costTHB: 4320 },
@@ -122,10 +122,10 @@ export const aiPeriodStats: Record<
   },
   month: {
     kpis: [
-      { label: "โทเคนทั้งหมด", value: "5,920,000", note: "เข้า 3,441,000 / ออก 2,479,000" },
+      { label: "Token ทั้งหมด", value: "5,920,000", note: "เข้า 3,441,000 / ออก 2,479,000" },
       { label: "ต้นทุน AI", value: "฿147,530", note: "USD rate 35.8" },
       { label: "ความแม่นยำ Intent", value: "97.1%", note: "จาก 243,100 requests" },
-      { label: "กำไรขั้นต้น", value: "57.9%", note: "เทียบรายได้สมาชิก" },
+      { label: "กำไรขั้นต้น", value: "57.9%", note: "เทียบกับรายได้สมาชิก" },
     ],
     tokenCostBars: [
       { label: "สัปดาห์ 1", tokens: 1410000, costTHB: 35210 },
@@ -141,10 +141,10 @@ export const aiPeriodStats: Record<
   },
   year: {
     kpis: [
-      { label: "โทเคนทั้งหมด", value: "64,300,000", note: "เข้า 37,450,000 / ออก 26,850,000" },
+      { label: "Token ทั้งหมด", value: "64,300,000", note: "เข้า 37,450,000 / ออก 26,850,000" },
       { label: "ต้นทุน AI", value: "฿1,610,400", note: "USD rate 35.8" },
       { label: "ความแม่นยำ Intent", value: "96.7%", note: "จาก 2.61M requests" },
-      { label: "กำไรขั้นต้น", value: "55.8%", note: "เทียบรายได้สมาชิก" },
+      { label: "กำไรขั้นต้น", value: "55.8%", note: "เทียบกับรายได้สมาชิก" },
     ],
     tokenCostBars: [
       { label: "Q1", tokens: 15600000, costTHB: 390200 },
@@ -185,8 +185,8 @@ export const aiUsageRows: AiUsageRow[] = [
 
 export const studyKpis = [
   { label: "ผู้ใช้สร้างตารางเรียน", value: "68%", note: "ของผู้ใช้ทั้งหมด" },
-  { label: "อีเวนต์สอบ/โปรเจกต์รายสัปดาห์", value: "1,482", note: "เพิ่มขึ้น 9.4%" },
-  { label: "เปิดแอปตรงเวลาเรียน", value: "74%", note: "ความสม่ำเสมอเฉลี่ย" },
+  { label: "Event สอบ/โปรเจกต์ต่อสัปดาห์", value: "1,482", note: "เพิ่มขึ้น 9.4%" },
+  { label: "เปิดแอปตรงเวลาเรียน", value: "74%", note: "ค่าเฉลี่ยความสม่ำเสมอ" },
   { label: "วิชายอดนิยม", value: "คณิตศาสตร์", note: "31% ของทั้งหมด" },
 ];
 
@@ -247,10 +247,10 @@ export const studyTrendingEvents: StudyTrendingEvent[] = [
 ];
 
 export const financeKpis = [
-  { label: "ผู้ใช้คุมงบได้ (On-track)", value: "57%", note: "+2.8% จากสัปดาห์ก่อน" },
-  { label: "ผู้ใช้ใช้เงินทะลุงบ", value: "21%", note: "ต้องการการแจ้งเตือน" },
-  { label: "ใช้ AI ทำบัญชี", value: "63%", note: "แชท 41% / เสียง 22%" },
-  { label: "พิมพ์ลงบัญชีเอง", value: "37%", note: "Manual mode" },
+  { label: "ผู้ใช้ที่คุมงบได้ (On-track)", value: "57%", note: "+2.8% จากสัปดาห์ก่อน" },
+  { label: "ผู้ใช้ที่ใช้เงินเกินงบ", value: "21%", note: "ต้องการแจ้งเตือน" },
+  { label: "ใช้ AI บันทึกบัญชี", value: "63%", note: "แชท 41% / เสียง 22%" },
+  { label: "บันทึกบัญชีเอง", value: "37%", note: "Manual mode" },
 ];
 
 export type FinanceCategoryUsage = {
@@ -263,7 +263,7 @@ export type FinanceCategoryUsage = {
 export const financeCategoryUsage: FinanceCategoryUsage[] = [
   { category: "อาหาร", income: 840000, expense: 410000, ratio: 39 },
   { category: "เดินทาง", income: 340000, expense: 190000, ratio: 18 },
-  { category: "ชอปปิง", income: 510000, expense: 276000, ratio: 26 },
+  { category: "ช็อปปิ้ง", income: 510000, expense: 276000, ratio: 26 },
   { category: "บันเทิง", income: 290000, expense: 124000, ratio: 12 },
   { category: "อื่น ๆ", income: 220000, expense: 64000, ratio: 5 },
 ];
@@ -280,15 +280,15 @@ export const financeDailyEntries = [
 
 export const financeInputMethodShare = [
   { name: "กรอกเอง", value: 37 },
-  { name: "AI แชท", value: 41 },
-  { name: "AI พิมพ์เสียง", value: 22 },
+  { name: "AI Chat", value: 41 },
+  { name: "AI Voice", value: 22 },
 ];
 
 export const lifestyleKpis = [
-  { label: "ผู้ใช้มี Routine", value: "72%", note: "ตั้งเตือนอย่างน้อย 1 รายการ" },
-  { label: "ไดอารี่แนบภาพ", value: "9,432", note: "ล่าสุด 30 วัน" },
+  { label: "ผู้ใช้ที่มี Routine", value: "72%", note: "ตั้งเตือนอย่างน้อย 1 รายการ" },
+  { label: "ไดอารี่ที่แนบรูปภาพ", value: "9,432", note: "ช่วง 30 วันล่าสุด" },
   { label: "Mood Index", value: "78/100", note: "ดีขึ้น +4 คะแนน" },
-  { label: "กลุ่มเสี่ยงเครียด", value: "11%", note: "พักผ่อนน้อย/นอนดึก" },
+  { label: "กลุ่มเสี่ยงความเครียด", value: "11%", note: "พักผ่อนน้อย/นอนดึก" },
 ];
 
 export type LifestyleRecommendation = {
@@ -300,10 +300,10 @@ export type LifestyleRecommendation = {
 };
 
 export const lifestyleRecommendations: LifestyleRecommendation[] = [
-  { id: "LIFE-001", type: "food", title: "ข้าวหน้าปลาแซลมอน", ctr: 42, moodTag: "ต้องการพลังงาน" },
-  { id: "LIFE-002", type: "food", title: "สลัดไก่อบ", ctr: 38, moodTag: "คุมแคลอรี" },
+  { id: "LIFE-001", type: "food", title: "ข้าวหน้าปลาแซลมอน", ctr: 42, moodTag: "เติมพลังงาน" },
+  { id: "LIFE-002", type: "food", title: "สลัดไก่อบ", ctr: 38, moodTag: "คุมแคลอรี่" },
   { id: "LIFE-003", type: "food", title: "ซุปฟักทอง", ctr: 29, moodTag: "ผ่อนคลาย" },
-  { id: "LIFE-101", type: "series", title: "The Last Lecture", ctr: 34, moodTag: "หาแรงบันดาลใจ" },
+  { id: "LIFE-101", type: "series", title: "The Last Lecture", ctr: 34, moodTag: "แรงบันดาลใจ" },
   { id: "LIFE-102", type: "series", title: "Chef's Table", ctr: 27, moodTag: "พักสมอง" },
   { id: "LIFE-103", type: "series", title: "Minimalism", ctr: 23, moodTag: "จัดระเบียบชีวิต" },
 ];
@@ -421,8 +421,8 @@ export const pendingUsersCount = managedUsers.filter((user) => user.status === "
 
 export const subscriptionOverviewKpis = [
   { label: "MRR", value: "฿1,842,000", note: "+6.2%" },
-  { label: "ผู้ใช้ PLUS+", value: "12,421", note: "25.4% ของทั้งหมด" },
-  { label: "Conversion", value: "6.8%", note: "rolling 30 วัน" },
+  { label: "สมาชิก PLUS+", value: "12,421", note: "25.4% ของทั้งหมด" },
+  { label: "Conversion Rate", value: "6.8%", note: "ย้อนหลัง 30 วัน" },
   { label: "Churn", value: "2.1%", note: "ลดลง -0.4%" },
 ];
 
@@ -457,9 +457,9 @@ export const subscriptionPlans = [
 ];
 
 export const plusFeatures = [
-  { id: "pf-01", title: "Priority AI Responses", description: "ลดเวลา response ช่วง peak", visible: true },
-  { id: "pf-02", title: "Extended Token Quota", description: "เพิ่มโควตาโทเคนรายเดือน", visible: true },
-  { id: "pf-03", title: "Advanced Insights", description: "รายงานเชิงลึกแบบรายบุคคล", visible: false },
+  { id: "pf-01", title: "Priority AI Responses", description: "ลดเวลา Response ในช่วง Peak", visible: true },
+  { id: "pf-02", title: "Extended Token Quota", description: "เพิ่มโควตา Token รายเดือน", visible: true },
+  { id: "pf-03", title: "Advanced Insights", description: "รายงานเชิงลึกรายบุคคล", visible: false },
 ];
 
 export const invoices = [
@@ -649,11 +649,11 @@ export const appHealthServices: Array<{
   uptime: string;
   note: string;
 }> = [
-  { id: "svc-api-gateway", name: "API Gateway", status: "operational", uptime: "99.99%", note: "Edge routing healthy" },
-  { id: "svc-auth", name: "Auth Service", status: "operational", uptime: "99.97%", note: "Token validation stable" },
-  { id: "svc-db", name: "Primary Database", status: "degraded", uptime: "99.62%", note: "Read latency elevated" },
-  { id: "svc-queue", name: "Background Queue", status: "operational", uptime: "99.95%", note: "Jobs processing normal" },
-];
+    { id: "svc-api-gateway", name: "API Gateway", status: "operational", uptime: "99.99%", note: "Edge routing healthy" },
+    { id: "svc-auth", name: "Auth Service", status: "operational", uptime: "99.97%", note: "Token validation stable" },
+    { id: "svc-db", name: "Primary Database", status: "degraded", uptime: "99.62%", note: "Read latency elevated" },
+    { id: "svc-queue", name: "Background Queue", status: "operational", uptime: "99.95%", note: "Jobs processing normal" },
+  ];
 
 export const appHealthApis: Array<{
   id: string;
@@ -664,8 +664,8 @@ export const appHealthApis: Array<{
   latencyMs: number;
   lastChecked: string;
 }> = [
-  { id: "api-profile", method: "GET", name: "Get Profile", path: "/api/v1/users/profile", status: "operational", latencyMs: 138, lastChecked: "2026-03-03 12:14" },
-  { id: "api-subscription", method: "GET", name: "Subscription Summary", path: "/api/v1/subscriptions/summary", status: "operational", latencyMs: 202, lastChecked: "2026-03-03 12:14" },
-  { id: "api-notice", method: "POST", name: "Send Broadcast", path: "/api/v1/notifications/broadcast", status: "degraded", latencyMs: 514, lastChecked: "2026-03-03 12:12" },
-  { id: "api-reports", method: "GET", name: "Usage Reports", path: "/api/v1/reports/usage", status: "down", latencyMs: 0, lastChecked: "2026-03-03 12:11" },
-];
+    { id: "api-profile", method: "GET", name: "Get Profile", path: "/api/v1/users/profile", status: "operational", latencyMs: 138, lastChecked: "2026-03-03 12:14" },
+    { id: "api-subscription", method: "GET", name: "Subscription Summary", path: "/api/v1/subscriptions/summary", status: "operational", latencyMs: 202, lastChecked: "2026-03-03 12:14" },
+    { id: "api-notice", method: "POST", name: "Send Broadcast", path: "/api/v1/notifications/broadcast", status: "degraded", latencyMs: 514, lastChecked: "2026-03-03 12:12" },
+    { id: "api-reports", method: "GET", name: "Usage Reports", path: "/api/v1/reports/usage", status: "down", latencyMs: 0, lastChecked: "2026-03-03 12:11" },
+  ];

@@ -10,7 +10,7 @@ export function FinancePage() {
     <section className="space-y-6">
       <header>
         <h2 className="text-2xl font-bold tracking-tight">โมดูลการเงิน</h2>
-        <p className="mt-1 text-sm text-muted-foreground">วิเคราะห์พฤติกรรมการเงินและรูปแบบการลงบัญชีของผู้ใช้</p>
+        <p className="mt-1 text-sm text-muted-foreground">วิเคราะห์พฤติกรรมทางการเงินและวิธีการบันทึกบัญชีของผู้ใช้</p>
       </header>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -68,7 +68,7 @@ export function FinancePage() {
       <div className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
         <article className="rounded-xl bg-card p-6 shadow-card">
           <h3 className="text-base font-semibold">ความถี่การบันทึกบัญชีต่อวัน</h3>
-          <p className="text-sm text-muted-foreground">รวมจำนวนรายการบันทึกบัญชีรายวัน</p>
+          <p className="text-sm text-muted-foreground">รวมจำนวนรายการบันทึกรายวัน</p>
           <div className="mt-4 h-64 w-full">
             <ResponsiveContainer>
               <BarChart data={financeDailyEntries} margin={{ left: 8, right: 8, top: 6 }}>

@@ -8,9 +8,10 @@ interface TopRightControlsProps {
   theme: "light" | "dark";
   onToggleTheme: () => void;
   profile: AdminProfile;
+  className?: string; // <--- allow class override
 }
 
-export function TopRightControls({ theme, onToggleTheme, profile }: TopRightControlsProps) {
+export function TopRightControls({ theme, onToggleTheme, profile, className }: TopRightControlsProps) {
   const navigate = useNavigate();
   const menuRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
@@ -76,7 +77,7 @@ export function TopRightControls({ theme, onToggleTheme, profile }: TopRightCont
   };
 
   return (
-    <div className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(0.75rem,env(safe-area-inset-right))] z-40 flex w-12 flex-col items-center gap-2 sm:bottom-6 sm:right-4 md:w-[calc(var(--dock-rail-w,4rem)+0.25rem)] xl:right-auto xl:bottom-10 xl:left-[var(--dock-left,1.5rem)]">
+    <div className={cn("flex w-12 flex-col items-center gap-2", className)}>
       <div ref={menuRef} className="relative">
         <button
           type="button"

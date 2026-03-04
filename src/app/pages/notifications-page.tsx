@@ -82,11 +82,11 @@ export function NotificationsPage() {
                 </select>
               </label>
               <label className="block">
-                <span className="text-muted-foreground">กลุ่มผู้ชม</span>
+                <span className="text-muted-foreground">กลุ่มเป้าหมาย</span>
                 <select
                   value={audience}
                   onChange={(event) => setAudience(event.target.value)}
-                  aria-label="เลือกกลุ่มผู้ชม"
+                  aria-label="เลือกกลุ่มเป้าหมาย"
                   className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2"
                 >
                   {audienceTargets.map((entry) => (
@@ -111,7 +111,7 @@ export function NotificationsPage() {
                 onClick={() => pushLog("Draft")}
                 className="rounded-md border border-input bg-background px-4 py-2 text-sm font-semibold disabled:opacity-50"
               >
-                เซฟแบบร่าง
+                บันทึกแบบร่าง
               </button>
             </div>
           </div>
@@ -121,8 +121,8 @@ export function NotificationsPage() {
           <h3 className="text-base font-semibold">Preview</h3>
           <div className="mt-4 rounded-lg border border-dashed border-border bg-background p-4">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">{category}</p>
-            <p className="mt-2 text-sm font-semibold">{title || "(ยังไม่ได้ใส่หัวข้อ)"}</p>
-            <p className="mt-2 text-sm text-muted-foreground">{message || "(ยังไม่ได้ใส่รายละเอียด)"}</p>
+            <p className="mt-2 text-sm font-semibold">{title || "(ยังไม่ได้ระบุหัวข้อ)"}</p>
+            <p className="mt-2 text-sm text-muted-foreground">{message || "(ยังไม่ได้ระบุรายละเอียด)"}</p>
             <p className="mt-3 text-xs text-muted-foreground">กลุ่มเป้าหมาย: {audience}</p>
           </div>
         </article>
@@ -136,9 +136,8 @@ export function NotificationsPage() {
               type="button"
               onClick={() => setTab(item)}
               aria-pressed={tab === item}
-              className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                tab === item ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:bg-accent"
-              }`}
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${tab === item ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:bg-accent"
+                }`}
             >
               {item}
             </button>
@@ -175,11 +174,10 @@ export function NotificationsPage() {
                     <td className="py-3">{row.sentAt}</td>
                     <td className="py-3">
                       <span
-                        className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                          row.status === "Sent"
+                        className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${row.status === "Sent"
                             ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300"
                             : "bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300"
-                        }`}
+                          }`}
                       >
                         {row.status}
                       </span>

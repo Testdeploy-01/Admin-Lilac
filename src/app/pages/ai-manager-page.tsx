@@ -28,12 +28,12 @@ export function AiManagerPage() {
     <section className="space-y-6">
       <header>
         <h2 className="text-2xl font-bold tracking-tight">จัดการ AI</h2>
-        <p className="mt-1 text-sm text-muted-foreground">ติดตามต้นทุนโทเคน ประสิทธิภาพโมเดล และความเสี่ยงด้าน Margin</p>
+        <p className="mt-1 text-sm text-muted-foreground">ติดตามต้นทุน Token, ประสิทธิภาพ Model และความเสี่ยงด้าน Margin</p>
       </header>
 
       {aiAlert.enabled ? (
         <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200">
-          <p className="font-semibold">แจ้งเตือนฉุกเฉิน</p>
+          <p className="font-semibold">⚠️ แจ้งเตือนสำคัญ</p>
           <p className="mt-1">{aiAlert.message}</p>
         </div>
       ) : null}
@@ -45,9 +45,8 @@ export function AiManagerPage() {
             type="button"
             onClick={() => setPeriod(item.key)}
             aria-pressed={period === item.key}
-            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
-              period === item.key ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
-            }`}
+            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${period === item.key ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
+              }`}
           >
             {item.label}
           </button>
@@ -66,8 +65,8 @@ export function AiManagerPage() {
 
       <div className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
         <article className="rounded-xl bg-card p-6 shadow-card">
-          <h3 className="text-base font-semibold">โทเคนและต้นทุน</h3>
-          <p className="text-sm text-muted-foreground">เปรียบเทียบปริมาณ Token และค่าใช้จ่ายในช่วงที่เลือก</p>
+          <h3 className="text-base font-semibold">Token และต้นทุน</h3>
+          <p className="text-sm text-muted-foreground">เปรียบเทียบปริมาณ Token และค่าใช้จ่ายในช่วงเวลาที่เลือก</p>
           <div className="mt-4 h-64 w-full">
             <ResponsiveContainer>
               <LineChart data={periodData.tokenCostBars} margin={{ left: 8, right: 8, top: 6 }}>
@@ -137,7 +136,7 @@ export function AiManagerPage() {
       </div>
 
       <article className="rounded-xl bg-card p-6 shadow-card">
-        <h3 className="text-base font-semibold">การใช้โทเคนแยกตามโมเดล</h3>
+        <h3 className="text-base font-semibold">การใช้ Token แยกตาม Model</h3>
         <div className="mt-4 space-y-3">
           {aiModelUsage.map((model) => {
             const width = (model.tokens / maxModelTokens) * 100;
@@ -159,7 +158,7 @@ export function AiManagerPage() {
       </article>
 
       <article className="rounded-xl bg-card p-6 shadow-card">
-        <h3 className="text-base font-semibold">ตารางสถิติรายบุคคล</h3>
+        <h3 className="text-base font-semibold">สถิติรายบุคคล</h3>
         <p className="text-sm text-muted-foreground">ติดตามการใช้ Token และส่วนต่างกำไรต่อผู้ใช้</p>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[820px] text-sm">

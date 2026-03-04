@@ -46,7 +46,7 @@ export function SettingsPage() {
     <section className="space-y-6 pb-24">
       <header>
         <h2 className="text-2xl font-bold tracking-tight">ตั้งค่าระบบ</h2>
-        <p className="mt-1 text-sm text-muted-foreground">ปรับจูนโครงสร้างระบบ, API/AI และนโยบายความปลอดภัย</p>
+        <p className="mt-1 text-sm text-muted-foreground">ปรับแต่งการตั้งค่าระบบ, API/AI และนโยบายความปลอดภัย</p>
       </header>
 
       <div className="grid gap-4 xl:grid-cols-[1.2fr_1fr]">
@@ -156,9 +156,8 @@ export function SettingsPage() {
                   <button
                     type="button"
                     onClick={() => setPolicy((prev) => ({ ...prev, nsfwCheck: !prev.nsfwCheck }))}
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                      policy.nsfwCheck ? "bg-emerald-600 text-white" : "bg-muted text-muted-foreground"
-                    }`}
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${policy.nsfwCheck ? "bg-emerald-600 text-white" : "bg-muted text-muted-foreground"
+                      }`}
                   >
                     {policy.nsfwCheck ? "เปิด" : "ปิด"}
                   </button>
@@ -168,9 +167,8 @@ export function SettingsPage() {
                   <button
                     type="button"
                     onClick={() => setPolicy((prev) => ({ ...prev, autoSuspend150: !prev.autoSuspend150 }))}
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                      policy.autoSuspend150 ? "bg-emerald-600 text-white" : "bg-muted text-muted-foreground"
-                    }`}
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${policy.autoSuspend150 ? "bg-emerald-600 text-white" : "bg-muted text-muted-foreground"
+                      }`}
                   >
                     {policy.autoSuspend150 ? "เปิด" : "ปิด"}
                   </button>
@@ -224,7 +222,7 @@ export function SettingsPage() {
                 onClick={onDiscard}
                 className="rounded-md border border-input px-3 py-1.5 text-xs font-semibold"
               >
-                ละทิ้ง
+                ยกเลิก
               </button>
               <button
                 type="button"

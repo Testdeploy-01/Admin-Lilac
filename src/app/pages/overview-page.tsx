@@ -30,17 +30,16 @@ export function OverviewPage() {
     <section className="space-y-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">แดชบอร์ดภาพรวม</h2>
-          <p className="mt-1 text-sm text-muted-foreground">สรุป KPI, พฤติกรรมใช้งาน และกิจกรรมล่าสุดของระบบ</p>
+          <h2 className="text-2xl font-bold tracking-tight">ภาพรวม</h2>
+          <p className="mt-1 text-sm text-muted-foreground">สรุป KPI, พฤติกรรมการใช้งาน และกิจกรรมล่าสุด</p>
         </div>
         <div className="inline-flex rounded-lg border border-border bg-card p-1">
           <button
             type="button"
             onClick={() => setRange("7d")}
             aria-pressed={range === "7d"}
-            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
-              range === "7d" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
-            }`}
+            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${range === "7d" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
+              }`}
           >
             7 วัน
           </button>
@@ -48,9 +47,8 @@ export function OverviewPage() {
             type="button"
             onClick={() => setRange("30d")}
             aria-pressed={range === "30d"}
-            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
-              range === "30d" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
-            }`}
+            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${range === "30d" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent"
+              }`}
           >
             30 วัน
           </button>
@@ -63,13 +61,12 @@ export function OverviewPage() {
             <p className="text-sm text-muted-foreground">{item.label}</p>
             <p className="mt-3 text-2xl font-bold text-foreground">{item.value}</p>
             <p
-              className={`mt-2 text-xs font-semibold ${
-                item.trend === "up"
+              className={`mt-2 text-xs font-semibold ${item.trend === "up"
                   ? "text-emerald-600 dark:text-emerald-300"
                   : item.trend === "down"
                     ? "text-rose-600 dark:text-rose-300"
                     : "text-muted-foreground"
-              }`}
+                }`}
             >
               {item.delta}
             </p>
@@ -79,8 +76,8 @@ export function OverviewPage() {
 
       <div className="grid gap-4 xl:grid-cols-[1.6fr_1fr]">
         <article className="rounded-xl bg-card p-6 shadow-card">
-          <h3 className="text-base font-semibold">กราฟการเติบโตผู้ใช้ ({range === "30d" ? "30 วัน" : "7 วัน"})</h3>
-          <p className="text-sm text-muted-foreground">แนวโน้มผู้ใช้งานรายวัน</p>
+          <h3 className="text-base font-semibold">กราฟการเติบโตของผู้ใช้ ({range === "30d" ? "30 วัน" : "7 วัน"})</h3>
+          <p className="text-sm text-muted-foreground">แนวโน้มจำนวนผู้ใช้งานรายวัน</p>
           <div className="mt-4 h-64 w-full">
             <ResponsiveContainer>
               <AreaChart data={growthData} margin={{ left: 8, right: 8, top: 6, bottom: 0 }}>
@@ -167,8 +164,8 @@ export function OverviewPage() {
         </article>
 
         <article className="rounded-xl bg-card p-6 shadow-card">
-          <h3 className="text-base font-semibold">ฟีเจอร์ยอดนิยม</h3>
-          <p className="text-sm text-muted-foreground">จัดอันดับฟังก์ชันที่ถูกใช้งานสูงสุด</p>
+          <h3 className="text-base font-semibold">Feature ยอดนิยม</h3>
+          <p className="text-sm text-muted-foreground">จัดอันดับฟังก์ชันที่ถูกใช้งานมากที่สุด</p>
           <div className="mt-4 space-y-3">
             {popularFeatures.map((item, index) => {
               const width = (item.calls / maxFeatureCalls) * 100;

@@ -66,14 +66,37 @@ function DashboardLayoutFrame({ theme, pathname, onToggleTheme }: DashboardLayou
   return (
     <div className="min-h-screen bg-background text-foreground" style={dockLayoutVars}>
       <div className="flex min-h-screen flex-col">
-        <TopRightControls theme={theme} onToggleTheme={onToggleTheme} profile={adminProfileMock} />
+        {/* Desktop Sidebar Wrapper */}
+        <aside className="pointer-events-none fixed inset-y-0 left-[var(--dock-left,1.5rem)] z-30 hidden w-[var(--dock-rail-w,4.5rem)] flex-col items-center justify-center gap-6 md:flex">
+          <div className="pointer-events-auto">
+            <FloatingDockNav onHoverChange={setDockHovered} />
+          </div>
+          <div className="pointer-events-auto">
+            <TopRightControls theme={theme} onToggleTheme={onToggleTheme} profile={adminProfileMock} />
+          </div>
+        </aside>
+
+        {/* Mobile View TopRightControls (FloatingDockNav handles its own mobile view) */}
+        <div className="md:hidden">
+          <TopRightControls
+            theme={theme}
+            onToggleTheme={onToggleTheme}
+            profile={adminProfileMock}
+            className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(0.75rem,env(safe-area-inset-right))] z-40 sm:bottom-6 sm:right-4"
+          />
+        </div>
+
         <main className="flex-1 bg-background px-4 pt-10 pb-24 sm:px-6 sm:pt-10 sm:pb-28 md:pl-[var(--dock-main-offset)] lg:pr-8 lg:pl-[var(--dock-main-offset)] lg:pt-10 lg:pb-32">
           <div className={cn("ml-auto w-full max-w-[110rem] transition-[filter] duration-200", dockHovered && "blur-[2px]")}>
             <Outlet key={`${pathname}-${refreshTick}`} />
           </div>
         </main>
         <DashboardCommandCenter />
-        <FloatingDockNav onHoverChange={setDockHovered} />
+
+        {/* Mobile view of the dock */}
+        <div className="md:hidden">
+          <FloatingDockNav onHoverChange={setDockHovered} />
+        </div>
       </div>
     </div>
   );

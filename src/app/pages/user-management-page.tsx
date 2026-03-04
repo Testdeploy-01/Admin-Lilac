@@ -118,7 +118,7 @@ export function UserManagementPage() {
     <section className="space-y-6">
       <header>
         <h2 className="text-2xl font-bold tracking-tight">ผู้ใช้งาน</h2>
-        <p className="mt-1 text-sm text-muted-foreground">ศูนย์จัดการบัญชีผู้ใช้พร้อมตัวกรองขั้นสูงและแผงรายละเอียดด้านขวา</p>
+        <p className="mt-1 text-sm text-muted-foreground">ศูนย์จัดการบัญชีผู้ใช้ พร้อมตัวกรองขั้นสูงและแผงรายละเอียด</p>
       </header>
 
       <article className="rounded-xl bg-card p-6 shadow-card">
@@ -132,11 +132,10 @@ export function UserManagementPage() {
                   setFilter(option.key);
                   setPage(1);
                 }}
-                className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-                  filter === option.key
+                className={`rounded-full px-3 py-1 text-xs font-semibold transition ${filter === option.key
                     ? "bg-primary text-primary-foreground"
                     : "bg-background text-muted-foreground hover:bg-accent"
-                }`}
+                  }`}
               >
                 {option.label}
               </button>
@@ -172,7 +171,7 @@ export function UserManagementPage() {
                 <th scope="col" className="pb-2">ผู้ใช้</th>
                 <th scope="col" className="pb-2">แพลน</th>
                 <th scope="col" className="pb-2">วันสมัคร</th>
-                <th scope="col" className="pb-2">หมวดที่อินที่สุด</th>
+                <th scope="col" className="pb-2">หมวดที่สนใจ</th>
                 <th scope="col" className="pb-2">Alert</th>
                 <th scope="col" className="pb-2">Total Tokens (เดือน)</th>
                 <th scope="col" className="pb-2">ต้นทุน AI</th>
@@ -207,13 +206,12 @@ export function UserManagementPage() {
                     <td className="py-3">{formatCurrencyTHB(user.aiCostTHB)}</td>
                     <td className="py-3">
                       <span
-                        className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                          user.status === "active"
+                        className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${user.status === "active"
                             ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300"
                             : user.status === "suspended"
                               ? "bg-rose-100 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300"
                               : "bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300"
-                        }`}
+                          }`}
                       >
                         {user.status}
                       </span>
@@ -275,7 +273,7 @@ export function UserManagementPage() {
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-center justify-between">
-              <h3 id="user-detail-title" className="text-base font-semibold">User Details Panel</h3>
+              <h3 id="user-detail-title" className="text-base font-semibold">รายละเอียดผู้ใช้</h3>
               <button type="button" aria-label="ปิดรายละเอียดผู้ใช้" onClick={() => setDrawerOpen(false)} className="text-sm text-muted-foreground hover:text-foreground">
                 ปิด
               </button>
@@ -292,15 +290,15 @@ export function UserManagementPage() {
 
               <div className="mt-4 space-y-2 text-sm">
                 <p>แพลนปัจจุบัน: {selectedUser.plan}</p>
-                <p>เข้าสู่ระบบล่าสุด: {selectedUser.lastLogin}</p>
-                <p>คงเหลือโควตาโดยประมาณ: {Math.max(0, 100 - Math.floor(selectedUser.monthlyTokens / 500))}%</p>
+                <p>Login ล่าสุด: {selectedUser.lastLogin}</p>
+                <p>โควตาคงเหลือ (ประมาณ): {Math.max(0, 100 - Math.floor(selectedUser.monthlyTokens / 500))}%</p>
                 <p>Alert: {selectedUser.systemAlert}</p>
               </div>
             </div>
 
             <div className="mt-4 space-y-2">
               <label className="block text-sm">
-                <span className="text-muted-foreground">แก้ไขแพลน (Edit Plan)</span>
+                <span className="text-muted-foreground">เปลี่ยนแพลน</span>
                 <select
                   value={selectedUser.plan}
                   onChange={(event) =>

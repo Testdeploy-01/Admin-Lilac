@@ -68,7 +68,7 @@ export function LogsPage() {
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">บันทึกระบบ (System Logs)</h2>
-          <p className="mt-1 text-sm text-muted-foreground">ติดตาม Log แบบ Real-time พร้อมเครื่องมือค้นหาและ export</p>
+          <p className="mt-1 text-sm text-muted-foreground">ติดตาม Log แบบ Real-time พร้อมเครื่องมือค้นหาและ Export</p>
         </div>
         <span aria-live="polite" className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs">
           <span className="sr-only">สถานะสตรีมบันทึกระบบ</span>
@@ -83,27 +83,24 @@ export function LogsPage() {
             <button
               type="button"
               onClick={() => setLevelFilter("ALL")}
-              className={`rounded-md px-3 py-1 text-xs font-semibold ${
-                levelFilter === "ALL" ? "bg-slate-100 text-slate-900" : "bg-slate-800 text-slate-300"
-              }`}
+              className={`rounded-md px-3 py-1 text-xs font-semibold ${levelFilter === "ALL" ? "bg-slate-100 text-slate-900" : "bg-slate-800 text-slate-300"
+                }`}
             >
               ทุกระดับ
             </button>
             <button
               type="button"
               onClick={() => setLevelFilter("ERROR")}
-              className={`rounded-md px-3 py-1 text-xs font-semibold ${
-                levelFilter === "ERROR" ? "bg-rose-500 text-white" : "bg-slate-800 text-slate-300"
-              }`}
+              className={`rounded-md px-3 py-1 text-xs font-semibold ${levelFilter === "ERROR" ? "bg-rose-500 text-white" : "bg-slate-800 text-slate-300"
+                }`}
             >
               Errors Only
             </button>
             <button
               type="button"
               onClick={() => setLive((current) => !current)}
-              className={`rounded-md px-3 py-1 text-xs font-semibold ${
-                live ? "bg-amber-500 text-slate-900" : "bg-emerald-500 text-white"
-              }`}
+              className={`rounded-md px-3 py-1 text-xs font-semibold ${live ? "bg-amber-500 text-slate-900" : "bg-emerald-500 text-white"
+                }`}
             >
               {live ? "Pause" : "Resume"}
             </button>
@@ -158,13 +155,12 @@ export function LogsPage() {
                   <tr key={`${log.traceId}-${log.timestamp}`} className="border-b border-slate-900/80 last:border-none text-slate-300">
                     <td className="py-2">{log.timestamp}</td>
                     <td
-                      className={`py-2 font-semibold ${
-                        log.level === "ERROR"
+                      className={`py-2 font-semibold ${log.level === "ERROR"
                           ? "text-rose-400"
                           : log.level === "WARN"
                             ? "text-amber-400"
                             : "text-emerald-400"
-                      }`}
+                        }`}
                     >
                       {log.level}
                     </td>

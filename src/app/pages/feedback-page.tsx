@@ -28,7 +28,7 @@ export function FeedbackPage() {
     <section className="space-y-6">
       <header>
         <h2 className="text-2xl font-bold tracking-tight">ความคิดเห็น (Feedback)</h2>
-        <p className="mt-1 text-sm text-muted-foreground">คัดกรองคำชม ข้อเสนอแนะ และบั๊ก เพื่อนำไปปรับปรุงระบบต่อเนื่อง</p>
+        <p className="mt-1 text-sm text-muted-foreground">คัดกรองคำชม, ข้อเสนอแนะ และ Bug Report เพื่อปรับปรุงระบบอย่างต่อเนื่อง</p>
       </header>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -37,11 +37,11 @@ export function FeedbackPage() {
           <p className="mt-3 text-2xl font-bold">{total.toLocaleString()}</p>
         </article>
         <article className="rounded-xl bg-card p-5 shadow-card">
-          <p className="text-sm text-muted-foreground">เรตติ้งเฉลี่ย</p>
+          <p className="text-sm text-muted-foreground">Rating เฉลี่ย</p>
           <p className="mt-3 text-2xl font-bold">{avgRating.toFixed(1)} / 5</p>
         </article>
         <article className="rounded-xl bg-card p-5 shadow-card">
-          <p className="text-sm text-muted-foreground">Bug Reports ที่รอแก้</p>
+          <p className="text-sm text-muted-foreground">Bug Report ที่รอแก้</p>
           <p className="mt-3 text-2xl font-bold">{openBugs}</p>
         </article>
       </div>
@@ -55,9 +55,8 @@ export function FeedbackPage() {
                 type="button"
                 onClick={() => setTag(item)}
                 aria-pressed={tag === item}
-                className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                  tag === item ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:bg-accent"
-                }`}
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${tag === item ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:bg-accent"
+                  }`}
               >
                 {item}
               </button>

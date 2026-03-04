@@ -89,13 +89,13 @@ export function AppHealthPage() {
     <section className="space-y-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">App Health</h1>
+          <h1 className="text-3xl font-bold tracking-tight">สถานะระบบ</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Mock status board to monitor service/API availability and response quality.
+            ตรวจสอบสถานะ Service/API, Availability และคุณภาพ Response
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">Last sweep: {lastSweepAt}</span>
+          <span className="text-xs text-muted-foreground">ตรวจสอบล่าสุด: {lastSweepAt}</span>
           <button
             type="button"
             onClick={handleCheckAll}
@@ -103,7 +103,7 @@ export function AppHealthPage() {
             className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition hover:opacity-90 disabled:opacity-70"
           >
             <RefreshCcw className={`h-3.5 w-3.5 ${checkingAll ? "animate-spin" : ""}`} />
-            Check All (Mock)
+            ตรวจสอบทั้งหมด (Mock)
           </button>
         </div>
       </header>
@@ -120,8 +120,8 @@ export function AppHealthPage() {
 
       <div className="grid gap-4 lg:grid-cols-[1.25fr_1fr]">
         <article className="rounded-xl bg-card p-6 shadow-card">
-          <h2 className="text-lg font-semibold">Service Status</h2>
-          <p className="text-sm text-muted-foreground">Core dependencies and internal modules.</p>
+          <h2 className="text-lg font-semibold">สถานะ Service</h2>
+          <p className="text-sm text-muted-foreground">ระบบหลักและ Module ภายใน</p>
           <div className="mt-4 space-y-3">
             {services.map((service) => (
               <div key={service.id} className="rounded-lg bg-background p-4">
@@ -142,8 +142,8 @@ export function AppHealthPage() {
         </article>
 
         <article className="rounded-xl bg-card p-6 shadow-card">
-          <h2 className="text-lg font-semibold">Incident Summary</h2>
-          <p className="text-sm text-muted-foreground">Current non-operational states from mock probes.</p>
+          <h2 className="text-lg font-semibold">สรุปเหตุการณ์</h2>
+          <p className="text-sm text-muted-foreground">Incident ที่ยังไม่กลับสู่สถานะปกติ</p>
           <div className="mt-4 grid gap-3">
             <div className="rounded-lg bg-background p-4">
               <p className="text-xs text-muted-foreground">Open Incidents</p>
@@ -163,9 +163,9 @@ export function AppHealthPage() {
           <div className="mt-4 rounded-lg bg-background p-4 text-xs text-muted-foreground">
             <p className="flex items-center gap-2 font-medium text-foreground">
               <CircleAlert className="h-4 w-4 text-amber-500" />
-              Suggested action
+              คำแนะนำ
             </p>
-            <p className="mt-2">Review degraded/down API handlers and verify fallback paths before next release.</p>
+            <p className="mt-2">ตรวจสอบ API ที่มีปัญหาและยืนยัน Fallback path ก่อน Release ถัดไป</p>
           </div>
         </article>
       </div>
@@ -173,8 +173,8 @@ export function AppHealthPage() {
       <article className="rounded-xl bg-card p-6 shadow-card">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-lg font-semibold">API Endpoint Probe</h2>
-            <p className="text-sm text-muted-foreground">Mock checks for endpoint availability and latency trend.</p>
+            <h2 className="text-lg font-semibold">ตรวจสอบ API Endpoint</h2>
+            <p className="text-sm text-muted-foreground">ตรวจ Availability และ Latency ของแต่ละ Endpoint</p>
           </div>
         </div>
 
