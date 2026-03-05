@@ -3,7 +3,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import { DashboardUIProvider, useDashboardUI } from "@/app/context/dashboard-ui-context";
 import { DashboardCommandCenter } from "@/components/dashboard/dashboard-command-center";
 import { BackgroundBeams } from "@/components/ui/background-beams";
-import { FloatingDockNav } from "../../components/dashboard/floating-dock-nav";
+import { DockBrandLogo, FloatingDockNav } from "../../components/dashboard/floating-dock-nav";
 import { TopRightControls } from "../../components/dashboard/top-right-controls";
 import { adminProfileMock } from "../../mocks/admin-profile.mock";
 
@@ -75,11 +75,13 @@ function DashboardLayoutFrame({ theme, pathname, onToggleTheme }: DashboardLayou
       </div>
       <div className="flex min-h-screen flex-col">
         {/* Desktop Sidebar Wrapper */}
-        <aside className="pointer-events-none fixed inset-y-0 left-[var(--dock-left,1.5rem)] z-30 hidden w-[var(--dock-rail-w,4.5rem)] flex-col items-center justify-center gap-6 md:flex">
-          <div className="pointer-events-auto">
+        <aside className="pointer-events-none fixed inset-y-0 left-[var(--dock-left,1.5rem)] z-30 hidden w-[var(--dock-rail-w,4.5rem)] flex-col items-center md:flex">
+          <div className="pointer-events-auto flex flex-1 flex-col items-center justify-center">
+            <DockBrandLogo />
+            <div className="h-4" />
             <FloatingDockNav onHoverChange={handleDockHoverChange} />
           </div>
-          <div className="pointer-events-auto">
+          <div className="pointer-events-auto pb-5">
             <TopRightControls theme={theme} onToggleTheme={onToggleTheme} profile={adminProfileMock} />
           </div>
         </aside>

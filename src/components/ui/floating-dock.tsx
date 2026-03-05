@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 /**
  * Note: Use position fixed according to your needs
  * Desktop navbar is better positioned at the bottom
@@ -18,7 +18,7 @@ import {
 } from "motion/react";
 import { Link } from "react-router-dom";
 
-import { useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent } from "react";
+import { useId, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent } from "react";
 
 type DockItem = {
   title: string;
@@ -156,6 +156,7 @@ const FloatingDockDesktop = ({
   orientation: DockOrientation;
   onDockHoverChange?: (hovered: boolean) => void;
 }) => {
+  const dockInstanceId = useId();
   const pointer = useMotionValue(Infinity);
   const hoverProgressRaw = useMotionValue(0);
   const hoverProgress = useSpring(hoverProgressRaw, {
@@ -196,13 +197,14 @@ const FloatingDockDesktop = ({
         className,
       )}
     >
-      <LayoutGroup id="dock-active-indicator">
+      <LayoutGroup id={`dock-active-indicator-${dockInstanceId}`}>
         {items.map((item) => (
           <IconContainer
             pointer={pointer}
             hoverProgress={hoverProgress}
             orientation={orientation}
             dockScale={dockScale}
+            activeDotLayoutId={`dock-active-dot-${dockInstanceId}`}
             key={item.title}
             {...item}
           />
@@ -228,6 +230,7 @@ function IconContainer({
   variant = "default",
   badge,
   align = "default",
+  activeDotLayoutId,
 }: {
   pointer: MotionValue;
   hoverProgress: MotionValue<number>;
@@ -244,6 +247,7 @@ function IconContainer({
   variant?: "default" | "logo" | "avatar";
   badge?: number;
   align?: "default" | "bottom";
+  activeDotLayoutId: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -378,8 +382,8 @@ function IconContainer({
         ) : null}
         {active && !showLogo ? (
           <motion.span
-            layoutId="dock-active-dot"
-            transition={{ type: "spring", stiffness: 520, damping: 36, mass: 0.55 }}
+            layoutId={activeDotLayoutId}
+            transition={{ type: "spring", stiffness: 300, damping: 34, mass: 0.9 }}
             className={cn(
               "absolute rounded-full bg-primary",
               orientation === "vertical" ? "-right-1.5 top-1/2 -translate-y-1/2" : "-bottom-1.5",

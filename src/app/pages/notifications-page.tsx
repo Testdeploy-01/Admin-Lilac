@@ -371,12 +371,12 @@ export function NotificationsPage() {
                 </div>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   <div className={`rounded-lg border p-4 ${test.winner === "A" ? "border-emerald-400 bg-emerald-50 dark:bg-emerald-950/30" : "border-border"}`}>
-                    <p className="text-xs font-semibold text-muted-foreground">แบบ A {test.winner === "A" ? "🏆" : ""}</p>
+                    <p className="text-xs font-semibold text-muted-foreground">แบบ A {test.winner === "A" ? "�" : ""}</p>
                     <p className="mt-1 text-sm">{test.variantA}</p>
                     <p className="mt-2 text-xl font-bold">{test.resultA}%</p>
                   </div>
                   <div className={`rounded-lg border p-4 ${test.winner === "B" ? "border-emerald-400 bg-emerald-50 dark:bg-emerald-950/30" : "border-border"}`}>
-                    <p className="text-xs font-semibold text-muted-foreground">แบบ B {test.winner === "B" ? "🏆" : ""}</p>
+                    <p className="text-xs font-semibold text-muted-foreground">แบบ B {test.winner === "B" ? "�" : ""}</p>
                     <p className="mt-1 text-sm">{test.variantB}</p>
                     <p className="mt-2 text-xl font-bold">{test.resultB}%</p>
                   </div>

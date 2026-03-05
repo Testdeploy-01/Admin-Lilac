@@ -1,4 +1,4 @@
-﻿export type TrendType = "up" | "down" | "neutral";
+export type TrendType = "up" | "down" | "neutral";
 
 export type AiPeriod = "7d" | "month" | "4months" | "year";
 
@@ -677,7 +677,7 @@ export type ABTest = {
 };
 
 export const abTests: ABTest[] = [
-  { id: "AB-001", name: "Upgrade CTA", variantA: "🎉 อัปเกรดตอนนี้!", variantB: "ลองใช้ PLUS ฟรี 7 วัน", metric: "Click Rate", status: "completed", resultA: 12, resultB: 18, winner: "B" },
+  { id: "AB-001", name: "Upgrade CTA", variantA: "� อัปเกรดตอนนี้!", variantB: "ลองใช้ PLUS ฟรี 7 วัน", metric: "Click Rate", status: "completed", resultA: 12, resultB: 18, winner: "B" },
   { id: "AB-002", name: "Win-back Message", variantA: "เราคิดถึงคุณ", variantB: "มีฟีเจอร์ใหม่รอคุณอยู่", metric: "Open Rate", status: "running", resultA: 45, resultB: 52 },
 ];
 

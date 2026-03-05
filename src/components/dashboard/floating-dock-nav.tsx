@@ -1,4 +1,4 @@
-﻿import {
+import {
   Bell,
   Bot,
   LayoutDashboard,
@@ -7,7 +7,7 @@
   Wallet,
   type LucideIcon,
 } from "lucide-react";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { FloatingDock } from "@/components/ui/floating-dock";
 import { cn } from "@/lib/utils";
 import { pendingUsersCount } from "@/mocks/dashboard-features.mock";
@@ -34,13 +34,6 @@ type DockRenderItem = {
   badge?: number;
 };
 
-const logoDockItem: DockItem = {
-  title: "โลโก้",
-  href: "/overview",
-  activePrefixes: ["/overview"],
-  customIcon: <img src="/Logo.png" alt="Lilac logo" className="h-full w-full rounded-full object-contain bg-primary-soft p-1" />,
-  variant: "logo",
-};
 
 const leftDockItems: DockItem[] = [
   { title: "แดชบอร์ด", href: "/overview", icon: LayoutDashboard, activePrefixes: ["/overview"] },
@@ -61,6 +54,21 @@ function isRouteActive(pathname: string, prefixes: string[]) {
 type FloatingDockNavProps = {
   onHoverChange?: (hovered: boolean) => void;
 };
+
+export function DockBrandLogo() {
+  return (
+    <Link to="/overview" className="flex flex-col items-center gap-1.5 group">
+      <img
+        src="/Logo.png"
+        alt="Lilac logo"
+        className="h-10 w-10 object-contain drop-shadow-sm transition-transform duration-200 group-hover:scale-110"
+      />
+      <span className="text-[11px] font-semibold leading-tight text-muted-foreground tracking-wide">
+        Lilac Admin
+      </span>
+    </Link>
+  );
+}
 
 export function FloatingDockNav({ onHoverChange }: FloatingDockNavProps) {
   const { pathname } = useLocation();
@@ -87,7 +95,6 @@ export function FloatingDockNav({ onHoverChange }: FloatingDockNavProps) {
   };
 
   const items: DockRenderItem[] = [
-    toRenderItem(logoDockItem),
     ...leftDockItems.map(toRenderItem),
     ...rightDockItems.map(toRenderItem),
   ];

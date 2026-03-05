@@ -1,4 +1,4 @@
-﻿export function exportCSV(filename: string, rows: Array<Record<string, string | number>>) {
+export function exportCSV(filename: string, rows: Array<Record<string, string | number>>) {
   if (rows.length === 0) {
     return;
   }

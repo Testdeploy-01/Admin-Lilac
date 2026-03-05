@@ -46,13 +46,13 @@ const eventTypeColors: Record<string, string> = {
 };
 
 const eventTypeLabels: Record<string, string> = {
-  join: "สมัครใหม่",
-  upgrade: "อัปเกรด",
-  churn: "ยกเลิก",
-  milestone: "เป้าหมาย",
-  warning: "เตือน",
-  alert: "แจ้งเตือน",
-  voice_error: "เสียงผิดพลาด",
+  join: "เธชเธกเธฑเธเธฃเนเธซเธกเน",
+  upgrade: "เธญเธฑเธเน€เธเธฃเธ”",
+  churn: "เธขเธเน€เธฅเธดเธ",
+  milestone: "เน€เธเนเธฒเธซเธกเธฒเธข",
+  warning: "เน€เธ•เธทเธญเธ",
+  alert: "เนเธเนเธเน€เธ•เธทเธญเธ",
+  voice_error: "เน€เธชเธตเธขเธเธเธดเธ”เธเธฅเธฒเธ”",
 };
 
 const donutColors = ["hsl(var(--primary))", "#14b8a6", "#f59e0b", "#0284c7", "#8b5cf6", "#64748b"];
@@ -69,7 +69,7 @@ export function OverviewPage() {
   const maxPromptCount = Math.max(...topTextPrompts.map((p) => p.count), ...widgetQuickActions.map((p) => p.count));
 
   return (
-    <DashboardPageShell title="แดชบอร์ด" description="ดูภาพรวมสุขภาพระบบทั้งหมดแบบรวดเร็ว">
+    <DashboardPageShell title="เนเธ”เธเธเธญเธฃเนเธ”" description="เธ”เธนเธ เธฒเธเธฃเธงเธกเธชเธธเธเธ เธฒเธเธฃเธฐเธเธเธ—เธฑเนเธเธซเธกเธ”เนเธเธเธฃเธงเธ”เน€เธฃเนเธง">
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {overviewKpis.map((item) => (
@@ -87,16 +87,16 @@ export function OverviewPage() {
         <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h3 className="text-base font-semibold">กราฟการเติบโต (FREE vs PLUS)</h3>
-              <p className="text-sm text-muted-foreground">แนวโน้มสมาชิกสะสมรายเดือน</p>
+              <h3 className="text-base font-semibold">เธเธฃเธฒเธเธเธฒเธฃเน€เธ•เธดเธเนเธ• (FREE vs PLUS)</h3>
+              <p className="text-sm text-muted-foreground">เนเธเธงเนเธเนเธกเธชเธกเธฒเธเธดเธเธชเธฐเธชเธกเธฃเธฒเธขเน€เธ”เธทเธญเธ</p>
             </div>
             <AppTabs
               value={growthRange}
               onValueChange={(value) => setGrowthRange(value as "3m" | "6m" | "1y")}
               items={[
-                { value: "3m", label: "3 เดือน" },
-                { value: "6m", label: "6 เดือน" },
-                { value: "1y", label: "1 ปี" },
+                { value: "3m", label: "3 เน€เธ”เธทเธญเธ" },
+                { value: "6m", label: "6 เน€เธ”เธทเธญเธ" },
+                { value: "1y", label: "1 เธเธต" },
               ]}
             />
           </div>
@@ -132,7 +132,7 @@ export function OverviewPage() {
         </article>
 
         <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <h3 className="text-base font-semibold">สัดส่วนการใช้ฟีเจอร์</h3>
+          <h3 className="text-base font-semibold">เธชเธฑเธ”เธชเนเธงเธเธเธฒเธฃเนเธเนเธเธตเน€เธเธญเธฃเน</h3>
           <div className="mt-4 h-52 w-full">
             <ResponsiveContainer>
               <PieChart>
@@ -168,8 +168,8 @@ export function OverviewPage() {
       <div className="grid gap-4 xl:grid-cols-2">
         <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <div>
-            <h3 className="text-base font-semibold">ผู้ใช้งานรายวัน (รายสัปดาห์)</h3>
-            <p className="text-sm text-muted-foreground">เทียบสัปดาห์นี้ vs สัปดาห์ที่แล้ว</p>
+            <h3 className="text-base font-semibold">เธเธนเนเนเธเนเธเธฒเธเธฃเธฒเธขเธงเธฑเธ (เธฃเธฒเธขเธชเธฑเธเธ”เธฒเธซเน)</h3>
+            <p className="text-sm text-muted-foreground">เน€เธ—เธตเธขเธเธชเธฑเธเธ”เธฒเธซเนเธเธตเน vs เธชเธฑเธเธ”เธฒเธซเนเธ—เธตเนเนเธฅเนเธง</p>
           </div>
           <div className="mt-4 h-64 w-full">
             <ResponsiveContainer>
@@ -178,8 +178,8 @@ export function OverviewPage() {
                 <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} />
                 <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
                 <Tooltip />
-                <Bar dataKey="lastWeek" fill="#94a3b8" radius={[4, 4, 0, 0]} name="สัปดาห์ที่แล้ว" />
-                <Bar dataKey="thisWeek" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="สัปดาห์นี้" />
+                <Bar dataKey="lastWeek" fill="#94a3b8" radius={[4, 4, 0, 0]} name="เธชเธฑเธเธ”เธฒเธซเนเธ—เธตเนเนเธฅเนเธง" />
+                <Bar dataKey="thisWeek" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="เธชเธฑเธเธ”เธฒเธซเนเธเธตเน" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -187,8 +187,8 @@ export function OverviewPage() {
 
         <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <div>
-            <h3 className="text-base font-semibold">เส้นกราฟการรักษาผู้ใช้</h3>
-            <p className="text-sm text-muted-foreground">% ผู้ใช้ที่ยังใช้งานอยู่ สัปดาห์ 1–8 เทียบกับค่าเฉลี่ย</p>
+            <h3 className="text-base font-semibold">เน€เธชเนเธเธเธฃเธฒเธเธเธฒเธฃเธฃเธฑเธเธฉเธฒเธเธนเนเนเธเน</h3>
+            <p className="text-sm text-muted-foreground">% เธเธนเนเนเธเนเธ—เธตเนเธขเธฑเธเนเธเนเธเธฒเธเธญเธขเธนเน เธชเธฑเธเธ”เธฒเธซเน 1โ€“8 เน€เธ—เธตเธขเธเธเธฑเธเธเนเธฒเน€เธเธฅเธตเนเธข</p>
           </div>
           <div className="mt-4 h-64 w-full">
             <ResponsiveContainer>
@@ -222,8 +222,8 @@ export function OverviewPage() {
       <div className="grid gap-4 xl:grid-cols-[1.3fr_1fr]">
         <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <div>
-            <h3 className="text-base font-semibold">ขั้นตอนการอัปเกรด FREE → PLUS</h3>
-            <p className="text-sm text-muted-foreground">ดูจำนวนที่หลุดในแต่ละขั้นตอน</p>
+            <h3 className="text-base font-semibold">เธเธฑเนเธเธ•เธญเธเธเธฒเธฃเธญเธฑเธเน€เธเธฃเธ” FREE โ’ PLUS</h3>
+            <p className="text-sm text-muted-foreground">เธ”เธนเธเธณเธเธงเธเธ—เธตเนเธซเธฅเธธเธ”เนเธเนเธ•เนเธฅเธฐเธเธฑเนเธเธ•เธญเธ</p>
           </div>
           <div className="mt-4 h-64 w-full">
             <ResponsiveContainer>
@@ -241,7 +241,7 @@ export function OverviewPage() {
               <p key={step.step} className="text-xs text-muted-foreground">
                 {step.step}:{" "}
                 <span className={`font-semibold ${step.dropOff > 25 ? "text-rose-500" : "text-foreground"}`}>
-                  {step.dropOff}% หลุด
+                  {step.dropOff}% เธซเธฅเธธเธ”
                 </span>
               </p>
             ))}
@@ -250,9 +250,9 @@ export function OverviewPage() {
 
         <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-semibold">กิจกรรมล่าสุด</h3>
+            <h3 className="text-base font-semibold">เธเธดเธเธเธฃเธฃเธกเธฅเนเธฒเธชเธธเธ”</h3>
             <Button asChild variant="link" size="sm">
-              <Link to="/user-management">ดูทั้งหมด</Link>
+              <Link to="/user-management">เธ”เธนเธ—เธฑเนเธเธซเธกเธ”</Link>
             </Button>
           </div>
           <div className="mt-4 max-h-[340px] space-y-2 overflow-y-auto pr-1">
@@ -277,8 +277,8 @@ export function OverviewPage() {
       <div className="grid gap-4 xl:grid-cols-2">
         <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <div>
-            <h3 className="text-base font-semibold">คำถามข้อความยอดนิยม</h3>
-            <p className="text-sm text-muted-foreground">คำขอที่ถูกพิมพ์บ่อยที่สุด</p>
+            <h3 className="text-base font-semibold">เธเธณเธ–เธฒเธกเธเนเธญเธเธงเธฒเธกเธขเธญเธ”เธเธดเธขเธก</h3>
+            <p className="text-sm text-muted-foreground">เธเธณเธเธญเธ—เธตเนเธ–เธนเธเธเธดเธกเธเนเธเนเธญเธขเธ—เธตเนเธชเธธเธ”</p>
           </div>
           <div className="mt-4 space-y-3">
             {topTextPrompts.map((item, idx) => (
@@ -299,8 +299,8 @@ export function OverviewPage() {
 
         <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <div>
-            <h3 className="text-base font-semibold">การดำเนินการด่วนที่ใช้บ่อย</h3>
-            <p className="text-sm text-muted-foreground">การดำเนินการด่วนผ่านวิดเจ็ต</p>
+            <h3 className="text-base font-semibold">เธเธฒเธฃเธ”เธณเน€เธเธดเธเธเธฒเธฃเธ”เนเธงเธเธ—เธตเนเนเธเนเธเนเธญเธข</h3>
+            <p className="text-sm text-muted-foreground">เธเธฒเธฃเธ”เธณเน€เธเธดเธเธเธฒเธฃเธ”เนเธงเธเธเนเธฒเธเธงเธดเธ”เน€เธเนเธ•</p>
           </div>
           <div className="mt-4 space-y-3">
             {widgetQuickActions.map((item, idx) => (
@@ -321,19 +321,19 @@ export function OverviewPage() {
       </div>
 
       <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-        <h3 className="text-base font-semibold">ทางลัด</h3>
+        <h3 className="text-base font-semibold">เธ—เธฒเธเธฅเธฑเธ”</h3>
         <BentoGrid className="mt-4 max-w-none md:auto-rows-[11rem] md:grid-cols-4">
           <Link to="/notifications">
             <BentoGridItem
               icon={<Megaphone className="h-5 w-5 text-primary" />}
-              title="ส่งข้อความถึงทุกคน"
+              title="เธชเนเธเธเนเธญเธเธงเธฒเธกเธ–เธถเธเธ—เธธเธเธเธ"
               description="Broadcast notifications"
             />
           </Link>
           <Link to="/user-management?filter=new7">
             <BentoGridItem
               icon={<UserPlus className="h-5 w-5 text-primary" />}
-              title="ดูผู้ใช้ใหม่วันนี้"
+              title="เธ”เธนเธเธนเนเนเธเนเนเธซเธกเนเธงเธฑเธเธเธตเน"
               description="Open users with new-user filter"
             />
           </Link>
@@ -341,7 +341,7 @@ export function OverviewPage() {
             icon={<Download className="h-5 w-5 text-primary" />}
             title={
               <Button variant="ghost" className="h-auto p-0 text-left font-bold" onClick={() => alert("Export functionality (mock)")}>
-                ดาวน์โหลดรายงาน
+                เธ”เธฒเธงเธเนเนเธซเธฅเธ”เธฃเธฒเธขเธเธฒเธ
               </Button>
             }
             description="Export report as CSV/PDF"
@@ -350,7 +350,7 @@ export function OverviewPage() {
             icon={<ShieldBan className="h-5 w-5 text-primary" />}
             title={
               <Button variant="ghost" className="h-auto p-0 text-left font-bold" onClick={() => alert("Suspend dialog (mock)")}>
-                ระงับบัญชีผู้ใช้
+                เธฃเธฐเธเธฑเธเธเธฑเธเธเธตเธเธนเนเนเธเน
               </Button>
             }
             description="Open suspend flow"
@@ -360,5 +360,6 @@ export function OverviewPage() {
     </DashboardPageShell>
   );
 }
+
 
 
