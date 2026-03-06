@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { BackgroundBeams } from "@/components/ui/background-beams";
-import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
 import { cn } from "@/lib/utils";
 
 export type DashboardPageShellProps = {
@@ -27,7 +26,7 @@ export function DashboardPageShell({
       <div className="card-gray-gradient rounded-2xl border border-border p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <TextGenerateEffect words={title} className="!mt-0 !text-xl sm:!text-2xl" />
+            <h1 className="text-xl font-bold leading-snug tracking-wide text-foreground sm:text-2xl">{title}</h1>
             {description ? <p className="-mt-1 text-sm text-muted-foreground">{description}</p> : null}
           </div>
           {actions ? <div className="shrink-0">{actions}</div> : null}

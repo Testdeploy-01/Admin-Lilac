@@ -82,7 +82,14 @@ function DashboardLayoutFrame({ theme, pathname, onToggleTheme }: DashboardLayou
             <FloatingDockNav onHoverChange={handleDockHoverChange} />
           </div>
           <div className="pointer-events-auto pb-5">
-            <TopRightControls theme={theme} onToggleTheme={onToggleTheme} profile={adminProfileMock} />
+            <TopRightControls
+              theme={theme}
+              onToggleTheme={onToggleTheme}
+              profile={adminProfileMock}
+              profileMenuSide="right"
+              profileMenuAlign="end"
+              profileMenuOffset={12}
+            />
           </div>
         </aside>
 
@@ -92,6 +99,9 @@ function DashboardLayoutFrame({ theme, pathname, onToggleTheme }: DashboardLayou
             theme={theme}
             onToggleTheme={onToggleTheme}
             profile={adminProfileMock}
+            profileMenuSide="top"
+            profileMenuAlign="end"
+            profileMenuOffset={8}
             className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(0.75rem,env(safe-area-inset-right))] z-40 sm:bottom-6 sm:right-4"
           />
         </div>

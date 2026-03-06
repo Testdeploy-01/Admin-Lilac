@@ -19,9 +19,20 @@ interface TopRightControlsProps {
   onToggleTheme: () => void;
   profile: AdminProfile;
   className?: string;
+  profileMenuSide?: "top" | "right";
+  profileMenuAlign?: "start" | "center" | "end";
+  profileMenuOffset?: number;
 }
 
-export function TopRightControls({ theme, onToggleTheme, profile, className }: TopRightControlsProps) {
+export function TopRightControls({
+  theme,
+  onToggleTheme,
+  profile,
+  className,
+  profileMenuSide = "top",
+  profileMenuAlign = "end",
+  profileMenuOffset = 4,
+}: TopRightControlsProps) {
   const navigate = useNavigate();
 
   const initials = profile.name
@@ -62,7 +73,13 @@ export function TopRightControls({ theme, onToggleTheme, profile, className }: T
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent side="top" align="end" className="w-52 rounded-xl">
+          <DropdownMenuContent
+            side={profileMenuSide}
+            align={profileMenuAlign}
+            sideOffset={profileMenuOffset}
+            collisionPadding={16}
+            className="w-52 rounded-xl"
+          >
             <DropdownMenuLabel>
               <p className="truncate text-sm font-semibold text-foreground">{profile.name}</p>
               <p className="truncate text-xs text-muted-foreground">{profile.email}</p>

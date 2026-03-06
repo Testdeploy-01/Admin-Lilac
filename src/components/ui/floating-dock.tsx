@@ -6,7 +6,7 @@
  **/
 
 import { cn } from "@/lib/utils";
-import { IconLayoutNavbarCollapse } from "@tabler/icons-react";
+import { PanelBottomClose } from "lucide-react";
 import {
   AnimatePresence,
   LayoutGroup,
@@ -131,7 +131,7 @@ const FloatingDockMobile = ({
         onClick={() => setOpen(!open)}
         className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card shadow-sm"
       >
-        <IconLayoutNavbarCollapse className="h-5 w-5 text-neutral-500 dark:text-neutral-400" />
+        <PanelBottomClose className="h-5 w-5 text-neutral-500 dark:text-neutral-400" />
       </button>
     </div>
   );
@@ -344,18 +344,15 @@ function IconContainer({
       >
         <AnimatePresence>
           {hovered && !showLogo && (
-            <motion.div
-              initial={orientation === "vertical" ? { opacity: 0, x: 8, y: "-50%" } : { opacity: 0, y: 10, x: "-50%" }}
-              animate={orientation === "vertical" ? { opacity: 1, x: 0, y: "-50%" } : { opacity: 1, y: 0, x: "-50%" }}
-              exit={orientation === "vertical" ? { opacity: 0, x: 4, y: "-50%" } : { opacity: 0, y: 2, x: "-50%" }}
-              transition={{ type: "spring", stiffness: 280, damping: 24 }}
+            <div
               className={cn(
                 "w-fit rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs whitespace-pre text-neutral-700 dark:border-neutral-900 dark:bg-neutral-800 dark:text-white",
                 orientation === "vertical" ? "absolute left-full top-1/2 ml-2" : "absolute -top-8 left-1/2",
               )}
+              style={orientation === "vertical" ? { transform: "translateY(-50%)" } : { transform: "translateX(-50%)" }}
             >
               {title}
-            </motion.div>
+            </div>
           )}
         </AnimatePresence>
         <motion.div
