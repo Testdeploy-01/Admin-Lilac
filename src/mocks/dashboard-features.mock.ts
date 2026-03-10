@@ -336,7 +336,7 @@ export const userStatsBar = [
   { label: "FREE", value: freeUsers.toLocaleString() },
   { label: "PLUS", value: plusUsers.toLocaleString() },
   { label: "ผู้ใช้ใหม่วันนี้", value: Math.round(totalUsers * 0.008).toLocaleString() },
-  { label: "Churn 30 วัน", value: Math.round(totalUsers * 0.021).toLocaleString() },
+  { label: "ยกเลิกใน 30 วัน", value: Math.round(totalUsers * 0.021).toLocaleString() },
 ];
 
 export const retentionCohorts = [

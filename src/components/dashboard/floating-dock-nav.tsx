@@ -57,11 +57,11 @@ type FloatingDockNavProps = {
 
 export function DockBrandLogo() {
   return (
-    <Link to="/overview" className="flex flex-col items-center gap-1.5 group">
+    <Link to="/overview" className="flex flex-col items-center gap-2.5 group">
       <img
         src="/Logo.png"
         alt="Lilac logo"
-        className="h-10 w-10 object-contain drop-shadow-sm transition-transform duration-200 group-hover:scale-110"
+        className="h-14 w-14 object-contain drop-shadow-sm transition-transform duration-200 group-hover:scale-110"
       />
       <span className="text-[11px] font-semibold leading-tight text-muted-foreground tracking-wide">
         Lilac Admin

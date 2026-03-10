@@ -1,4 +1,5 @@
 import { startTransition, useEffect, useLayoutEffect, useState, type CSSProperties } from "react";
+import { motion } from "motion/react";
 import { Outlet, useLocation } from "react-router-dom";
 import { DashboardUIProvider, useDashboardUI } from "@/app/context/dashboard-ui-context";
 import { DashboardCommandCenter } from "@/components/dashboard/dashboard-command-center";
@@ -8,6 +9,10 @@ import { TopRightControls } from "../../components/dashboard/top-right-controls"
 import { adminProfileMock } from "../../mocks/admin-profile.mock";
 
 const THEME_KEY = "mockup-theme";
+const desktopSidebarMotionProps = {
+  layout: true,
+  layoutRoot: true,
+} as const;
 
 function getInitialTheme(): "light" | "dark" {
   if (typeof window === "undefined") {
@@ -66,6 +71,9 @@ function DashboardLayoutFrame({ theme, pathname, onToggleTheme }: DashboardLayou
     "--dock-gap-main": "1.5rem",
     "--dock-main-offset": "calc(var(--dock-left) + var(--dock-rail-w) + var(--dock-gap-main))",
     "--dock-control-size": "2.5rem",
+    "--dashboard-top-gap": "0.5rem",
+    "--dashboard-bottom-gap": "1rem",
+    "--dock-brand-top-gap": "2.25rem",
   };
 
   return (
@@ -75,9 +83,14 @@ function DashboardLayoutFrame({ theme, pathname, onToggleTheme }: DashboardLayou
       </div>
       <div className="flex min-h-screen flex-col">
         {/* Desktop Sidebar Wrapper */}
-        <aside className="pointer-events-none fixed inset-y-0 left-[var(--dock-left,1.5rem)] z-30 hidden w-[var(--dock-rail-w,4.5rem)] flex-col items-center md:flex">
-          <div className="pointer-events-auto flex flex-1 flex-col items-center justify-center">
+        <motion.aside
+          {...desktopSidebarMotionProps}
+          className="pointer-events-none fixed inset-y-0 left-[var(--dock-left,1.5rem)] z-30 hidden w-[var(--dock-rail-w,4.5rem)] flex-col items-center md:flex"
+        >
+          <div className="pointer-events-auto pt-[var(--dock-brand-top-gap)]">
             <DockBrandLogo />
+          </div>
+          <div className="pointer-events-auto flex flex-1 flex-col items-center justify-center">
             <div className="h-4" />
             <FloatingDockNav onHoverChange={handleDockHoverChange} />
           </div>
@@ -91,7 +104,7 @@ function DashboardLayoutFrame({ theme, pathname, onToggleTheme }: DashboardLayou
               profileMenuOffset={12}
             />
           </div>
-        </aside>
+        </motion.aside>
 
         {/* Mobile View TopRightControls (FloatingDockNav handles its own mobile view) */}
         <div className="md:hidden">
@@ -106,7 +119,7 @@ function DashboardLayoutFrame({ theme, pathname, onToggleTheme }: DashboardLayou
           />
         </div>
 
-        <main className="flex-1 bg-background px-4 pt-10 pb-24 sm:px-6 sm:pt-10 sm:pb-28 md:pl-[var(--dock-main-offset)] lg:pr-8 lg:pl-[var(--dock-main-offset)] lg:pt-10 lg:pb-32">
+        <main className="flex-1 bg-background px-4 pt-[var(--dashboard-top-gap)] pb-[var(--dashboard-bottom-gap)] sm:px-6 sm:pt-[var(--dashboard-top-gap)] sm:pb-[var(--dashboard-bottom-gap)] md:pl-[var(--dock-main-offset)] lg:pr-8 lg:pl-[var(--dock-main-offset)] lg:pt-[var(--dashboard-top-gap)] lg:pb-[var(--dashboard-bottom-gap)]">
           {/* Overlay to handle blur cleanly without lagging the first hover calculation */}
           <div
             className="pointer-events-none fixed inset-0 z-20 bg-background/5 transition-opacity duration-300"

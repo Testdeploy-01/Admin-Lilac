@@ -179,6 +179,7 @@ const FloatingDockDesktop = ({
 
   return (
     <motion.div
+      layout
       onMouseMove={(e) => pointer.set(orientation === "vertical" ? e.clientY : e.clientX)}
       onMouseEnter={() => {
         hoverProgressRaw.set(1);
@@ -379,6 +380,7 @@ function IconContainer({
         ) : null}
         {active && !showLogo ? (
           <motion.span
+            initial={false}
             layoutId={activeDotLayoutId}
             transition={{ type: "spring", stiffness: 300, damping: 34, mass: 0.9 }}
             className={cn(

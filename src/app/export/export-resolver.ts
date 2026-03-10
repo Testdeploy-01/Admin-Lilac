@@ -1,18 +1,22 @@
 import {
   aiUsageRows,
+  auditLog,
   broadcastLogs,
   managedUsers,
-  overviewKpis,
   PLAN_LABELS,
   transactionHistory,
-  auditLog,
 } from "@/mocks/dashboard-features.mock";
+import { overviewKpis } from "@/mocks/dashboard-insights.mock";
 import { findRouteMeta, type DashboardRouteKey } from "@/app/routes/dashboard-routes";
 
 function rowsByKey(key: DashboardRouteKey): Array<Record<string, string | number>> {
   switch (key) {
     case "overview":
-      return overviewKpis.map((kpi) => ({ ชื่อ: kpi.label, ค่า: kpi.value, เปลี่ยนแปลง: kpi.delta }));
+      return overviewKpis.map((kpi) => ({
+        ชื่อ: kpi.label,
+        ค่า: kpi.value,
+        เปลี่ยนแปลง: kpi.delta ?? "",
+      }));
     case "user-management":
       return managedUsers.slice(0, 200).map((user) => ({
         รหัสผู้ใช้: user.id,
@@ -39,14 +43,19 @@ function rowsByKey(key: DashboardRouteKey): Array<Record<string, string | number
         ต้นทุนTHB: row.costTHB,
       }));
     case "finance":
-      return transactionHistory.map((t) => ({
-        รหัส: t.id,
-        วันที่: t.date,
-        ผู้ใช้: t.user,
-        จำนวนเงิน: t.amount,
-        แพ็กเกจ: t.plan,
-        วิธีชำระ: t.paymentMethod,
-        สถานะ: t.status === "success" ? "สำเร็จ" : t.status === "failed" ? "ล้มเหลว" : "คืนเงิน",
+      return transactionHistory.map((transaction) => ({
+        รหัส: transaction.id,
+        วันที่: transaction.date,
+        ผู้ใช้: transaction.user,
+        จำนวนเงิน: transaction.amount,
+        แพ็กเกจ: transaction.plan,
+        วิธีชำระ: transaction.paymentMethod,
+        สถานะ:
+          transaction.status === "success"
+            ? "สำเร็จ"
+            : transaction.status === "failed"
+              ? "ล้มเหลว"
+              : "คืนเงิน",
       }));
     case "notifications":
       return broadcastLogs.map((row) => ({

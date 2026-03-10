@@ -1,15 +1,10 @@
-﻿import { Download, Megaphone, ShieldBan, UserPlus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Area,
   AreaChart,
-  Bar,
-  BarChart,
   CartesianGrid,
   Cell,
-  Line,
-  LineChart,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -20,20 +15,14 @@ import {
 import { DashboardPageShell } from "@/components/dashboard/ui/dashboard-page-shell";
 import { MetricCard } from "@/components/dashboard/ui/metric-card";
 import { AppTabs } from "@/components/dashboard/ui/app-tabs";
-import { BentoGrid, BentoGridItem } from "@/components/ui/bento-grid";
 import { Button } from "@/components/ui/button";
+import { activityFeed, overviewGrowthFreeVsPlus } from "../../mocks/dashboard-features.mock";
 import {
-  activityFeed,
-  conversionFunnel,
-  dauWeekly,
-  featureUsageDonut,
-  overviewGrowthFreeVsPlus,
+  overviewFeatureUsageDonut,
   overviewKpis,
-  retentionCurve,
-  topTextPrompts,
-  widgetQuickActions,
-} from "../../mocks/dashboard-features.mock";
-import { formatNumber } from "../../lib/formatters";
+  overviewSystemStatus,
+  type OverviewFeatureUsageItem,
+} from "../../mocks/dashboard-insights.mock";
 
 const eventTypeColors: Record<string, string> = {
   join: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300",
@@ -46,16 +35,44 @@ const eventTypeColors: Record<string, string> = {
 };
 
 const eventTypeLabels: Record<string, string> = {
-  join: "เธชเธกเธฑเธเธฃเนเธซเธกเน",
-  upgrade: "เธญเธฑเธเน€เธเธฃเธ”",
-  churn: "เธขเธเน€เธฅเธดเธ",
-  milestone: "เน€เธเนเธฒเธซเธกเธฒเธข",
-  warning: "เน€เธ•เธทเธญเธ",
-  alert: "เนเธเนเธเน€เธ•เธทเธญเธ",
-  voice_error: "เน€เธชเธตเธขเธเธเธดเธ”เธเธฅเธฒเธ”",
+  join: "สมัครใหม่",
+  upgrade: "อัปเกรด PLUS",
+  churn: "ยกเลิกแพ็กเกจรายเดือน",
+  milestone: "บรรลุเป้าหมายการออม",
+  warning: "เตือนระบบ",
+  alert: "แจ้งเตือนสำคัญ",
+  voice_error: "เสียงผิดพลาด",
 };
 
+const statusLabels = {
+  operational: "ปกติ",
+  degraded: "เฝ้าระวัง",
+  down: "ขัดข้อง",
+} as const;
+
+const statusClasses = {
+  operational: "border-emerald-200 bg-emerald-500/10 text-emerald-700 dark:border-emerald-900/50 dark:text-emerald-300",
+  degraded: "border-amber-200 bg-amber-500/10 text-amber-700 dark:border-amber-900/50 dark:text-amber-300",
+  down: "border-rose-200 bg-rose-500/10 text-rose-700 dark:border-rose-900/50 dark:text-rose-300",
+} as const;
+
 const donutColors = ["hsl(var(--primary))", "#14b8a6", "#f59e0b", "#0284c7", "#8b5cf6", "#64748b"];
+
+function FeatureUsageTooltip({ active, payload }: { active?: boolean; payload?: Array<{ payload: OverviewFeatureUsageItem }> }) {
+  if (!active || !payload?.length) return null;
+
+  const item = payload[0]?.payload as OverviewFeatureUsageItem | undefined;
+  if (!item) return null;
+
+  return (
+    <div className="rounded-lg border border-border bg-background px-3 py-2 shadow-sm">
+      <p className="text-sm font-semibold text-foreground">
+        {item.feature} {item.value}%
+      </p>
+      {item.note ? <p className="mt-1 max-w-56 text-xs text-muted-foreground">{item.note}</p> : null}
+    </div>
+  );
+}
 
 export function OverviewPage() {
   const [growthRange, setGrowthRange] = useState<"3m" | "6m" | "1y">("6m");
@@ -66,11 +83,8 @@ export function OverviewPage() {
     return overviewGrowthFreeVsPlus;
   }, [growthRange]);
 
-  const maxPromptCount = Math.max(...topTextPrompts.map((p) => p.count), ...widgetQuickActions.map((p) => p.count));
-
   return (
-    <DashboardPageShell title="เนเธ”เธเธเธญเธฃเนเธ”" description="เธ”เธนเธ เธฒเธเธฃเธงเธกเธชเธธเธเธ เธฒเธเธฃเธฐเธเธเธ—เธฑเนเธเธซเธกเธ”เนเธเธเธฃเธงเธ”เน€เธฃเนเธง">
-
+    <DashboardPageShell title="แดชบอร์ด" description="ดูภาพรวมสุขภาพระบบและตัวเลขสำคัญของวันนี้แบบรวดเร็ว">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {overviewKpis.map((item) => (
           <MetricCard
@@ -78,7 +92,8 @@ export function OverviewPage() {
             label={item.label}
             value={item.value}
             delta={item.delta}
-            trend={item.trend === "up" ? "up" : item.trend === "down" ? "down" : "neutral"}
+            trend={item.trend}
+            note={item.note}
           />
         ))}
       </div>
@@ -87,16 +102,16 @@ export function OverviewPage() {
         <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h3 className="text-base font-semibold">เธเธฃเธฒเธเธเธฒเธฃเน€เธ•เธดเธเนเธ• (FREE vs PLUS)</h3>
-              <p className="text-sm text-muted-foreground">เนเธเธงเนเธเนเธกเธชเธกเธฒเธเธดเธเธชเธฐเธชเธกเธฃเธฒเธขเน€เธ”เธทเธญเธ</p>
+              <h3 className="text-base font-semibold">กราฟการเติบโต (FREE vs PLUS)</h3>
+              <p className="text-sm text-muted-foreground">แนวโน้มสมาชิกสะสมรายเดือน</p>
             </div>
             <AppTabs
               value={growthRange}
               onValueChange={(value) => setGrowthRange(value as "3m" | "6m" | "1y")}
               items={[
-                { value: "3m", label: "3 เน€เธ”เธทเธญเธ" },
-                { value: "6m", label: "6 เน€เธ”เธทเธญเธ" },
-                { value: "1y", label: "1 เธเธต" },
+                { value: "3m", label: "3 เดือน" },
+                { value: "6m", label: "6 เดือน" },
+                { value: "1y", label: "1 ปี" },
               ]}
             />
           </div>
@@ -132,13 +147,16 @@ export function OverviewPage() {
         </article>
 
         <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <h3 className="text-base font-semibold">เธชเธฑเธ”เธชเนเธงเธเธเธฒเธฃเนเธเนเธเธตเน€เธเธญเธฃเน</h3>
+          <div>
+            <h3 className="text-base font-semibold">สัดส่วนการใช้งานฟีเจอร์</h3>
+            <p className="text-sm text-muted-foreground">หมวดหลักที่ผู้ใช้เลือกใช้งานบ่อยที่สุด</p>
+          </div>
           <div className="mt-4 h-52 w-full">
             <ResponsiveContainer>
               <PieChart>
-                <Tooltip />
+                <Tooltip content={<FeatureUsageTooltip />} />
                 <Pie
-                  data={featureUsageDonut}
+                  data={overviewFeatureUsageDonut}
                   dataKey="value"
                   nameKey="feature"
                   innerRadius={50}
@@ -147,7 +165,7 @@ export function OverviewPage() {
                   stroke="hsl(var(--background))"
                   strokeWidth={2}
                 >
-                  {featureUsageDonut.map((item, index) => (
+                  {overviewFeatureUsageDonut.map((item, index) => (
                     <Cell key={item.feature} fill={donutColors[index % donutColors.length]} />
                   ))}
                 </Pie>
@@ -155,9 +173,12 @@ export function OverviewPage() {
             </ResponsiveContainer>
           </div>
           <div className="mt-2 space-y-1.5">
-            {featureUsageDonut.map((item) => (
+            {overviewFeatureUsageDonut.map((item) => (
               <div key={item.feature} className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">{item.feature}</span>
+                <div>
+                  <span className="text-muted-foreground">{item.feature}</span>
+                  {item.note ? <p className="text-[11px] text-muted-foreground">{item.note}</p> : null}
+                </div>
                 <span className="font-semibold">{item.value}%</span>
               </div>
             ))}
@@ -167,92 +188,41 @@ export function OverviewPage() {
 
       <div className="grid gap-4 xl:grid-cols-2">
         <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <div>
-            <h3 className="text-base font-semibold">เธเธนเนเนเธเนเธเธฒเธเธฃเธฒเธขเธงเธฑเธ (เธฃเธฒเธขเธชเธฑเธเธ”เธฒเธซเน)</h3>
-            <p className="text-sm text-muted-foreground">เน€เธ—เธตเธขเธเธชเธฑเธเธ”เธฒเธซเนเธเธตเน vs เธชเธฑเธเธ”เธฒเธซเนเธ—เธตเนเนเธฅเนเธง</p>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h3 className="text-base font-semibold">System Status</h3>
+              <p className="text-sm text-muted-foreground">สถานะบริการสำคัญที่ admin ควรเห็นทันที</p>
+            </div>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/ai-monitor">ดู AI Monitor</Link>
+            </Button>
           </div>
-          <div className="mt-4 h-64 w-full">
-            <ResponsiveContainer>
-              <BarChart data={dauWeekly} margin={{ left: 8, right: 8, top: 6 }}>
-                <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeOpacity={0.5} />
-                <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} />
-                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                <Tooltip />
-                <Bar dataKey="lastWeek" fill="#94a3b8" radius={[4, 4, 0, 0]} name="เธชเธฑเธเธ”เธฒเธซเนเธ—เธตเนเนเธฅเนเธง" />
-                <Bar dataKey="thisWeek" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="เธชเธฑเธเธ”เธฒเธซเนเธเธตเน" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </article>
-
-        <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <div>
-            <h3 className="text-base font-semibold">เน€เธชเนเธเธเธฃเธฒเธเธเธฒเธฃเธฃเธฑเธเธฉเธฒเธเธนเนเนเธเน</h3>
-            <p className="text-sm text-muted-foreground">% เธเธนเนเนเธเนเธ—เธตเนเธขเธฑเธเนเธเนเธเธฒเธเธญเธขเธนเน เธชเธฑเธเธ”เธฒเธซเน 1โ€“8 เน€เธ—เธตเธขเธเธเธฑเธเธเนเธฒเน€เธเธฅเธตเนเธข</p>
-          </div>
-          <div className="mt-4 h-64 w-full">
-            <ResponsiveContainer>
-              <LineChart data={retentionCurve} margin={{ left: 8, right: 8, top: 6 }}>
-                <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeOpacity={0.5} />
-                <XAxis dataKey="week" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} />
-                <YAxis
-                  stroke="hsl(var(--muted-foreground))"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                  domain={[0, 100]}
-                />
-                <Tooltip />
-                <Line type="natural" dataKey="retention" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ r: 4 }} name="Lilac" />
-                <Line
-                  type="natural"
-                  dataKey="benchmark"
-                  stroke="#94a3b8"
-                  strokeWidth={2}
-                  strokeDasharray="6 4"
-                  dot={{ r: 3 }}
-                  name="Benchmark"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </article>
-      </div>
-
-      <div className="grid gap-4 xl:grid-cols-[1.3fr_1fr]">
-        <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <div>
-            <h3 className="text-base font-semibold">เธเธฑเนเธเธ•เธญเธเธเธฒเธฃเธญเธฑเธเน€เธเธฃเธ” FREE โ’ PLUS</h3>
-            <p className="text-sm text-muted-foreground">เธ”เธนเธเธณเธเธงเธเธ—เธตเนเธซเธฅเธธเธ”เนเธเนเธ•เนเธฅเธฐเธเธฑเนเธเธ•เธญเธ</p>
-          </div>
-          <div className="mt-4 h-64 w-full">
-            <ResponsiveContainer>
-              <BarChart data={conversionFunnel} margin={{ left: 8, right: 8, top: 6 }}>
-                <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeOpacity={0.5} />
-                <XAxis dataKey="step" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} />
-                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                <Tooltip />
-                <Bar dataKey="users" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} name="Users" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            {conversionFunnel.slice(1).map((step) => (
-              <p key={step.step} className="text-xs text-muted-foreground">
-                {step.step}:{" "}
-                <span className={`font-semibold ${step.dropOff > 25 ? "text-rose-500" : "text-foreground"}`}>
-                  {step.dropOff}% เธซเธฅเธธเธ”
-                </span>
-              </p>
+          <div className="mt-4 space-y-3">
+            {overviewSystemStatus.map((item) => (
+              <div key={item.key} className="rounded-lg border border-border bg-background p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-semibold text-foreground">{item.label}</p>
+                    <p className="text-sm text-muted-foreground">{item.detail}</p>
+                  </div>
+                  <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${statusClasses[item.status]}`}>
+                    {statusLabels[item.status]}
+                  </span>
+                </div>
+                {item.meta ? <p className="mt-2 text-xs text-muted-foreground">{item.meta}</p> : null}
+              </div>
             ))}
           </div>
         </article>
 
         <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-semibold">เธเธดเธเธเธฃเธฃเธกเธฅเนเธฒเธชเธธเธ”</h3>
+            <div>
+              <h3 className="text-base font-semibold">กิจกรรมล่าสุด</h3>
+              <p className="text-sm text-muted-foreground">สรุปเหตุการณ์ล่าสุดที่ควรติดตามจากผู้ใช้และระบบ</p>
+            </div>
             <Button asChild variant="link" size="sm">
-              <Link to="/user-management">เธ”เธนเธ—เธฑเนเธเธซเธกเธ”</Link>
+              <Link to="/user-management">ดูทั้งหมด</Link>
             </Button>
           </div>
           <div className="mt-4 max-h-[340px] space-y-2 overflow-y-auto pr-1">
@@ -273,93 +243,6 @@ export function OverviewPage() {
           </div>
         </article>
       </div>
-
-      <div className="grid gap-4 xl:grid-cols-2">
-        <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <div>
-            <h3 className="text-base font-semibold">เธเธณเธ–เธฒเธกเธเนเธญเธเธงเธฒเธกเธขเธญเธ”เธเธดเธขเธก</h3>
-            <p className="text-sm text-muted-foreground">เธเธณเธเธญเธ—เธตเนเธ–เธนเธเธเธดเธกเธเนเธเนเธญเธขเธ—เธตเนเธชเธธเธ”</p>
-          </div>
-          <div className="mt-4 space-y-3">
-            {topTextPrompts.map((item, idx) => (
-              <div key={item.prompt}>
-                <div className="mb-1.5 flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    #{idx + 1} {item.prompt}
-                  </span>
-                  <span className="font-semibold">{formatNumber(item.count)}</span>
-                </div>
-                <div className="h-2 rounded-full bg-muted">
-                  <div className="h-2 rounded-full bg-primary" style={{ width: `${(item.count / maxPromptCount) * 100}%` }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </article>
-
-        <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <div>
-            <h3 className="text-base font-semibold">เธเธฒเธฃเธ”เธณเน€เธเธดเธเธเธฒเธฃเธ”เนเธงเธเธ—เธตเนเนเธเนเธเนเธญเธข</h3>
-            <p className="text-sm text-muted-foreground">เธเธฒเธฃเธ”เธณเน€เธเธดเธเธเธฒเธฃเธ”เนเธงเธเธเนเธฒเธเธงเธดเธ”เน€เธเนเธ•</p>
-          </div>
-          <div className="mt-4 space-y-3">
-            {widgetQuickActions.map((item, idx) => (
-              <div key={item.prompt}>
-                <div className="mb-1.5 flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    #{idx + 1} {item.prompt}
-                  </span>
-                  <span className="font-semibold">{formatNumber(item.count)}</span>
-                </div>
-                <div className="h-2 rounded-full bg-muted">
-                  <div className="h-2 rounded-full bg-purple-500" style={{ width: `${(item.count / maxPromptCount) * 100}%` }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </article>
-      </div>
-
-      <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-        <h3 className="text-base font-semibold">เธ—เธฒเธเธฅเธฑเธ”</h3>
-        <BentoGrid className="mt-4 max-w-none md:auto-rows-[11rem] md:grid-cols-4">
-          <Link to="/notifications">
-            <BentoGridItem
-              icon={<Megaphone className="h-5 w-5 text-primary" />}
-              title="เธชเนเธเธเนเธญเธเธงเธฒเธกเธ–เธถเธเธ—เธธเธเธเธ"
-              description="Broadcast notifications"
-            />
-          </Link>
-          <Link to="/user-management?filter=new7">
-            <BentoGridItem
-              icon={<UserPlus className="h-5 w-5 text-primary" />}
-              title="เธ”เธนเธเธนเนเนเธเนเนเธซเธกเนเธงเธฑเธเธเธตเน"
-              description="Open users with new-user filter"
-            />
-          </Link>
-          <BentoGridItem
-            icon={<Download className="h-5 w-5 text-primary" />}
-            title={
-              <Button variant="ghost" className="h-auto p-0 text-left font-bold" onClick={() => alert("Export functionality (mock)")}>
-                เธ”เธฒเธงเธเนเนเธซเธฅเธ”เธฃเธฒเธขเธเธฒเธ
-              </Button>
-            }
-            description="Export report as CSV/PDF"
-          />
-          <BentoGridItem
-            icon={<ShieldBan className="h-5 w-5 text-primary" />}
-            title={
-              <Button variant="ghost" className="h-auto p-0 text-left font-bold" onClick={() => alert("Suspend dialog (mock)")}>
-                เธฃเธฐเธเธฑเธเธเธฑเธเธเธตเธเธนเนเนเธเน
-              </Button>
-            }
-            description="Open suspend flow"
-          />
-        </BentoGrid>
-      </article>
     </DashboardPageShell>
   );
 }
-
-
-

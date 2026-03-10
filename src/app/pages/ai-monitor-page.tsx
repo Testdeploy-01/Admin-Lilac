@@ -20,12 +20,14 @@ import {
   widgetInsightsMetrics,
   type FlaggedPrompt,
 } from "../../mocks/dashboard-features.mock";
+import { manualInputUsage } from "../../mocks/dashboard-insights.mock";
 import { formatCurrencyTHB, formatNumber } from "../../lib/formatters";
 
 export function AiMonitorPage() {
   const [flagged, setFlagged] = useState<FlaggedPrompt[]>(flaggedPrompts);
 
   const maxPromptCount = Math.max(...topTextPrompts.map((p) => p.count), ...widgetQuickActions.map((p) => p.count));
+  const maxManualInputCount = Math.max(...manualInputUsage.map((item) => item.count));
 
   return (
     <DashboardPageShell title="ตรวจสอบ AI และ Widget" description="ดูคุณภาพและการใช้งาน AI + Widget Insights แบบเรียลไทม์">
@@ -131,7 +133,29 @@ export function AiMonitorPage() {
         </div>
       </article>
 
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid gap-4 xl:grid-cols-3">
+        <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
+          <h3 className="text-base font-semibold">การใช้งาน Manual Input</h3>
+          <div className="mt-4 space-y-3">
+            {manualInputUsage.map((item, idx) => (
+              <div key={item.intent}>
+                <div className="mb-1 flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    #{idx + 1} {item.intent}
+                  </span>
+                  <span className="font-semibold">
+                    {formatNumber(item.count)} ({item.percentage}%)
+                  </span>
+                </div>
+                <p className="mb-1.5 text-xs text-muted-foreground">{item.note}</p>
+                <div className="h-2 rounded-full bg-muted">
+                  <div className="h-2 rounded-full bg-primary" style={{ width: `${(item.count / maxManualInputCount) * 100}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </article>
+
         <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <h3 className="text-base font-semibold">การดำเนินการด่วนผ่านวิดเจ็ต</h3>
           <div className="mt-4 space-y-3">
@@ -150,7 +174,7 @@ export function AiMonitorPage() {
         </article>
 
         <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <h3 className="text-base font-semibold">คำถามข้อความยอดนิยม</h3>
+          <h3 className="text-base font-semibold">คำถามยอดนิยม</h3>
           <div className="mt-4 space-y-3">
             {topTextPrompts.map((item, idx) => (
               <div key={item.prompt}>
@@ -328,4 +352,3 @@ export function AiMonitorPage() {
     </DashboardPageShell>
   );
 }
-

@@ -1,4 +1,15 @@
 import { useMemo, useState } from "react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { DashboardPageShell } from "@/components/dashboard/ui/dashboard-page-shell";
 import { MetricCard } from "@/components/dashboard/ui/metric-card";
 import { AppTabs } from "@/components/dashboard/ui/app-tabs";
@@ -27,8 +38,10 @@ import {
 import {
   PLAN_LABELS,
   churnList,
+  dauWeekly,
   managedUsers,
   retentionCohorts,
+  retentionCurve,
   userStatsBar,
   type UserTableRowExpanded,
 } from "../../mocks/dashboard-features.mock";
@@ -40,16 +53,20 @@ type StatusFilter = "all" | "active" | "inactive" | "suspended";
 type PlanFilter = "all" | "FREE" | "PLUS_MONTHLY" | "PLUS_TERM" | "PLUS_YEARLY";
 type SortField = "name" | "aiCallsTotal" | "lastActive" | "signupDate";
 type SortDir = "asc" | "desc";
+type BulkAction = "" | "export" | "suspend" | "activate";
 
 const PAGE_SIZE = 15;
 
 export function UserManagementPage() {
   const [tab, setTab] = useState<TabKey>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [signupDateFilter, setSignupDateFilter] = useState("");
   const [planFilter, setPlanFilter] = useState<PlanFilter>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [churnReasonFilter, setChurnReasonFilter] = useState("all");
   const [sortField, setSortField] = useState<SortField>("lastActive");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [bulkAction, setBulkAction] = useState<BulkAction>("export");
   const [page, setPage] = useState(0);
   const [selectedUser, setSelectedUser] = useState<UserTableRowExpanded | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -71,6 +88,10 @@ export function UserManagementPage() {
       result = result.filter((u) => u.status === statusFilter);
     }
 
+    if (signupDateFilter) {
+      result = result.filter((u) => u.signupDate === signupDateFilter);
+    }
+
     result = [...result].sort((a, b) => {
       let cmp = 0;
       if (sortField === "name") cmp = a.name.localeCompare(b.name);
@@ -81,7 +102,13 @@ export function UserManagementPage() {
     });
 
     return result;
-  }, [users, searchQuery, planFilter, statusFilter, sortField, sortDir]);
+  }, [users, searchQuery, signupDateFilter, planFilter, statusFilter, sortField, sortDir]);
+
+  const churnReasonOptions = useMemo(() => Array.from(new Set(churnList.map((item) => item.reason))), []);
+  const filteredChurnList = useMemo(
+    () => churnList.filter((item) => churnReasonFilter === "all" || item.reason === churnReasonFilter),
+    [churnReasonFilter],
+  );
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageData = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
@@ -189,6 +216,16 @@ export function UserManagementPage() {
             />
 
             <div className="flex flex-wrap items-center gap-2">
+              <Input
+                type="date"
+                value={signupDateFilter}
+                onChange={(event) => {
+                  setSignupDateFilter(event.target.value);
+                  setPage(0);
+                }}
+                aria-label="กรองตามวันที่สมัคร"
+                className="w-[180px]"
+              />
               <Select
                 value={planFilter}
                 onValueChange={(value) => {
@@ -233,14 +270,18 @@ export function UserManagementPage() {
           {selectedIds.size > 0 ? (
             <div className="flex flex-wrap items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 p-3">
               <span className="text-sm font-semibold">เลือก {selectedIds.size} คน</span>
-              <Button size="sm" onClick={() => handleBulkAction("export")}>
-                ดาวน์โหลด CSV
-              </Button>
-              <Button size="sm" variant="destructive" onClick={() => handleBulkAction("suspend")}>
-                ระงับ
-              </Button>
-              <Button size="sm" variant="secondary" onClick={() => handleBulkAction("activate")}>
-                เปิดใช้
+              <Select value={bulkAction} onValueChange={(value) => setBulkAction(value as BulkAction)}>
+                <SelectTrigger className="w-[180px] bg-background">
+                  <SelectValue placeholder="เลือก Bulk Action" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="export">ดาวน์โหลด CSV</SelectItem>
+                  <SelectItem value="suspend">ระงับบัญชี</SelectItem>
+                  <SelectItem value="activate">เปิดใช้งาน</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button size="sm" onClick={() => handleBulkAction(bulkAction)} disabled={!bulkAction}>
+                ใช้กับที่เลือก
               </Button>
               <Button size="sm" variant="ghost" className="ml-auto" onClick={() => setSelectedIds(new Set())}>
                 ยกเลิก
@@ -279,7 +320,7 @@ export function UserManagementPage() {
                   </TableHead>
                   <TableHead>
                     <Button variant="ghost" size="sm" className="h-auto p-0" onClick={() => toggleSort("signupDate")}>
-                      สมัคร{sortIndicator("signupDate")}
+                      วันที่สมัคร{sortIndicator("signupDate")}
                     </Button>
                   </TableHead>
                   <TableHead>จัดการ</TableHead>
@@ -370,11 +411,11 @@ export function UserManagementPage() {
             <TableBody>
               <TableRow>
                 <TableCell className="font-medium">จำนวนผู้ใช้งาน</TableCell>
-                <TableCell>{formatNumber(users.filter(u => u.widgetInstalls > 0).length)}</TableCell>
-                <TableCell>{formatNumber(users.filter(u => u.widgetInstalls === 0).length)}</TableCell>
+                <TableCell>{formatNumber(users.filter((user) => user.widgetInstalls > 0).length)}</TableCell>
+                <TableCell>{formatNumber(users.filter((user) => user.widgetInstalls === 0).length)}</TableCell>
               </TableRow>
               <TableRow>
-                <TableCell className="font-medium">อัตราการกลับมาใช้งานสัปดาห์ที่ 4</TableCell>
+                <TableCell className="font-medium">กลับมาใช้งานหลังสมัคร 4 สัปดาห์</TableCell>
                 <TableCell>68.5%</TableCell>
                 <TableCell>42.1%</TableCell>
               </TableRow>
@@ -387,7 +428,56 @@ export function UserManagementPage() {
           </Table>
         </DataTableShell>
       ) : tab === "retention" ? (
-        <DataTableShell caption="ตาราง Retention Cohort แบบ Heat Map" minWidthClass="min-w-[700px]">
+        <>
+          <div className="grid gap-4 xl:grid-cols-2">
+            <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
+              <div>
+                <h3 className="text-base font-semibold">ผู้ใช้งานวันละกี่คน</h3>
+                <p className="text-sm text-muted-foreground">เทียบสัปดาห์นี้กับสัปดาห์ก่อนหน้า</p>
+              </div>
+              <div className="mt-4 h-64 w-full">
+                <ResponsiveContainer>
+                  <BarChart data={dauWeekly} margin={{ left: 8, right: 8, top: 6 }}>
+                    <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeOpacity={0.5} />
+                    <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} />
+                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                    <Tooltip />
+                    <Bar dataKey="lastWeek" fill="#94a3b8" radius={[4, 4, 0, 0]} name="สัปดาห์ก่อน" />
+                    <Bar dataKey="thisWeek" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="สัปดาห์นี้" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </article>
+
+            <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
+              <div>
+                <h3 className="text-base font-semibold">อัตราการกลับมาใช้งาน</h3>
+                <p className="text-sm text-muted-foreground">Retention W1-W8 เทียบค่าเฉลี่ยที่ตั้งเป้า</p>
+              </div>
+              <div className="mt-4 h-64 w-full">
+                <ResponsiveContainer>
+                  <LineChart data={retentionCurve} margin={{ left: 8, right: 8, top: 6 }}>
+                    <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeOpacity={0.5} />
+                    <XAxis dataKey="week" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} />
+                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} domain={[0, 100]} />
+                    <Tooltip />
+                    <Line type="natural" dataKey="retention" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ r: 4 }} name="Lilac" />
+                    <Line
+                      type="natural"
+                      dataKey="benchmark"
+                      stroke="#94a3b8"
+                      strokeWidth={2}
+                      strokeDasharray="6 4"
+                      dot={{ r: 3 }}
+                      name="ค่าเฉลี่ยที่ตั้งเป้า"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </article>
+          </div>
+
+          <DataTableShell caption="ตาราง Retention Cohort แบบ Heat Map" minWidthClass="min-w-[700px]">
           <div className="mb-3">
             <h3 className="text-base font-semibold">ตารางการรักษาผู้ใช้</h3>
             <p className="text-sm text-muted-foreground">แสดง % ผู้ใช้ที่ยังใช้งานอยู่ แยกตามรุ่นที่สมัคร</p>
@@ -395,7 +485,7 @@ export function UserManagementPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>รุ่นสมัคร</TableHead>
+                <TableHead>เดือนที่สมัคร</TableHead>
                 <TableHead>จำนวนคน</TableHead>
                 <TableHead className="text-center">W1</TableHead>
                 <TableHead className="text-center">W2</TableHead>
@@ -429,11 +519,27 @@ export function UserManagementPage() {
             </TableBody>
           </Table>
         </DataTableShell>
+        </>
       ) : (
         <DataTableShell caption="รายชื่อผู้ใช้ที่ยกเลิก PLUS สำหรับ win-back" minWidthClass="min-w-[800px]">
-          <div className="mb-3">
-            <h3 className="text-base font-semibold">รายชื่อผู้ยกเลิก (ดึงกลับ)</h3>
-            <p className="text-sm text-muted-foreground">ผู้ใช้ที่ยกเลิก PLUS พร้อมข้อมูลสำหรับดึงกลับ</p>
+          <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h3 className="text-base font-semibold">รายชื่อผู้ยกเลิก (ดึงกลับ)</h3>
+              <p className="text-sm text-muted-foreground">ผู้ใช้ที่ยกเลิก PLUS พร้อมข้อมูลสำหรับดึงกลับ</p>
+            </div>
+            <Select value={churnReasonFilter} onValueChange={setChurnReasonFilter}>
+              <SelectTrigger className="w-full sm:w-[220px]">
+                <SelectValue placeholder="กรองตามเหตุผล" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">ทุกเหตุผล</SelectItem>
+                {churnReasonOptions.map((reason) => (
+                  <SelectItem key={reason} value={reason}>
+                    {reason}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <Table>
             <TableHeader>
@@ -442,13 +548,13 @@ export function UserManagementPage() {
                 <TableHead>ชื่อ</TableHead>
                 <TableHead>เหตุผล</TableHead>
                 <TableHead>ระยะเวลาเป็น PLUS</TableHead>
-                <TableHead>AI Calls ก่อนยกเลิก</TableHead>
+                <TableHead>การใช้ AI ก่อนยกเลิก</TableHead>
                 <TableHead>ยกเลิกเมื่อ</TableHead>
-                <TableHead>Action</TableHead>
+                <TableHead>จัดการ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {churnList.map((item) => (
+              {filteredChurnList.map((item) => (
                 <TableRow key={item.userId}>
                   <TableCell className="font-medium">{item.userId}</TableCell>
                   <TableCell>{item.name}</TableCell>
@@ -457,7 +563,9 @@ export function UserManagementPage() {
                   <TableCell>{formatNumber(item.aiCallsBefore)}</TableCell>
                   <TableCell className="text-muted-foreground">{item.churnedAt}</TableCell>
                   <TableCell>
-                    <Button size="sm">ส่งข้อเสนอดึงกลับ</Button>
+                    <Button size="sm" title="ส่งข้อเสนอ win-back ตามเหตุผลที่ผู้ใช้ยกเลิกแพ็กเกจ">
+                      ส่งข้อเสนอ
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -580,4 +688,3 @@ export function UserManagementPage() {
     </DashboardPageShell>
   );
 }
-

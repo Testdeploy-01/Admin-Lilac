@@ -65,8 +65,8 @@
 @layer components {
   .card-gray-gradient {
     background: linear-gradient(160deg,
-        hsl(0, 0%, 100%) 0%,
-        hsl(220, 14%, 96%) 100%);
+        hsl(262, 20%, 99%) 0%,
+        hsl(262, 18%, 94%) 100%);
   }
 
   .dark .card-gray-gradient {
@@ -103,8 +103,8 @@
 @layer components {
   .sidebar-gradient {
     background: linear-gradient(160deg,
-        hsl(0, 0%, 100%) 0%,
-        hsl(220, 14%, 96%) 100%);
+        hsl(262, 20%, 99%) 0%,
+        hsl(262, 18%, 94%) 100%);
   }
 
   .dark .sidebar-gradient {
@@ -114,8 +114,16 @@
   }
 }
 
-/* ─── Page Background Gradient (dark mode only) ─── */
+/* ─── Page Background Gradient ─── */
 @layer base {
+  #root {
+    background: linear-gradient(160deg,
+        hsl(262, 25%, 97%) 0%,
+        hsl(262, 20%, 95%) 60%,
+        hsl(262, 30%, 94%) 100%);
+    min-height: 100vh;
+  }
+
   .dark #root {
     background: linear-gradient(160deg,
         hsl(0, 0%, 5%) 0%,
@@ -125,8 +133,14 @@
   }
 }
 
-/* ─── Subtle Lilac glow on cards (dark mode) ─── */
+/* ─── Subtle Lilac glow on cards ─── */
 @layer components {
+  article[class*="border"],
+  .rounded-xl[class*="border"],
+  .rounded-lg[class*="border"] {
+    box-shadow: 0 1px 4px 0 hsla(261, 30%, 50%, 0.06),
+      0 0 1px 0 hsla(261, 20%, 60%, 0.08);
+  }
 
   .dark article[class*="border"],
   .dark .rounded-xl[class*="border"],

@@ -23,7 +23,7 @@ export const dashboardRouteMeta: DashboardRouteMeta[] = [
     path: "/overview",
     titleTH: "แดชบอร์ด",
     group: "หลัก",
-    searchKeywords: ["dashboard", "kpi", "overview", "สรุป", "ภาพรวม", "dau", "retention"],
+    searchKeywords: ["dashboard", "kpi", "overview", "สรุป", "ภาพรวม", "system status", "revenue today", "health"],
     exportKey: "overview",
   },
   {
@@ -31,7 +31,7 @@ export const dashboardRouteMeta: DashboardRouteMeta[] = [
     path: "/user-management",
     titleTH: "ผู้ใช้งาน",
     group: "การจัดการ",
-    searchKeywords: ["users", "plan", "suspend", "ผู้ใช้", "churn", "retention", "cohort"],
+    searchKeywords: ["users", "plan", "suspend", "ผู้ใช้", "churn", "retention", "cohort", "dau", "manual input"],
     exportKey: "user-management",
   },
   {
@@ -39,7 +39,7 @@ export const dashboardRouteMeta: DashboardRouteMeta[] = [
     path: "/ai-monitor",
     titleTH: "AI Monitor",
     group: "การจัดการ",
-    searchKeywords: ["ai", "token", "widget", "วิดเจ็ต", "error rate", "staleness", "prompt"],
+    searchKeywords: ["ai", "token", "widget", "วิดเจ็ต", "error rate", "staleness", "prompt", "top prompts", "questions"],
     exportKey: "ai-monitor",
   },
   {
@@ -47,7 +47,7 @@ export const dashboardRouteMeta: DashboardRouteMeta[] = [
     path: "/finance",
     titleTH: "การเงิน",
     group: "การจัดการ",
-    searchKeywords: ["finance", "mrr", "arr", "revenue", "churn", "arpu", "ltv", "transaction"],
+    searchKeywords: ["finance", "mrr", "arr", "revenue", "churn", "arpu", "ltv", "transaction", "plus funnel", "upgrade path"],
     exportKey: "finance",
   },
   {

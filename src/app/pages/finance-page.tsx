@@ -22,7 +22,7 @@ import {
   projectedMrr,
   revenueByPlan,
   transactionHistory,
-  trialConversionTrend,
+  conversionFunnel,
 } from "../../mocks/dashboard-features.mock";
 import { formatCurrencyTHB } from "../../lib/formatters";
 import { exportCSV } from "../../lib/exporters";
@@ -180,20 +180,29 @@ export function FinancePage() {
 
             <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
               <div>
-                <h3 className="text-base font-semibold">การเปลี่ยนจากทดลองเป็นสมาชิก</h3>
-                <p className="text-sm text-muted-foreground">อัตราการเปลี่ยนรายสัปดาห์</p>
+                <h3 className="text-base font-semibold">เส้นทางสู่ PLUS</h3>
+                <p className="text-sm text-muted-foreground">ดูจำนวนผู้ใช้ที่หลุดในแต่ละขั้นตอนก่อนอัปเกรด</p>
               </div>
               <div className="mt-4 h-64 w-full">
                 <ResponsiveContainer>
-                  <BarChart data={trialConversionTrend} margin={{ left: 8, right: 8, top: 6 }}>
+                  <BarChart data={conversionFunnel} margin={{ left: 8, right: 8, top: 6 }}>
                     <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeOpacity={0.5} />
-                    <XAxis dataKey="week" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} />
+                    <XAxis dataKey="step" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} />
                     <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
                     <Tooltip />
-                    <Bar dataKey="trialStarted" fill="#94a3b8" radius={[8, 8, 0, 0]} name="เริ่มทดลอง" />
-                    <Bar dataKey="paid" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} name="เป็นสมาชิก" />
+                    <Bar dataKey="users" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} name="Users" />
                   </BarChart>
                 </ResponsiveContainer>
+              </div>
+              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                {conversionFunnel.slice(1).map((step) => (
+                  <p key={step.step} className="text-xs text-muted-foreground">
+                    {step.step}:{" "}
+                    <span className={`font-semibold ${step.dropOff > 25 ? "text-rose-500" : "text-foreground"}`}>
+                      {step.dropOff}% หลุด
+                    </span>
+                  </p>
+                ))}
               </div>
               <div className="mt-4 rounded-lg border border-border bg-background p-4">
                 <p className="mb-3 text-sm font-semibold text-muted-foreground">รายได้รายเดือน (คาดการณ์เดือนหน้า)</p>
@@ -319,4 +328,3 @@ export function FinancePage() {
     </DashboardPageShell>
   );
 }
-
