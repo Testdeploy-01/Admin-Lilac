@@ -21,7 +21,7 @@ export const dashboardRouteMeta: DashboardRouteMeta[] = [
   {
     key: "overview",
     path: "/overview",
-    titleTH: "แดชบอร์ด",
+    titleTH: "ภาพรวม",
     group: "หลัก",
     searchKeywords: ["dashboard", "kpi", "overview", "สรุป", "ภาพรวม", "system status", "revenue today", "health"],
     exportKey: "overview",

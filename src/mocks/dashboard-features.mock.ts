@@ -1,4 +1,11 @@
-export type TrendType = "up" | "down" | "neutral";
+﻿export type TrendType = "up" | "down" | "neutral";
+export type StatsCardItem = {
+  label: string;
+  value: string;
+  delta?: string;
+  trend?: TrendType;
+  note?: string;
+};
 
 export type AiPeriod = "7d" | "month" | "4months" | "year";
 
@@ -8,12 +15,18 @@ export type HealthStatus = "operational" | "degraded" | "down";
  * Subscription Plans – single source of truth
  * ────────────────────────────────────────────── */
 export type PlanKey = "FREE" | "PLUS_MONTHLY" | "PLUS_TERM" | "PLUS_YEARLY";
+export type UserFeatureName = "การเงิน" | "การเรียน" | "ไลฟ์สไตล์";
+export type UserFeatureUsage = {
+  feature: UserFeatureName;
+  calls: number;
+  costTHB: number;
+};
 
 export const PLAN_LABELS: Record<PlanKey, string> = {
   FREE: "FREE",
-  PLUS_MONTHLY: "Plus+ รายเดือน",
-  PLUS_TERM: "Plus+ รายเทอม",
-  PLUS_YEARLY: "Plus+ รายปี",
+  PLUS_MONTHLY: "PLUS+ รายเดือน",
+  PLUS_TERM: "PLUS+ รายเทอม",
+  PLUS_YEARLY: "PLUS+ รายปี",
 };
 
 export const PLAN_PRICES: Record<PlanKey, number> = {
@@ -62,6 +75,7 @@ export type UserTableRowExpanded = {
   email: string;
   avatar: string;
   plan: PlanKey;
+  signupChannel: "เบอร์โทร" | "Google" | "Apple" | "LINE";
   signupDate: string;
   lastActive: string;
   favoriteCategory: "AI Chat" | "การเรียน" | "การเงิน" | "ปฏิทิน" | "วิดเจ็ต" | "ไลฟ์สไตล์";
@@ -71,9 +85,12 @@ export type UserTableRowExpanded = {
   outputTextTokens: number;
   aiCostTHB: number;
   aiCallsTotal: number;
+  voiceCommands: number;
+  textCommands: number;
+  aiFeatureUsage: UserFeatureUsage[];
   heyLilacActivations: number;
   widgetInstalls: number;
-  status: "active" | "inactive" | "suspended";
+  status: "active" | "suspended";
   lastLogin: string;
   streak: number;
   churnedAt?: string;
@@ -97,24 +114,49 @@ const FIRST_NAMES = [
 ];
 const LAST_INITIALS = ["K.", "P.", "C.", "R.", "T.", "L.", "S.", "W.", "M.", "B.", "N.", "J.", "D.", "A.", "H."];
 const CATEGORIES: Array<UserTableRowExpanded["favoriteCategory"]> = ["AI Chat", "การเรียน", "การเงิน", "ปฏิทิน", "วิดเจ็ต", "ไลฟ์สไตล์"];
-const ALERTS = ["Normal", "Normal", "Normal", "Normal", "Needs follow-up", "High token burn", "Margin low", "Normal"];
-const STATUSES: Array<"active" | "inactive" | "suspended"> = ["active", "active", "active", "active", "active", "inactive", "suspended", "active"];
+const SIGNUP_CHANNELS: Array<UserTableRowExpanded["signupChannel"]> = ["เบอร์โทร", "Google", "Apple", "LINE"];
+const FEATURE_BUCKETS: UserFeatureName[] = ["การเงิน", "การเรียน", "ไลฟ์สไตล์"];
+const ALERTS = ["ปกติ", "ปกติ", "ปกติ", "ปกติ", "ต้องติดตาม", "ใช้โทเคนสูงผิดปกติ", "ต้นทุน AI สูง", "ปกติ"];
+const STATUSES: Array<"active" | "suspended"> = ["active", "active", "active", "active", "active", "active", "suspended", "active"];
 
 const TOTAL_USERS = 6456;
+const CURRENT_DATE = new Date("2026-03-11T12:00:00");
 const rand = seededRandom(42);
 
 function genDate(startYear: number, endYear: number) {
   const start = new Date(`${startYear}-01-01`).getTime();
-  const end = new Date(`${endYear}-12-31`).getTime();
+  const end = Math.min(new Date(`${endYear}-12-31`).getTime(), CURRENT_DATE.getTime());
   const d = new Date(start + rand() * (end - start));
   return d.toISOString().slice(0, 10);
 }
 
-function genLastLogin() {
-  const day = Math.floor(rand() * 3) + 1;
+function formatDate(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function genLastLogin(baseDate: Date) {
+  const loginDate = new Date(baseDate);
   const h = String(Math.floor(rand() * 24)).padStart(2, "0");
   const m = String(Math.floor(rand() * 60)).padStart(2, "0");
-  return `2026-03-0${day} ${h}:${m}`;
+  loginDate.setHours(Number(h), Number(m), 0, 0);
+  return `${formatDate(loginDate)} ${h}:${m}`;
+}
+
+function splitIntegerTotal(total: number, weights: number[]) {
+  const weightSum = weights.reduce((sum, weight) => sum + weight, 0);
+  const rawValues = weights.map((weight) => (weight / weightSum) * total);
+  const baseValues = rawValues.map((value) => Math.floor(value));
+  let remainder = total - baseValues.reduce((sum, value) => sum + value, 0);
+
+  const rankedFractions = rawValues
+    .map((value, index) => ({ index, fraction: value - Math.floor(value) }))
+    .sort((a, b) => b.fraction - a.fraction);
+
+  for (let i = 0; i < remainder; i += 1) {
+    baseValues[rankedFractions[i % rankedFractions.length].index] += 1;
+  }
+
+  return baseValues;
 }
 
 function pickPlan(): PlanKey {
@@ -129,24 +171,37 @@ export const managedUsers: UserTableRowExpanded[] = Array.from({ length: TOTAL_U
   const plan = pickPlan();
   const firstName = FIRST_NAMES[Math.floor(rand() * FIRST_NAMES.length)];
   const lastInit = LAST_INITIALS[Math.floor(rand() * LAST_INITIALS.length)];
-  const expectedTotalTokens = plan === "FREE"
-    ? Math.floor(rand() * 8000 + 2000)
-    : Math.floor(rand() * 40000 + 5000);
-
-  const inputVoiceTokens = Math.floor(expectedTotalTokens * 0.35);
-  const inputTextTokens = Math.floor(expectedTotalTokens * 0.25);
-  const outputTextTokens = expectedTotalTokens - inputVoiceTokens - inputTextTokens;
-
-  const costPerToken = 0.0045 + rand() * 0.002;
-  const aiCallsTotal = Math.floor(rand() * 500 + 50);
+  const signupDate = genDate(2025, 2026);
+  const signupDateTime = new Date(`${signupDate}T00:00:00`).getTime();
+  const daysSinceSignup = Math.max(1, Math.floor((CURRENT_DATE.getTime() - signupDateTime) / 86_400_000));
+  const daysAgo = Math.floor(rand() * Math.min(daysSinceSignup, 30));
+  const lastActiveDate = new Date(CURRENT_DATE);
+  lastActiveDate.setDate(lastActiveDate.getDate() - daysAgo);
+  const streak = Math.floor(rand() * Math.min(daysSinceSignup, 14)) + 1;
+  const aiCallsTotal = plan === "FREE"
+    ? Math.floor(rand() * 43 + 8)
+    : Math.floor(rand() * 260 + 60);
+  const voiceCommands = Math.max(1, Math.floor(aiCallsTotal * (plan === "FREE" ? 0.24 + rand() * 0.1 : 0.2 + rand() * 0.12)));
+  const textCommands = aiCallsTotal - voiceCommands;
+  const inputVoiceTokens = Math.floor(aiCallsTotal * (plan === "FREE" ? 7 + rand() * 6 : 10 + rand() * 8));
+  const inputTextTokens = Math.floor(aiCallsTotal * (plan === "FREE" ? 12 + rand() * 10 : 18 + rand() * 12));
+  const outputTextTokens = Math.floor(aiCallsTotal * (plan === "FREE" ? 16 + rand() * 10 : 24 + rand() * 14));
+  const expectedTotalTokens = inputVoiceTokens + inputTextTokens + outputTextTokens;
+  const costPerToken = plan === "FREE" ? 0.001 : 0.0014;
+  const totalCostSatang = Math.round(expectedTotalTokens * costPerToken * 100);
+  const featureCallWeights = FEATURE_BUCKETS.map(() => 0.8 + rand() * 1.4);
+  const featureCalls = splitIntegerTotal(aiCallsTotal, featureCallWeights);
+  const featureCostWeights = featureCalls.map((calls) => calls * (0.85 + rand() * 0.3));
+  const featureCostSatang = splitIntegerTotal(totalCostSatang, featureCostWeights);
+  const aiFeatureUsage = FEATURE_BUCKETS.map((feature, index) => ({
+    feature,
+    calls: featureCalls[index],
+    costTHB: featureCostSatang[index] / 100,
+  }));
   const heyLilacActivations = Math.floor(aiCallsTotal * (0.2 + rand() * 0.5));
   const widgetInstalls = Math.floor(rand() * 200);
-  const streak = Math.floor(rand() * 30);
   const status = STATUSES[Math.floor(rand() * STATUSES.length)];
-  const signupDate = genDate(2025, 2026);
-  const daysAgo = Math.floor(rand() * 30);
-  const lastActiveDate = new Date();
-  lastActiveDate.setDate(lastActiveDate.getDate() - daysAgo);
+  const signupChannel = SIGNUP_CHANNELS[Math.floor(rand() * SIGNUP_CHANNELS.length)];
 
   return {
     id: `U-${String(i + 1).padStart(4, "0")}`,
@@ -154,24 +209,28 @@ export const managedUsers: UserTableRowExpanded[] = Array.from({ length: TOTAL_U
     email: `${firstName.toLowerCase()}.${lastInit.toLowerCase().replace(".", "")}@mail.com`,
     avatar: `https://ui.shadcn.com/avatars/0${(i % 6) + 1}.png`,
     plan,
+    signupChannel,
     signupDate,
-    lastActive: lastActiveDate.toISOString().slice(0, 10),
+    lastActive: formatDate(lastActiveDate),
     favoriteCategory: CATEGORIES[Math.floor(rand() * CATEGORIES.length)],
     systemAlert: ALERTS[Math.floor(rand() * ALERTS.length)],
     inputVoiceTokens,
     inputTextTokens,
     outputTextTokens,
-    aiCostTHB: Math.round(expectedTotalTokens * costPerToken),
+    aiCostTHB: totalCostSatang / 100,
     aiCallsTotal,
+    voiceCommands,
+    textCommands,
+    aiFeatureUsage,
     heyLilacActivations,
     widgetInstalls,
     status,
-    lastLogin: genLastLogin(),
+    lastLogin: genLastLogin(lastActiveDate),
     streak,
   };
 });
 
-export const pendingUsersCount = managedUsers.filter((u) => u.status === "inactive").length;
+export const pendingUsersCount = 0;
 
 /* ──────────────────────────────────────────────
  * Computed KPIs (synced from users dataset)
@@ -252,34 +311,40 @@ export const overviewKpis = [
 // 1.3 User Growth Chart (FREE vs PLUS)
 export const overviewGrowthFreeVsPlus = (() => {
   const data: Array<{ month: string; free: number; plus: number }> = [];
-  const months = ["ต.ค.", "พ.ย.", "ธ.ค.", "ม.ค.", "ก.พ.", "มี.ค."];
-  let freeBase = freeUsers - 300;
-  let plusBase = plusUsers - 200;
+  const growthRand = seededRandom(4201);
+  const months = ["เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค.", "ม.ค.", "ก.พ.", "มี.ค."];
+  let freeBase = freeUsers - 700;
+  let plusBase = plusUsers - 420;
   for (const month of months) {
-    freeBase += Math.floor(rand() * 60 + 30);
-    plusBase += Math.floor(rand() * 50 + 20);
+    freeBase += Math.floor(growthRand() * 70 + 35);
+    plusBase += Math.floor(growthRand() * 55 + 22);
     data.push({ month, free: freeBase, plus: plusBase });
   }
   return data;
 })();
 
-// 1.4 DAU Weekly
-export const dauWeekly = ["จ", "อ", "พ", "พฤ", "ศ", "ส", "อา"].map((day) => {
-  const lastWeek = Math.round(dau * (0.88 + rand() * 0.2));
-  const thisWeek = Math.round(lastWeek * (0.94 + rand() * 0.2));
-  return { day, lastWeek, thisWeek };
-});
+// 1.4 Weekly Return by Plan
+export const weeklyRetentionByPlan = [
+  { week: "สัปดาห์ที่ 1", free: 1764, plus: 3127 },
+  { week: "สัปดาห์ที่ 2", free: 1421, plus: 2804 },
+  { week: "สัปดาห์ที่ 3", free: 1103, plus: 2604 },
+  { week: "สัปดาห์ที่ 4", free: 858, plus: 2484 },
+  { week: "สัปดาห์ที่ 5", free: 686, plus: 2323 },
+  { week: "สัปดาห์ที่ 6", free: 539, plus: 2283 },
+  { week: "สัปดาห์ที่ 7", free: 441, plus: 2203 },
+  { week: "สัปดาห์ที่ 8", free: 490, plus: 2203 },
+];
 
-// 1.5 Retention Curve
-export const retentionCurve = [
-  { week: "W1", retention: 72, benchmark: 68 },
-  { week: "W2", retention: 61, benchmark: 57 },
-  { week: "W3", retention: 54, benchmark: 51 },
-  { week: "W4", retention: 49, benchmark: 46 },
-  { week: "W5", retention: 45, benchmark: 42 },
-  { week: "W6", retention: 42, benchmark: 38 },
-  { week: "W7", retention: 39, benchmark: 35 },
-  { week: "W8", retention: 36, benchmark: 33 },
+// 1.5 Weekly Drop-off After Signup
+export const weeklyDropoffUsers = [
+  { week: "สัปดาห์ที่ 1", lastWeek: 280, thisWeek: 320 },
+  { week: "สัปดาห์ที่ 2", lastWeek: 180, thisWeek: 210 },
+  { week: "สัปดาห์ที่ 3", lastWeek: 140, thisWeek: 150 },
+  { week: "สัปดาห์ที่ 4", lastWeek: 100, thisWeek: 130 },
+  { week: "สัปดาห์ที่ 5", lastWeek: 90, thisWeek: 100 },
+  { week: "สัปดาห์ที่ 6", lastWeek: 70, thisWeek: 80 },
+  { week: "สัปดาห์ที่ 7", lastWeek: 55, thisWeek: 65 },
+  { week: "สัปดาห์ที่ 8", lastWeek: 30, thisWeek: 40 },
 ];
 
 // 1.6 Feature Usage Donut
@@ -302,12 +367,12 @@ export const conversionFunnel = [
 
 // 1.8 Activity Feed
 export const activityFeed = [
-  { id: "EV-001", type: "join", userName: "Pimnara T.", text: "สมัครใหม่และเริ่มใช้งานทันที", time: "2 นาทีที่แล้ว" },
-  { id: "EV-002", type: "upgrade", userName: "Napat K.", text: "อัปเกรดเป็น Plus+ รายปี", time: "7 นาทีที่แล้ว" },
-  { id: "EV-003", type: "warning", userName: "System", text: "Wake word accuracy ลดลงในบางภูมิภาค", time: "15 นาทีที่แล้ว" },
-  { id: "EV-004", type: "milestone", userName: "Film R.", text: "ใช้งาน AI ครบ 1,000 ครั้ง", time: "27 นาทีที่แล้ว" },
+  { id: "EV-001", type: "join", userName: "Pimnara T.", text: "สมัครผ่านเบอร์โทรศัพท์", time: "2 นาทีที่แล้ว" },
+  { id: "EV-002", type: "upgrade", userName: "Napat K.", text: "อัปเกรดเป็น PLUS รายปี", time: "7 นาทีที่แล้ว" },
+  { id: "EV-006", type: "churn", userName: "Mild S.", text: "ยกเลิกแพ็กเกจรายปี", time: "1 ชั่วโมงที่แล้ว" },
+  { id: "EV-003", type: "join", userName: "Korn P.", text: "สมัครใหม่จากแคมเปญ LINE OA", time: "15 นาทีที่แล้ว" },
+  { id: "EV-004", type: "upgrade", userName: "Film R.", text: "อัปเกรดเป็น PLUS รายเดือน", time: "27 นาทีที่แล้ว" },
   { id: "EV-005", type: "churn", userName: "Palm W.", text: "ยกเลิกแพ็กเกจรายเดือน", time: "43 นาทีที่แล้ว" },
-  { id: "EV-006", type: "voice_error", userName: "System", text: "พบเสียงผิดพลาดสูงกว่าปกติ 1.8%", time: "1 ชั่วโมงที่แล้ว" },
 ];
 
 // 1.9 Top AI Prompts
@@ -330,16 +395,59 @@ export const widgetQuickActions = [
 /* ──────────────────────────────────────────────
  * 2. Users – Page 2
  * ────────────────────────────────────────────── */
-export const userStatsBar = [
+export const userStatsBar: StatsCardItem[] = [
   { label: "ผู้ใช้ทั้งหมด", value: totalUsers.toLocaleString() },
-  { label: "Active 7 วัน", value: Math.round(totalUsers * 0.68).toLocaleString() },
-  { label: "FREE", value: freeUsers.toLocaleString() },
-  { label: "PLUS", value: plusUsers.toLocaleString() },
+  { label: "ใช้งานใน 7 วัน", value: Math.round(totalUsers * 0.68).toLocaleString() },
+  { label: "สมาชิก FREE", value: freeUsers.toLocaleString() },
+  { label: "สมาชิก PLUS", value: plusUsers.toLocaleString() },
   { label: "ผู้ใช้ใหม่วันนี้", value: Math.round(totalUsers * 0.008).toLocaleString() },
   { label: "ยกเลิกใน 30 วัน", value: Math.round(totalUsers * 0.021).toLocaleString() },
 ];
 
+export type ComparePlanBenchmarkRow = {
+  metric: string;
+  free: string;
+  plus: string;
+  winner: "free" | "plus" | null;
+};
+
+export const compareWidgetUsage = [
+  { label: "ติดตั้งวิดเจ็ต", free: "83%", plus: "92%" },
+  { label: "แตะวิดเจ็ตต่อวัน", free: "0.8 ครั้ง", plus: "2.4 ครั้ง" },
+  { label: "ทำรายการสำเร็จผ่านวิดเจ็ต", free: "71%", plus: "86%" },
+] as const;
+
+export const comparePlanBenchmarks: ComparePlanBenchmarkRow[] = [
+  { metric: "กลับมาใช้งานหลังสมัคร 4 สัปดาห์", free: "34.8%", plus: "74.6%", winner: "plus" },
+  { metric: "จำนวนวันที่ใช้งานต่อเดือน", free: "8 วัน", plus: "19 วัน", winner: "plus" },
+  { metric: "ฟีเจอร์ที่ใช้บ่อยที่สุด", free: "การเรียน 42%", plus: "การเงิน 58%", winner: "plus" },
+  { metric: "ช่องทางที่ใช้บันทึกบ่อยที่สุด", free: "AI Input 54% / Manual 46%", plus: "AI Input 86% / Manual 14%", winner: "plus" },
+  { metric: "เวลาที่ใช้แอปบ่อยที่สุด", free: "18.00-21.00 (24%)", plus: "19.00-22.00 (51%)", winner: "plus" },
+  { metric: "อุปกรณ์ที่ใช้", free: "Android 66% / iOS 34%", plus: "iOS 61% / Android 39%", winner: "plus" },
+  { metric: "คำสั่ง AI ต่อวัน", free: "3.2 ครั้ง", plus: "10.4 ครั้ง", winner: "plus" },
+  { metric: "ค่าใช้จ่าย AI ต่อผู้ใช้ต่อเดือน", free: "฿18.50", plus: "฿124.00", winner: "plus" },
+  { metric: "จำนวนครั้งที่เปิดแอปต่อวัน", free: "1.8 ครั้ง", plus: "4.4 ครั้ง", winner: "plus" },
+  { metric: "จำนวนข้อมูลที่บันทึกต่อเดือน", free: "12 รายการ", plus: "31 รายการ", winner: "plus" },
+];
+
+export const compareFirstFeatureAfterSignup = [
+  { feature: "การเงิน", free: 48, plus: 41 },
+  { feature: "การเรียน", free: 37, plus: 46 },
+  { feature: "ไลฟ์สไตล์", free: 15, plus: 13 },
+];
+
+export const compareFirstFeatureInsight = "การเงินและการเรียนคือ Hook หลักหลังสมัคร โดย PLUS เริ่มจากการเรียนมากกว่า ส่วน FREE เริ่มจากการเงินก่อน";
+
+export const compareNotificationSetup = {
+  free: 24,
+  plus: 61,
+  insight: "PLUS ตั้งการแจ้งเตือนมากกว่า FREE อย่างชัดเจน สะท้อนว่าผู้ใช้ที่เห็นประโยชน์เร็วมักผูกแอปเข้ากับกิจวัตรประจำวัน",
+};
+
 export const retentionCohorts = [
+  { cohort: "2025-10", users: 1320, w1: 68, w2: 55, w4: 43, w8: 31 },
+  { cohort: "2025-11", users: 1365, w1: 69, w2: 57, w4: 45, w8: 33 },
+  { cohort: "2025-12", users: 1410, w1: 71, w2: 59, w4: 47, w8: 35 },
   { cohort: "2026-01", users: 1480, w1: 74, w2: 62, w4: 50, w8: 38 },
   { cohort: "2026-02", users: 1550, w1: 76, w2: 64, w4: 53, w8: 40 },
   { cohort: "2026-03", users: 1680, w1: 79, w2: 67, w4: 56, w8: 43 },
@@ -351,9 +459,17 @@ export const churnList = managedUsers
   .map((u, idx) => ({
     userId: u.id,
     name: u.name,
-    reason: ["ราคาแพง", "ยังไม่เห็นความต่าง", "ใช้งานไม่ต่อเนื่อง", "ปัญหาด้านเสียง", "เปลี่ยนความต้องการ"][idx % 5],
+    reason: [
+      "ราคาแพง",
+      "ยังไม่เห็นความต่างจาก FREE",
+      "ใช้งานไม่ต่อเนื่อง",
+      "AI ไม่แม่นยำพอ",
+      "ไม่ได้ใช้ฟีเจอร์ PLUS คุ้มค่า",
+      "หยุดเรียนแล้ว",
+    ][idx % 6],
     plusDuration: `${Math.round(1 + rand() * 10)} เดือน`,
     aiCallsBefore: u.aiCallsTotal,
+    aiCostBeforeTHB: Number((u.aiCostTHB * (1.1 + (idx % 4) * 0.2)).toFixed(2)),
     churnedAt: `2026-0${((idx % 3) + 1)}-${String((idx % 27) + 1).padStart(2, "0")}`,
   }));
 
@@ -361,12 +477,10 @@ export const churnList = managedUsers
  * 3. AI Monitor – Page 3
  * ────────────────────────────────────────────── */
 export const aiMonitorStats = [
-  { label: "AI Calls วันนี้", value: Math.round(totalAiCalls / 30).toLocaleString(), note: "ข้อความ + วิดเจ็ต" },
-  { label: "อัตราการแตะวิดเจ็ตต่อวัน", value: "12,450", note: "การแตะวิดเจ็ตเฉลี่ย" },
-  { label: "วิดเจ็ตโหลดข้อมูลไม่สำเร็จ", value: "1.8%", note: "เป้าหมาย < 2%" },
-  { label: "ความล่าช้าของข้อมูล", value: "1.4m", note: "ความล่าช้าเฉลี่ย < 2m" },
-  { label: "ทำรายการสำเร็จ", value: "93.2%", note: "หลังแตะวิดเจ็ต" },
-  { label: "หยุดกลางคัน", value: "0.3%", note: "หลังเปิดแอปจากวิดเจ็ต" },
+  { label: "คำสั่ง AI วันนี้", value: Math.round(totalAiCalls / 30).toLocaleString(), note: "รวมเสียงและข้อความ" },
+  { label: "โทเคนวันนี้", value: Math.round(totalMonthlyTokens / 30).toLocaleString(), note: "Input + Output" },
+  { label: "ต้นทุน AI วันนี้", value: `฿${Math.round(totalAiCost / 30).toLocaleString()}`, note: "ค่าใช้จ่ายเฉลี่ยต่อวัน" },
+  { label: "ผู้ใช้ที่ใช้ AI วันนี้", value: dau.toLocaleString(), note: "ผู้ใช้ที่ส่งคำสั่ง AI อย่างน้อย 1 ครั้ง" },
 ];
 
 export const aiCallVolumeHourly = (() => {
@@ -677,7 +791,7 @@ export type ABTest = {
 };
 
 export const abTests: ABTest[] = [
-  { id: "AB-001", name: "Upgrade CTA", variantA: "� อัปเกรดตอนนี้!", variantB: "ลองใช้ PLUS ฟรี 7 วัน", metric: "Click Rate", status: "completed", resultA: 12, resultB: 18, winner: "B" },
+  { id: "AB-001", name: "Upgrade CTA", variantA: "อัปเกรดตอนนี้!", variantB: "ลองใช้ PLUS ฟรี 7 วัน", metric: "Click Rate", status: "completed", resultA: 12, resultB: 18, winner: "B" },
   { id: "AB-002", name: "Win-back Message", variantA: "เราคิดถึงคุณ", variantB: "มีฟีเจอร์ใหม่รอคุณอยู่", metric: "Open Rate", status: "running", resultA: 45, resultB: 52 },
 ];
 
@@ -824,3 +938,4 @@ export const trialConversionTrend = [
   { week: "W3", trialStarted: 801, paid: 259 },
   { week: "W4", trialStarted: 876, paid: 294 },
 ];
+

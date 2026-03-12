@@ -36,7 +36,7 @@ type DockRenderItem = {
 
 
 const leftDockItems: DockItem[] = [
-  { title: "แดชบอร์ด", href: "/overview", icon: LayoutDashboard, activePrefixes: ["/overview"] },
+  { title: "ภาพรวม", href: "/overview", icon: LayoutDashboard, activePrefixes: ["/overview"] },
   { title: "ผู้ใช้", href: "/user-management", icon: Users, activePrefixes: ["/user-management"], badge: pendingUsersCount },
   { title: "AI Monitor", href: "/ai-monitor", icon: Bot, activePrefixes: ["/ai-monitor"] },
 ];

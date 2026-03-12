@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { DashboardPageShell } from "@/components/dashboard/ui/dashboard-page-shell";
 import { MetricCard } from "@/components/dashboard/ui/metric-card";
 import { DataTableShell } from "@/components/dashboard/ui/data-table-shell";
@@ -10,14 +10,11 @@ import {
   aiCallVolumeHourly,
   aiModelUsage,
   aiMonitorStats,
-  errorRateHourly,
   flaggedPrompts,
   tokenUsageCost,
   tokenUsageDaily,
   topTextPrompts,
-  widgetQuickActions,
   unresolvedQueries,
-  widgetInsightsMetrics,
   type FlaggedPrompt,
 } from "../../mocks/dashboard-features.mock";
 import { manualInputUsage } from "../../mocks/dashboard-insights.mock";
@@ -26,12 +23,17 @@ import { formatCurrencyTHB, formatNumber } from "../../lib/formatters";
 export function AiMonitorPage() {
   const [flagged, setFlagged] = useState<FlaggedPrompt[]>(flaggedPrompts);
 
-  const maxPromptCount = Math.max(...topTextPrompts.map((p) => p.count), ...widgetQuickActions.map((p) => p.count));
+  const maxPromptCount = Math.max(...topTextPrompts.map((p) => p.count));
   const maxManualInputCount = Math.max(...manualInputUsage.map((item) => item.count));
+  const flaggedCategoryLabels: Record<FlaggedPrompt["category"], string> = {
+    inappropriate: "ไม่เหมาะสม",
+    "privacy-sensitive": "ข้อมูลส่วนตัว",
+    "off-topic": "นอกขอบเขต",
+  };
 
   return (
-    <DashboardPageShell title="ตรวจสอบ AI และ Widget" description="ดูคุณภาพและการใช้งาน AI + Widget Insights แบบเรียลไทม์">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+    <DashboardPageShell title="ตรวจสอบ AI" description="ดูคุณภาพ การใช้งาน และต้นทุนของ AI แบบเรียลไทม์">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {aiMonitorStats.map((item) => (
           <MetricCard key={item.label} label={item.label} value={item.value} note={item.note} />
         ))}
@@ -39,7 +41,7 @@ export function AiMonitorPage() {
 
       <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
         <div>
-          <h3 className="text-base font-semibold">ช่วงเวลาที่แตะวิดเจ็ตบ่อยที่สุด (Tap by Time of Day)</h3>
+          <h3 className="text-base font-semibold">คำสั่ง AI รายชั่วโมง</h3>
           <p className="text-sm text-muted-foreground">แยกข้อความ vs เสียง รายชั่วโมง</p>
         </div>
         <div className="mt-4 h-72 w-full">
@@ -54,86 +56,19 @@ export function AiMonitorPage() {
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </article>
-
-      <div className="grid gap-4 xl:grid-cols-2">
-        <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <div>
-            <h3 className="text-base font-semibold">วิดเจ็ตโหลดข้อมูลไม่สำเร็จ (%)</h3>
-            <p className="text-sm text-muted-foreground">เส้นแจ้งเตือน (2% = เตือน, 5% = วิกฤต)</p>
+        <div className="mt-4 flex flex-wrap gap-4 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-full bg-primary" />
+            <span>ข้อความ</span>
           </div>
-          <div className="mt-4 h-64 w-full">
-            <ResponsiveContainer>
-              <LineChart data={errorRateHourly} margin={{ left: 8, right: 8, top: 6 }}>
-                <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeOpacity={0.5} />
-                <XAxis dataKey="hour" stroke="hsl(var(--muted-foreground))" fontSize={10} tickLine={false} interval={3} />
-                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                <Tooltip />
-                <Line type="monotone" dataKey="errorRate" stroke="#ef4444" strokeWidth={2.5} dot={false} name="โหลดไม่สำเร็จ (%)" />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </article>
-
-        <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <div>
-            <h3 className="text-base font-semibold">ความล่าช้าของข้อมูลบนวิดเจ็ต (Data Staleness)</h3>
-            <p className="text-sm text-muted-foreground">ระยะเวลาที่ข้อมูลค้างก่อนอัปเดต (นาที)</p>
-          </div>
-          <div className="mt-4 h-64 w-full">
-            <ResponsiveContainer>
-              <LineChart data={errorRateHourly} margin={{ left: 8, right: 8, top: 6 }}>
-                <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeOpacity={0.5} />
-                <XAxis dataKey="hour" stroke="hsl(var(--muted-foreground))" fontSize={10} tickLine={false} interval={3} />
-                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                <Tooltip />
-                <Line type="monotone" dataKey="median" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={false} name="ค่ากลาง (ms)" />
-                <Line type="monotone" dataKey="p95" stroke="#f59e0b" strokeWidth={2} strokeDasharray="6 4" dot={false} name="ค่าสูงสุด 5% (ms)" />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </article>
-      </div>
-
-      <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-        <h3 className="text-base font-semibold">ตรวจสอบวิดเจ็ต (Widget Insights)</h3>
-        <p className="text-sm text-muted-foreground">ตัวชี้วัดสำคัญสำหรับการใช้งานวิดเจ็ต</p>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="rounded-lg border border-border bg-background p-4">
-            <p className="text-sm text-muted-foreground">อัตราการติดตั้งวิดเจ็ต</p>
-            <p className="mt-2 text-2xl font-bold">{widgetInsightsMetrics.installRate}%</p>
-          </div>
-          <div className="rounded-lg border border-border bg-background p-4">
-            <p className="text-sm text-muted-foreground">อัตราการแตะวิดเจ็ตรายสัปดาห์</p>
-            <p className="mt-2 text-2xl font-bold">{widgetInsightsMetrics.tapRate.weekly}%</p>
-          </div>
-          <div className="rounded-lg border border-border bg-background p-4">
-            <p className="text-sm text-muted-foreground">ระยะเวลาก่อนติดตั้ง (D3)</p>
-            <p className="mt-2 text-2xl font-bold">{widgetInsightsMetrics.timeToInstall.d3}%</p>
-            <div className="mt-1 space-y-0.5 text-xs text-muted-foreground">
-              <p>D1: {widgetInsightsMetrics.timeToInstall.d1}% | D7: {widgetInsightsMetrics.timeToInstall.d7}%</p>
-            </div>
-          </div>
-          <div className="rounded-lg border border-border bg-background p-4">
-            <p className="text-sm text-muted-foreground">ทำรายการสำเร็จหลังแตะ</p>
-            <p className="mt-2 text-2xl font-bold">{widgetInsightsMetrics.tapToActionCompletion}%</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              หยุดกลางคัน {widgetInsightsMetrics.dropOffAfterTap}%
-            </p>
-          </div>
-          <div className="rounded-lg border border-border bg-background p-4">
-            <p className="text-sm text-muted-foreground">โหลดข้อมูลไม่สำเร็จ</p>
-            <p className="mt-2 text-2xl font-bold text-rose-500">{widgetInsightsMetrics.widgetLoadError}%</p>
-            <p className="mt-1 text-xs text-muted-foreground">ล่าช้า {widgetInsightsMetrics.dataStaleness}%</p>
-          </div>
-          <div className="rounded-lg border border-border bg-background p-4">
-            <p className="text-sm text-muted-foreground">อัตราการถอนวิดเจ็ต</p>
-            <p className="mt-2 text-2xl font-bold text-rose-500">{widgetInsightsMetrics.uninstallRate}%</p>
+          <div className="flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-full bg-violet-500" />
+            <span>เสียง</span>
           </div>
         </div>
       </article>
 
-      <div className="grid gap-4 xl:grid-cols-3">
+      <div className="grid gap-4 xl:grid-cols-2">
         <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <h3 className="text-base font-semibold">การใช้งาน Manual Input</h3>
           <div className="mt-4 space-y-3">
@@ -150,23 +85,6 @@ export function AiMonitorPage() {
                 <p className="mb-1.5 text-xs text-muted-foreground">{item.note}</p>
                 <div className="h-2 rounded-full bg-muted">
                   <div className="h-2 rounded-full bg-primary" style={{ width: `${(item.count / maxManualInputCount) * 100}%` }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </article>
-
-        <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <h3 className="text-base font-semibold">การดำเนินการด่วนผ่านวิดเจ็ต</h3>
-          <div className="mt-4 space-y-3">
-            {widgetQuickActions.map((item, idx) => (
-              <div key={item.prompt}>
-                <div className="mb-1 flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">#{idx + 1} {item.prompt}</span>
-                  <span className="font-semibold">{formatNumber(item.count)} ({item.percentage}%)</span>
-                </div>
-                <div className="h-2 rounded-full bg-muted">
-                  <div className="h-2 rounded-full bg-primary" style={{ width: `${(item.count / maxPromptCount) * 100}%` }} />
                 </div>
               </div>
             ))}
@@ -200,7 +118,7 @@ export function AiMonitorPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Query</TableHead>
+                <TableHead>คำถาม</TableHead>
                 <TableHead>ครั้ง</TableHead>
                 <TableHead>หมวด</TableHead>
               </TableRow>
@@ -210,7 +128,7 @@ export function AiMonitorPage() {
                 <TableRow key={query.query}>
                   <TableCell className="font-medium">{query.query}</TableCell>
                   <TableCell>{query.count}</TableCell>
-                  <TableCell><Badge variant="secondary">{query.category}</Badge></TableCell>
+                  <TableCell><Badge variant="secondary">{query.category === "off-topic" ? "นอกขอบเขต" : query.category}</Badge></TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -225,10 +143,10 @@ export function AiMonitorPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Query</TableHead>
+                <TableHead>คำถาม</TableHead>
                 <TableHead>ประเภท</TableHead>
                 <TableHead>ครั้ง</TableHead>
-                <TableHead>Action</TableHead>
+                <TableHead>จัดการ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -245,7 +163,7 @@ export function AiMonitorPage() {
                             : "bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300"
                       }
                     >
-                      {prompt.category}
+                      {flaggedCategoryLabels[prompt.category]}
                     </Badge>
                   </TableCell>
                   <TableCell>{prompt.count}</TableCell>
@@ -308,7 +226,15 @@ export function AiMonitorPage() {
               <BarChart data={tokenUsageDaily} margin={{ left: 8, right: 8, top: 6 }}>
                 <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeOpacity={0.5} />
                 <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={10} tickLine={false} interval={2} />
-                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis
+                  stroke="hsl(var(--muted-foreground))"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  domain={[0, 2200000]}
+                  ticks={[500000, 1100000, 1650000, 2200000]}
+                  tickFormatter={(value) => `${value / 1000000}M`}
+                />
                 <Tooltip />
                 <Bar dataKey="tokens" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Tokens" />
               </BarChart>
