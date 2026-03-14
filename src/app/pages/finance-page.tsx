@@ -431,7 +431,6 @@ export function FinancePage() {
   return (
     <DashboardPageShell
       title="การเงิน"
-      description="ติดตามรายได้ PLUS, ต้นทุน AI และคุณภาพของรายได้ให้สอดคล้องกับภาพรวม dashboard"
     >
       <AppTabs
         value={period}
@@ -743,3 +742,4 @@ export function FinancePage() {
     </DashboardPageShell>
   );
 }
+
