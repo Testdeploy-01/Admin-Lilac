@@ -473,35 +473,6 @@ export function FinancePage() {
             />
           </div>
         </article>
-
-        <article className={sectionCardClass}>
-          <SectionToolbar
-            title="จุดที่ต้องเฝ้าระวัง"
-            badge="จุดเสี่ยง"
-          />
-          <div className="grid gap-3 md:grid-cols-2">
-            <FinanceDetailCard
-              label="FREE burn ต่อเดือน"
-              value={formatCurrencyTHB(financeModel.freeCostTotal)}
-              tone="warning"
-            />
-            <FinanceDetailCard
-              label="Spread ของ PLUS ต่อคน"
-              value={formatCurrencyTHB(financeModel.plusProfitPerUser)}
-              tone="positive"
-            />
-            <FinanceDetailCard
-              label="ความเสี่ยงจาก churn"
-              value={formatPercent(financeModel.churnRate)}
-              tone="warning"
-              meter={financeModel.churnRate}
-            />
-            <FinanceDetailCard
-              label="Referral ที่ปิดได้"
-              value={formatNumber(financeModel.successfulReferrals)}
-            />
-          </div>
-        </article>
       </div>
 
       <article className={sectionCardClass}>
@@ -742,4 +713,6 @@ export function FinancePage() {
     </DashboardPageShell>
   );
 }
+
+
 
