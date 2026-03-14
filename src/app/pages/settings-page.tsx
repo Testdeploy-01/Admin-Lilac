@@ -4,24 +4,13 @@ import { AppTabs } from "@/components/dashboard/ui/app-tabs";
 import { DataTableShell } from "@/components/dashboard/ui/data-table-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   adminAccounts,
   adminRoles,
   auditLog,
-  defaultApiSettings,
-  defaultSystemPolicy,
-  defaultSystemSettings,
   featureFlags,
   planPricingSettings,
   plusFeatures,
@@ -31,15 +20,12 @@ import {
 } from "../../mocks/dashboard-features.mock";
 import { formatCurrencyTHB } from "../../lib/formatters";
 
-type TabKey = "admins" | "features" | "logs" | "api" | "plans";
+type TabKey = "admins" | "features" | "logs" | "plans";
 
 export function SettingsPage() {
   const [tab, setTab] = useState<TabKey>("admins");
   const [flags, setFlags] = useState<FeatureFlag[]>(featureFlags);
   const [admins, setAdmins] = useState<AdminAccount[]>(adminAccounts);
-  const [sysSettings, setSysSettings] = useState(defaultSystemSettings);
-  const [apiSettings, setApiSettings] = useState(defaultApiSettings);
-  const [policy, setPolicy] = useState(defaultSystemPolicy);
   const [plans, setPlans] = useState(subscriptionPlans);
   const [features, setFeatures] = useState(plusFeatures);
   const [savedAt, setSavedAt] = useState("ยังไม่บันทึก");
@@ -49,7 +35,7 @@ export function SettingsPage() {
   const handleSave = () => setSavedAt(new Date().toLocaleString("th-TH"));
 
   return (
-    <DashboardPageShell title="ตั้งค่าระบบ" description="จัดการผู้ดูแล ฟีเจอร์ ระบบ API และแพ็กเกจราคา">
+    <DashboardPageShell title="ตั้งค่าระบบ" description="จัดการผู้ดูแล ฟีเจอร์ และขบเพื่อคา">
       <AppTabs
         value={tab}
         onValueChange={(value) => setTab(value as TabKey)}
@@ -57,7 +43,6 @@ export function SettingsPage() {
           { value: "admins", label: "ผู้ดูแลและสิทธิ์" },
           { value: "features", label: "เปิด/ปิดฟีเจอร์" },
           { value: "logs", label: "บันทึกการใช้งาน" },
-          { value: "api", label: "ตั้งค่า API" },
           { value: "plans", label: "แพ็กเกจและราคา" },
         ]}
       />
@@ -236,97 +221,7 @@ export function SettingsPage() {
             </TableBody>
           </Table>
         </DataTableShell>
-      ) : null}
-
-      {tab === "api" ? (
-        <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <h3 className="text-base font-semibold">ตั้งค่า API และการเชื่อมต่อ</h3>
-          <div className="mt-4 grid gap-4 lg:grid-cols-2">
-            <div className="space-y-4">
-              <h4 className="text-sm font-semibold uppercase text-muted-foreground">ตั้งค่าทั่วไป</h4>
-              <div>
-                <p className="mb-1 text-sm text-muted-foreground">ชื่อโปรเจค</p>
-                <Input value={sysSettings.projectName} onChange={(event) => setSysSettings({ ...sysSettings, projectName: event.target.value })} />
-              </div>
-              <div>
-                <p className="mb-1 text-sm text-muted-foreground">Base URL</p>
-                <Input value={sysSettings.baseUrl} onChange={(event) => setSysSettings({ ...sysSettings, baseUrl: event.target.value })} />
-              </div>
-              <div>
-                <p className="mb-1 text-sm text-muted-foreground">Support Email</p>
-                <Input value={sysSettings.supportEmail} onChange={(event) => setSysSettings({ ...sysSettings, supportEmail: event.target.value })} />
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h4 className="text-sm font-semibold uppercase text-muted-foreground">ตั้งค่า AI</h4>
-              <div>
-                <p className="mb-1 text-sm text-muted-foreground">Anthropic API Key</p>
-                <Input type="password" value={apiSettings.anthropicKey} onChange={(event) => setApiSettings({ ...apiSettings, anthropicKey: event.target.value })} />
-              </div>
-              <div>
-                <p className="mb-1 text-sm text-muted-foreground">โมเดลหลัก</p>
-                <Input value={apiSettings.defaultModel} onChange={(event) => setApiSettings({ ...apiSettings, defaultModel: event.target.value })} />
-              </div>
-              <div>
-                <p className="mb-1 text-sm text-muted-foreground">จำกัดการเรียกต่อผู้ใช้ (ครั้ง/วัน)</p>
-                <Input type="number" value={apiSettings.rateLimitPerUser} onChange={(event) => setApiSettings({ ...apiSettings, rateLimitPerUser: Number(event.target.value) })} />
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h4 className="text-sm font-semibold uppercase text-muted-foreground">การตั้งค่าวิดเจ็ต (Widget)</h4>
-              <div>
-                <p className="mb-1 text-sm text-muted-foreground">ความถี่ในการอัปเดตข้อมูล (นาที)</p>
-                <Input
-                  type="number"
-                  step={0.1}
-                  min={0}
-                  max={1}
-                  value={apiSettings.wakeWordSensitivity}
-                  onChange={(event) => setApiSettings({ ...apiSettings, wakeWordSensitivity: Number(event.target.value) })}
-                />
-              </div>
-              <div>
-                <p className="mb-1 text-sm text-muted-foreground">Cache Timeout (วินาที)</p>
-                <Input type="number" value={apiSettings.voiceTimeout} onChange={(event) => setApiSettings({ ...apiSettings, voiceTimeout: Number(event.target.value) })} />
-              </div>
-              <div>
-                <p className="mb-1 text-sm text-muted-foreground">เมื่อวิดเจ็ตโหลดไม่สำเร็จ</p>
-                <Select value={apiSettings.voiceFallbackBehavior} onValueChange={(value) => setApiSettings({ ...apiSettings, voiceFallbackBehavior: value })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="text-input">แสดงข้อมูลล่าสุด</SelectItem>
-                    <SelectItem value="retry">ลองโหลดใหม่อัตโนมัติ</SelectItem>
-                    <SelectItem value="error-message">แสดงข้อความผิดพลาด</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h4 className="text-sm font-semibold uppercase text-muted-foreground">นโยบายความปลอดภัยเนื้อหา</h4>
-              <div className="flex items-center gap-3">
-                <Checkbox checked={policy.nsfwCheck} onCheckedChange={(checked) => setPolicy({ ...policy, nsfwCheck: Boolean(checked) })} />
-                <span className="text-sm">เปิดตัวกรองเนื้อหาไม่เหมาะสม</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Checkbox checked={policy.autoSuspend150} onCheckedChange={(checked) => setPolicy({ ...policy, autoSuspend150: Boolean(checked) })} />
-                <span className="text-sm">ระงับบัญชีอัตโนมัติเมื่อใช้เกิน 150%</span>
-              </div>
-              <div>
-                <p className="mb-1 text-sm text-muted-foreground">Webhook URL (Payment)</p>
-                <Input value={apiSettings.webhookUrl} onChange={(event) => setApiSettings({ ...apiSettings, webhookUrl: event.target.value })} />
-              </div>
-            </div>
-          </div>
-          <div className="mt-6 flex items-center gap-3">
-            <Button onClick={handleSave}>บันทึก</Button>
-            <p className="text-xs text-muted-foreground">อัปเดตล่าสุด: {savedAt}</p>
-          </div>
-        </article>
-      ) : null}
-
+      ) : null}
       {tab === "plans" ? (
         <>
           <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
@@ -400,4 +295,12 @@ export function SettingsPage() {
     </DashboardPageShell>
   );
 }
+
+
+
+
+
+
+
+
 
