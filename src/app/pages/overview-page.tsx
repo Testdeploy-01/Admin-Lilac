@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Activity,
@@ -25,6 +25,7 @@ import {
   YAxis,
 } from "recharts";
 import { DashboardPageShell } from "@/components/dashboard/ui/dashboard-page-shell";
+import { ContentSkeleton } from "@/components/dashboard/ui/content-skeleton";
 import { MetricCard } from "@/components/dashboard/ui/metric-card";
 import { AppTabs } from "@/components/dashboard/ui/app-tabs";
 import { Button } from "@/components/ui/button";
@@ -315,6 +316,21 @@ function OverviewInputChannelCard({
 }
 
 export function OverviewPage() {
+  const [isLoading, setIsLoading] = useState(() => {
+    // Show skeleton only on the very first time they visit the dashboard in this session
+    return !sessionStorage.getItem("hasVisitedOverview");
+  });
+
+  useEffect(() => {
+    if (isLoading) {
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+        sessionStorage.setItem("hasVisitedOverview", "true");
+      }, 1200); // Fake API latency
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading]);
+
   const [growthRange, setGrowthRange] = useState<"3m" | "6m" | "1y">("6m");
   const overviewCards = [...overviewKpis, overviewRevenueKpi];
   const calendarMonthOrder = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
@@ -337,19 +353,23 @@ export function OverviewPage() {
 
   return (
     <DashboardPageShell title="ภาพรวม">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        {overviewCards.map((item) => (
-          <MetricCard
-            key={item.label}
-            label={String(item.label)}
-            value={item.value}
-            delta={item.delta}
-            trend={item.trend}
-            note={item.note}
-            className="min-h-[126px] p-3.5 lg:p-4"
-          />
-        ))}
-      </div>
+      {isLoading ? (
+        <ContentSkeleton />
+      ) : (
+        <div className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+            {overviewCards.map((item) => (
+              <MetricCard
+                key={item.label}
+                label={String(item.label)}
+                value={item.value}
+                delta={item.delta}
+                trend={item.trend}
+                note={item.note}
+                className="min-h-[126px] p-3.5 lg:p-4"
+              />
+            ))}
+          </div>
 
       <div className="grid items-stretch gap-4 xl:grid-cols-[1fr_1.6fr_1fr]">
         <OverviewDonutCard
@@ -547,6 +567,8 @@ export function OverviewPage() {
           </div>
         </article>
       </div>
+      </div>
+      )}
     </DashboardPageShell>
   );
 }
