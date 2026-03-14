@@ -127,6 +127,75 @@
   table thead th {
     @apply pb-3 pt-1 text-xs font-semibold uppercase tracking-wider;
   }
+
+  .skeleton-lilac {
+    background: linear-gradient(
+      140deg,
+      hsl(var(--primary) / 0.06) 0%,
+      hsl(var(--primary) / 0.11) 28%,
+      hsl(var(--primary) / 0.17) 52%,
+      hsl(var(--primary) / 0.11) 76%,
+      hsl(var(--primary) / 0.07) 100%
+    );
+    background-size: 180% 100%;
+    will-change: transform, opacity;
+  }
+
+  .skeleton-lilac::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    transform: translate3d(-120%, 0, 0);
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--primary) / 0.02) 24%,
+      hsl(var(--primary) / 0.24) 44%,
+      hsl(var(--primary) / 0.42) 50%,
+      hsl(var(--primary) / 0.24) 56%,
+      hsl(var(--primary) / 0.02) 76%,
+      transparent 100%
+    );
+    animation: lilac-skeleton-shimmer 1.9s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    will-change: transform;
+  }
+
+  .dark .skeleton-lilac {
+    background: linear-gradient(
+      140deg,
+      hsl(var(--primary) / 0.1) 0%,
+      hsl(var(--primary) / 0.16) 30%,
+      hsl(var(--primary) / 0.22) 52%,
+      hsl(var(--primary) / 0.16) 74%,
+      hsl(var(--primary) / 0.11) 100%
+    );
+  }
+
+  .dark .skeleton-lilac::before {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--primary) / 0.03) 24%,
+      hsl(var(--primary) / 0.28) 44%,
+      hsl(var(--primary) / 0.48) 50%,
+      hsl(var(--primary) / 0.28) 56%,
+      hsl(var(--primary) / 0.03) 76%,
+      transparent 100%
+    );
+  }
+}
+
+@keyframes lilac-skeleton-shimmer {
+  100% {
+    transform: translate3d(120%, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-lilac::before {
+    animation: none;
+    transform: none;
+  }
 }
 
 /* ─── Sidebar Gradient ─── */

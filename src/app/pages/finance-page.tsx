@@ -1,330 +1,745 @@
-import { useState } from "react";
-import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { useMemo, useState } from "react";
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import { DashboardPageShell } from "@/components/dashboard/ui/dashboard-page-shell";
-import { MetricCard } from "@/components/dashboard/ui/metric-card";
 import { AppTabs } from "@/components/dashboard/ui/app-tabs";
 import { DataTableShell } from "@/components/dashboard/ui/data-table-shell";
+import { MetricCard } from "@/components/dashboard/ui/metric-card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+  ChartContainer,
+  ChartTooltip,
+  type ChartConfig,
+} from "@/components/ui/chart";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { cn } from "@/lib/utils";
+import { formatCurrencyTHB, formatNumber, formatPercent } from "../../lib/formatters";
+import {
+  aiCostSummary,
   churnAnalysis,
-  financeRevenueStats,
-  mrrTrend,
-  mrrWaterfall,
-  projectedMrr,
-  revenueByPlan,
-  transactionHistory,
-  conversionFunnel,
+  managedUsers,
+  type PlanKey,
+  weeklyRetentionByPlan,
 } from "../../mocks/dashboard-features.mock";
-import { formatCurrencyTHB } from "../../lib/formatters";
-import { exportCSV } from "../../lib/exporters";
 
-type TabKey = "overview" | "transactions";
-const planColors = ["hsl(var(--primary))", "#14b8a6", "#f59e0b"];
+type TimeRange = "today" | "month" | "6months" | "year";
 
-export function FinancePage() {
-  const [activeTab, setActiveTab] = useState<TabKey>("overview");
-  const [statusFilter, setStatusFilter] = useState("all");
+type FinanceSeriesPoint = {
+  label: string;
+  revenue: number;
+  aiCost: number;
+};
 
-  const filteredTransactions = transactionHistory.filter((transaction) => statusFilter === "all" || transaction.status === statusFilter);
+type PackagePlan = {
+  planKey: Exclude<PlanKey, "FREE">;
+  label: string;
+  priceLabel: string;
+  monthlyEquivalentRevenue: number;
+};
+
+const periodTabs = [
+  { value: "today", label: "วันนี้" },
+  { value: "month", label: "เดือนนี้" },
+  { value: "6months", label: "6 เดือนที่ผ่านมา" },
+  { value: "year", label: "1 ปีที่ผ่านมา" },
+] as const;
+
+const periodMeta: Record<TimeRange, {
+  narrative: string;
+  chartCaption: string;
+  tickInterval: number;
+  monthsEquivalent: number;
+}> = {
+  today: {
+    narrative: "โฟกัสเงินเข้าเทียบ AI burn แบบรายชั่วโมงเพื่อจับ anomaly ในวันเดียวกัน",
+    chartCaption: "แกน X แสดงเป็นรายชั่วโมง และแกน Y เป็นบาท",
+    tickInterval: 2,
+    monthsEquivalent: 1 / 30,
+  },
+  month: {
+    narrative: "ดูรายได้รับรู้และต้นทุน AI แบบรายวันของเดือนปัจจุบันเพื่ออ่านคุณภาพรายได้อย่างใกล้ชิด",
+    chartCaption: "แกน X แสดงเป็นรายวัน และแกน Y เป็นบาท",
+    tickInterval: 4,
+    monthsEquivalent: 1,
+  },
+  "6months": {
+    narrative: "อ่าน momentum ของรายได้เทียบต้นทุนในครึ่งปีล่าสุดว่ากำไรโตตามรายได้หรือไม่",
+    chartCaption: "แกน X แสดงเป็นรายเดือนย้อนหลัง 6 เดือน และแกน Y เป็นบาท",
+    tickInterval: 0,
+    monthsEquivalent: 6,
+  },
+  year: {
+    narrative: "ใช้มุมมองรอบปีเพื่อเทียบ margin, mix ของแพ็กเกจ และความเสี่ยงจาก churn",
+    chartCaption: "แกน X แสดงเป็นรายเดือนย้อนหลัง 12 เดือน และแกน Y เป็นบาท",
+    tickInterval: 0,
+    monthsEquivalent: 12,
+  },
+};
+
+const packagePlans: PackagePlan[] = [
+  {
+    planKey: "PLUS_MONTHLY",
+    label: "Lilac PLUS รายเดือน",
+    priceLabel: "฿59/เดือน",
+    monthlyEquivalentRevenue: 59,
+  },
+  {
+    planKey: "PLUS_TERM",
+    label: "Lilac PLUS รายเทอม",
+    priceLabel: "฿199/เทอม",
+    monthlyEquivalentRevenue: 199 / 4,
+  },
+  {
+    planKey: "PLUS_YEARLY",
+    label: "Lilac PLUS รายปี",
+    priceLabel: "฿599/ปี",
+    monthlyEquivalentRevenue: 599 / 12,
+  },
+];
+
+const yearlyTrendFactors = [
+  { label: "เม.ย.", revenueFactor: 0.74, costFactor: 0.8 },
+  { label: "พ.ค.", revenueFactor: 0.79, costFactor: 0.83 },
+  { label: "มิ.ย.", revenueFactor: 0.83, costFactor: 0.86 },
+  { label: "ก.ค.", revenueFactor: 0.87, costFactor: 0.89 },
+  { label: "ส.ค.", revenueFactor: 0.9, costFactor: 0.92 },
+  { label: "ก.ย.", revenueFactor: 0.93, costFactor: 0.95 },
+  { label: "ต.ค.", revenueFactor: 0.95, costFactor: 0.97 },
+  { label: "พ.ย.", revenueFactor: 0.98, costFactor: 0.99 },
+  { label: "ธ.ค.", revenueFactor: 1.01, costFactor: 1.01 },
+  { label: "ม.ค.", revenueFactor: 1.03, costFactor: 1.02 },
+  { label: "ก.พ.", revenueFactor: 1.01, costFactor: 1.01 },
+  { label: "มี.ค.", revenueFactor: 1.06, costFactor: 1.03 },
+];
+
+const financeChartConfig = {
+  revenue: {
+    label: "รายได้",
+    color: "hsl(var(--chart-2))",
+  },
+  aiCost: {
+    label: "ค่าใช้จ่าย AI",
+    color: "hsl(var(--destructive))",
+  },
+} satisfies ChartConfig;
+
+const sectionCardClass = "card-gray-gradient rounded-xl border border-border p-5 shadow-sm lg:p-6";
+const sectionHeaderClass = "mb-4 flex items-start justify-between gap-3";
+const sectionTitleClass = "text-base font-semibold text-foreground";
+const innerPanelClass = "rounded-xl border border-border/70 bg-background/80 p-4";
+const chartPanelClass = "rounded-xl border border-border/70 bg-background/70 p-3";
+
+function roundToTwo(value: number) {
+  return Number(value.toFixed(2));
+}
+
+function distributeTotal(total: number, weights: number[]) {
+  const weightSum = weights.reduce((sum, weight) => sum + weight, 0);
+  return weights.map((weight) => roundToTwo((weight / Math.max(weightSum, 1)) * total));
+}
+
+function formatCompactCurrency(value: number) {
+  const absolute = Math.abs(value);
+
+  if (absolute >= 1_000_000) {
+    return `฿${(value / 1_000_000).toFixed(absolute >= 10_000_000 ? 0 : 1)}M`;
+  }
+
+  if (absolute >= 1_000) {
+    return `฿${Math.round(value / 1_000)}k`;
+  }
+
+  return `฿${Math.round(value)}`;
+}
+
+function buildFinanceSeries(range: TimeRange, baseMonthlyRevenue: number, baseMonthlyAiCost: number): FinanceSeriesPoint[] {
+  if (range === "today") {
+    const revenueWeights = Array.from({ length: 24 }, (_, hour) => {
+      const businessPeak = hour >= 10 && hour <= 21 ? 0.42 : 0;
+      const morningLift = hour >= 7 && hour <= 9 ? 0.18 : 0;
+      const overnightDip = hour <= 4 ? -0.18 : 0;
+      return Math.max(0.2, 0.55 + businessPeak + morningLift + overnightDip + Math.sin((hour / 24) * Math.PI * 2 - 1.2) * 0.14);
+    });
+
+    const costWeights = Array.from({ length: 24 }, (_, hour) => {
+      const eveningUsage = hour >= 18 && hour <= 23 ? 0.28 : 0;
+      const afternoonLift = hour >= 12 && hour <= 17 ? 0.15 : 0;
+      const overnightDip = hour <= 5 ? -0.12 : 0;
+      return Math.max(0.24, 0.62 + eveningUsage + afternoonLift + overnightDip + Math.cos((hour / 24) * Math.PI * 2 - 0.3) * 0.08);
+    });
+
+    const revenueSeries = distributeTotal(baseMonthlyRevenue / 30, revenueWeights);
+    const costSeries = distributeTotal(baseMonthlyAiCost / 30, costWeights);
+
+    return Array.from({ length: 24 }, (_, hour) => ({
+      label: `${String(hour).padStart(2, "0")}:00`,
+      revenue: revenueSeries[hour],
+      aiCost: costSeries[hour],
+    }));
+  }
+
+  if (range === "month") {
+    const revenueWeights = Array.from({ length: 30 }, (_, index) => (
+      1
+      + (Math.sin((index + 1) * 0.45) * 0.16)
+      + ((index % 7) >= 5 ? 0.1 : -0.03)
+      + (index % 6 === 0 ? 0.06 : 0)
+    ));
+
+    const costWeights = Array.from({ length: 30 }, (_, index) => (
+      1
+      + (Math.cos((index + 1) * 0.38) * 0.1)
+      + ((index % 7) >= 5 ? 0.12 : -0.01)
+      + (index % 9 === 0 ? 0.04 : 0)
+    ));
+
+    const revenueSeries = distributeTotal(baseMonthlyRevenue, revenueWeights);
+    const costSeries = distributeTotal(baseMonthlyAiCost, costWeights);
+
+    return Array.from({ length: 30 }, (_, index) => ({
+      label: String(index + 1),
+      revenue: revenueSeries[index],
+      aiCost: costSeries[index],
+    }));
+  }
+
+  const trendWindow = range === "6months" ? yearlyTrendFactors.slice(-6) : yearlyTrendFactors;
+
+  return trendWindow.map((item) => ({
+    label: item.label,
+    revenue: roundToTwo(baseMonthlyRevenue * item.revenueFactor),
+    aiCost: roundToTwo(baseMonthlyAiCost * item.costFactor),
+  }));
+}
+
+function FinanceChartTooltip({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: Array<{ name?: string; value?: number | string; color?: string }>;
+  label?: string;
+}) {
+  if (!active || !payload?.length) {
+    return null;
+  }
 
   return (
-    <DashboardPageShell title="การเงิน" description="ภาพรวมรายได้ รายการธุรกรรม และสัญญาณ churn เพื่อการตัดสินใจเชิงธุรกิจ">
+    <div className="rounded-lg border border-border bg-background px-3 py-2 shadow-sm">
+      {label ? <p className="text-sm font-semibold text-foreground">{label}</p> : null}
+      <div className="mt-2 space-y-1.5">
+        {payload.map((entry) => (
+          <div key={`${entry.name}-${entry.color}`} className="flex items-center justify-between gap-4 text-xs">
+            <span className="text-muted-foreground">{entry.name}</span>
+            <span className="font-semibold text-foreground">{formatCurrencyTHB(Number(entry.value ?? 0))}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SectionToolbar({
+  title,
+  description,
+  badge,
+}: {
+  title: string;
+  description?: string;
+  badge: string;
+}) {
+  return (
+    <div className={sectionHeaderClass}>
+      <div>
+        <h3 className={sectionTitleClass}>{title}</h3>
+        {description ? <p className="text-sm leading-6 text-muted-foreground">{description}</p> : null}
+      </div>
+      <Badge variant="secondary" className="rounded-full px-3 py-1">
+        {badge}
+      </Badge>
+    </div>
+  );
+}
+
+function FinanceDetailCard({
+  label,
+  value,
+  tone = "neutral",
+  meter,
+}: {
+  label: string;
+  value: string;
+  tone?: "positive" | "warning" | "neutral";
+  meter?: number;
+}) {
+  const toneClass =
+    tone === "positive"
+      ? "text-emerald-600 dark:text-emerald-400"
+      : tone === "warning"
+        ? "text-rose-600 dark:text-rose-400"
+        : "text-foreground";
+
+  const meterClass =
+    tone === "positive"
+      ? "bg-emerald-500"
+      : tone === "warning"
+        ? "bg-rose-500"
+        : "bg-primary";
+
+  return (
+    <div className={cn(innerPanelClass, "flex h-full flex-col justify-between")}>
+      <div>
+        <p className="text-sm font-medium text-muted-foreground">{label}</p>
+        <p className={cn("mt-2 text-lg font-semibold", toneClass)}>{value}</p>
+      </div>
+      {typeof meter === "number" ? (
+        <div className="mt-3 h-2 rounded-full bg-muted">
+          <div className={cn("h-2 rounded-full", meterClass)} style={{ width: `${Math.min(Math.max(meter, 0), 100)}%` }} />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+export function FinancePage() {
+  const [period, setPeriod] = useState<TimeRange>("month");
+
+  const financeModel = useMemo(() => {
+    const meta = periodMeta[period];
+    const initialPlanCounts: Record<PlanKey, number> = {
+      FREE: 0,
+      PLUS_MONTHLY: 0,
+      PLUS_TERM: 0,
+      PLUS_YEARLY: 0,
+    };
+
+    const planCounts = managedUsers.reduce((counts, user) => {
+      counts[user.plan] += 1;
+      return counts;
+    }, initialPlanCounts);
+
+    const totalUsers = managedUsers.length;
+    const freeUsers = planCounts.FREE;
+    const paidUsers = totalUsers - freeUsers;
+
+    let freeCostTotal = 0;
+    let plusCostTotal = 0;
+
+    for (const user of managedUsers) {
+      if (user.plan === "FREE") freeCostTotal += user.aiCostTHB;
+      else plusCostTotal += user.aiCostTHB;
+    }
+
+    const baseMonthlyRevenueByPlan = {
+      PLUS_MONTHLY: planCounts.PLUS_MONTHLY * packagePlans[0].monthlyEquivalentRevenue,
+      PLUS_TERM: planCounts.PLUS_TERM * packagePlans[1].monthlyEquivalentRevenue,
+      PLUS_YEARLY: planCounts.PLUS_YEARLY * packagePlans[2].monthlyEquivalentRevenue,
+    };
+
+    const baseMonthlyRevenue =
+      baseMonthlyRevenueByPlan.PLUS_MONTHLY
+      + baseMonthlyRevenueByPlan.PLUS_TERM
+      + baseMonthlyRevenueByPlan.PLUS_YEARLY;
+
+    const baseMonthlyAiCost = aiCostSummary.totalMonthlyCostTHB;
+    const series = buildFinanceSeries(period, baseMonthlyRevenue, baseMonthlyAiCost);
+    const totalRevenue = roundToTwo(series.reduce((sum, item) => sum + item.revenue, 0));
+    const totalAiCost = roundToTwo(series.reduce((sum, item) => sum + item.aiCost, 0));
+    const netProfit = roundToTwo(totalRevenue - totalAiCost);
+    const marginRate = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
+    const costLoadRate = totalRevenue > 0 ? (totalAiCost / totalRevenue) * 100 : 0;
+    const rangeRevenueMultiplier = baseMonthlyRevenue > 0 ? totalRevenue / baseMonthlyRevenue : 0;
+    const paidShare = (paidUsers / Math.max(totalUsers, 1)) * 100;
+
+    const packageRows = packagePlans.map((plan) => {
+      const revenue = roundToTwo(baseMonthlyRevenueByPlan[plan.planKey] * rangeRevenueMultiplier);
+      return {
+        ...plan,
+        users: planCounts[plan.planKey],
+        revenue,
+        share: totalRevenue > 0 ? (revenue / totalRevenue) * 100 : 0,
+      };
+    });
+
+    const leadingPlan = packageRows.reduce((best, row) => (row.revenue > best.revenue ? row : best), packageRows[0]);
+    const freeCostPerUser = freeCostTotal / Math.max(freeUsers, 1);
+    const plusCostPerUser = plusCostTotal / Math.max(paidUsers, 1);
+    const plusRevenuePerUser = baseMonthlyRevenue / Math.max(paidUsers, 1);
+    const plusProfitPerUser = plusRevenuePerUser - plusCostPerUser;
+    const plusRetentionRate = weeklyRetentionByPlan.length > 0
+      ? (weeklyRetentionByPlan[weeklyRetentionByPlan.length - 1].plus / Math.max(weeklyRetentionByPlan[0].plus, 1)) * 100
+      : 0;
+    const trialToPaidRate = period === "today" ? 39.8 : period === "month" ? 41.6 : period === "6months" ? 43.1 : 42.4;
+    const churnRate = 100 * (1 - Math.pow(1 - (churnAnalysis.churnRate / 100), meta.monthsEquivalent));
+    const successfulReferrals = Math.max(3, Math.round(118 * rangeRevenueMultiplier));
+    const arpu = totalRevenue / Math.max(paidUsers, 1);
+
+    return {
+      meta,
+      totalUsers,
+      paidUsers,
+      paidShare,
+      freeUsers,
+      freeCostTotal,
+      series,
+      totalRevenue,
+      totalAiCost,
+      netProfit,
+      marginRate,
+      costLoadRate,
+      packageRows,
+      leadingPlan,
+      freeCostPerUser,
+      plusCostPerUser,
+      plusRevenuePerUser,
+      plusProfitPerUser,
+      plusRetentionRate,
+      trialToPaidRate,
+      churnRate,
+      successfulReferrals,
+      arpu,
+    };
+  }, [period]);
+
+  const summaryCards = [
+    {
+      label: "รายได้รวม",
+      value: formatCurrencyTHB(financeModel.totalRevenue),
+    },
+    {
+      label: "ค่าใช้จ่าย AI",
+      value: formatCurrencyTHB(financeModel.totalAiCost),
+    },
+    {
+      label: "กำไรสุทธิ",
+      value: formatCurrencyTHB(financeModel.netProfit),
+    },
+    {
+      label: "อัตรากำไร",
+      value: formatPercent(financeModel.marginRate),
+    },
+  ];
+
+  return (
+    <DashboardPageShell
+      title="การเงิน"
+      description="ติดตามรายได้ PLUS, ต้นทุน AI และคุณภาพของรายได้ให้สอดคล้องกับภาพรวม dashboard"
+    >
       <AppTabs
-        value={activeTab}
-        onValueChange={(value) => setActiveTab(value as TabKey)}
-        items={[
-          { value: "overview", label: "ภาพรวมรายได้" },
-          { value: "transactions", label: "รายการธุรกรรม" },
-        ]}
+        value={period}
+        onValueChange={(value) => setPeriod(value as TimeRange)}
+        items={[...periodTabs]}
       />
 
-      {activeTab === "overview" ? (
-        <>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {financeRevenueStats.map((item) => (
-              <MetricCard
-                key={item.label}
-                label={item.label}
-                value={item.value}
-                delta={item.delta}
-                trend={item.trend === "up" ? "up" : "down"}
-              />
-            ))}
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {summaryCards.map((item) => (
+          <MetricCard key={item.label} label={item.label} value={item.value} className="min-h-[132px] p-5" />
+        ))}
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-2">
+        <article className={sectionCardClass}>
+          <SectionToolbar
+            title="ภาพรวมธุรกิจ"
+            badge={`มุมมอง ${periodTabs.find((item) => item.value === period)?.label}`}
+          />
+          <div className="grid gap-3 md:grid-cols-2">
+            <FinanceDetailCard
+              label="ฐานผู้ใช้ที่จ่ายเงิน"
+              value={formatNumber(financeModel.paidUsers)}
+            />
+            <FinanceDetailCard
+              label="แพ็กเกจนำรายได้"
+              value={financeModel.leadingPlan.label}
+            />
+            <FinanceDetailCard
+              label="AI burn ต่อรายได้"
+              value={formatPercent(financeModel.costLoadRate)}
+              tone={financeModel.costLoadRate > 45 ? "warning" : "neutral"}
+              meter={financeModel.costLoadRate}
+            />
+            <FinanceDetailCard
+              label="PLUS retention"
+              value={formatPercent(financeModel.plusRetentionRate)}
+              tone="positive"
+              meter={financeModel.plusRetentionRate}
+            />
           </div>
+        </article>
 
-          <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-            <div>
-              <h3 className="text-base font-semibold">แนวโน้มรายได้รายเดือน (12 เดือน)</h3>
-              <p className="text-sm text-muted-foreground">แยกรายได้ใหม่, การอัปเกรด, การยกเลิก ต่อเดือน</p>
-            </div>
-            <div className="mt-4 h-72 w-full">
-              <ResponsiveContainer>
-                <BarChart data={mrrTrend} margin={{ left: 8, right: 8, top: 6 }}>
-                  <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeOpacity={0.5} />
-                  <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                  <Tooltip />
-                  <Bar dataKey="newMRR" stackId="a" fill="hsl(var(--primary))" name="รายได้ใหม่" />
-                  <Bar dataKey="expansionMRR" stackId="a" fill="#14b8a6" name="การอัปเกรด" />
-                  <Bar dataKey="churnedMRR" stackId="a" fill="#ef4444" radius={[4, 4, 0, 0]} name="การยกเลิก" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </article>
-
-          <div className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
-            <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-              <div>
-                <h3 className="text-base font-semibold">การเปลี่ยนแปลงรายได้รายเดือน</h3>
-                <p className="text-sm text-muted-foreground">ดูว่ารายได้เดือนนี้เปลี่ยนแปลงจากอะไรบ้าง</p>
-              </div>
-              <div className="mt-4 space-y-3">
-                {mrrWaterfall.map((item) => (
-                  <div key={item.label} className="flex items-center justify-between rounded-lg border border-border bg-background p-3">
-                    <p className="text-sm font-semibold">{item.label}</p>
-                    <span
-                      className={`text-sm font-bold ${
-                        item.type === "add"
-                          ? "text-emerald-600 dark:text-emerald-400"
-                          : item.type === "subtract"
-                            ? "text-rose-600 dark:text-rose-400"
-                            : "text-foreground"
-                      }`}
-                    >
-                      {item.type === "add" ? "+" : ""}
-                      {formatCurrencyTHB(Math.abs(item.value))}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </article>
-
-            <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-              <h3 className="text-base font-semibold">รายได้แยกตามแพ็กเกจ</h3>
-              <div className="mt-4 h-56 w-full">
-                <ResponsiveContainer>
-                  <PieChart>
-                    <Tooltip />
-                    <Pie
-                      data={revenueByPlan}
-                      dataKey="revenue"
-                      nameKey="plan"
-                      innerRadius={50}
-                      outerRadius={86}
-                      paddingAngle={3}
-                      stroke="hsl(var(--background))"
-                      strokeWidth={2}
-                    >
-                      {revenueByPlan.map((item, index) => (
-                        <Cell key={item.plan} fill={planColors[index % planColors.length]} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="mt-2 space-y-2">
-                {revenueByPlan.map((item) => (
-                  <div key={item.plan} className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{item.plan}</span>
-                    <span className="font-semibold">{item.percentage}% ({formatCurrencyTHB(item.revenue)})</span>
-                  </div>
-                ))}
-              </div>
-            </article>
+        <article className={sectionCardClass}>
+          <SectionToolbar
+            title="จุดที่ต้องเฝ้าระวัง"
+            badge="จุดเสี่ยง"
+          />
+          <div className="grid gap-3 md:grid-cols-2">
+            <FinanceDetailCard
+              label="FREE burn ต่อเดือน"
+              value={formatCurrencyTHB(financeModel.freeCostTotal)}
+              tone="warning"
+            />
+            <FinanceDetailCard
+              label="Spread ของ PLUS ต่อคน"
+              value={formatCurrencyTHB(financeModel.plusProfitPerUser)}
+              tone="positive"
+            />
+            <FinanceDetailCard
+              label="ความเสี่ยงจาก churn"
+              value={formatPercent(financeModel.churnRate)}
+              tone="warning"
+              meter={financeModel.churnRate}
+            />
+            <FinanceDetailCard
+              label="Referral ที่ปิดได้"
+              value={formatNumber(financeModel.successfulReferrals)}
+            />
           </div>
+        </article>
+      </div>
 
-          <div className="grid gap-4 xl:grid-cols-2">
-            <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-              <h3 className="text-base font-semibold">วิเคราะห์การยกเลิก</h3>
-              <p className="text-sm text-muted-foreground">อัตราการยกเลิก: <span className="font-bold text-rose-500">{churnAnalysis.churnRate}%</span></p>
-              <div className="mt-4 space-y-4">
-                <div>
-                  <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">ยกเลิกตามระยะเวลาใช้งาน</p>
-                  {churnAnalysis.churnByTenure.map((item) => (
-                    <div key={item.tenure} className="mb-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">{item.tenure}</span>
-                        <span className="font-semibold">{item.rate}%</span>
-                      </div>
-                      <div className="mt-1 h-2 rounded-full bg-muted">
-                        <div className="h-2 rounded-full bg-rose-500" style={{ width: `${(item.rate / 10) * 100}%` }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div>
-                  <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">สาเหตุการยกเลิก</p>
-                  {churnAnalysis.churnReasons.map((item) => (
-                    <div key={item.reason} className="mb-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">{item.reason}</span>
-                        <span className="font-semibold">{item.ratio}%</span>
-                      </div>
-                      <div className="mt-1 h-2 rounded-full bg-muted">
-                        <div className="h-2 rounded-full bg-amber-500" style={{ width: `${item.ratio}%` }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </article>
+      <article className={sectionCardClass}>
+        <SectionToolbar
+          title="รายได้เทียบค่าใช้จ่าย AI"
+          badge="แนวโน้ม"
+        />
 
-            <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-              <div>
-                <h3 className="text-base font-semibold">เส้นทางสู่ PLUS</h3>
-                <p className="text-sm text-muted-foreground">ดูจำนวนผู้ใช้ที่หลุดในแต่ละขั้นตอนก่อนอัปเกรด</p>
-              </div>
-              <div className="mt-4 h-64 w-full">
-                <ResponsiveContainer>
-                  <BarChart data={conversionFunnel} margin={{ left: 8, right: 8, top: 6 }}>
-                    <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeOpacity={0.5} />
-                    <XAxis dataKey="step" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} />
-                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                    <Tooltip />
-                    <Bar dataKey="users" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} name="Users" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                {conversionFunnel.slice(1).map((step) => (
-                  <p key={step.step} className="text-xs text-muted-foreground">
-                    {step.step}:{" "}
-                    <span className={`font-semibold ${step.dropOff > 25 ? "text-rose-500" : "text-foreground"}`}>
-                      {step.dropOff}% หลุด
-                    </span>
-                  </p>
-                ))}
-              </div>
-              <div className="mt-4 rounded-lg border border-border bg-background p-4">
-                <p className="mb-3 text-sm font-semibold text-muted-foreground">รายได้รายเดือน (คาดการณ์เดือนหน้า)</p>
-                <div className="grid grid-cols-3 gap-3 text-center text-sm">
-                  <div>
-                    <p className="text-xs text-muted-foreground">แย่สุด</p>
-                    <p className="mt-1 font-bold text-rose-500">{formatCurrencyTHB(projectedMrr.pessimistic)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">ปกติ</p>
-                    <p className="mt-1 font-bold">{formatCurrencyTHB(projectedMrr.base)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">ดีสุด</p>
-                    <p className="mt-1 font-bold text-emerald-600 dark:text-emerald-400">{formatCurrencyTHB(projectedMrr.optimistic)}</p>
-                  </div>
-                </div>
-                <div className="mt-3 grid grid-cols-2 gap-3 text-center text-xs text-muted-foreground">
-                  <p>ต่ออายุ ≈ {projectedMrr.renewals} คน</p>
-                  <p>หมดอายุ ≈ {projectedMrr.expiring} คน</p>
-                </div>
-              </div>
-            </article>
+        <div className="mb-4 grid gap-3 sm:grid-cols-2">
+          <div className={innerPanelClass}>
+            <p className="text-xs text-muted-foreground">รายได้สะสม</p>
+            <p className="mt-1 text-base font-semibold text-foreground">{formatCurrencyTHB(financeModel.totalRevenue)}</p>
           </div>
-        </>
-      ) : (
+          <div className={innerPanelClass}>
+            <p className="text-xs text-muted-foreground">กำไรสะสม</p>
+            <p className="mt-1 text-base font-semibold text-foreground">{formatCurrencyTHB(financeModel.netProfit)}</p>
+          </div>
+        </div>
+
+        <div className={chartPanelClass}>
+          <ChartContainer config={financeChartConfig} className="h-[160px] w-full">
+            <LineChart data={financeModel.series} margin={{ left: 8, right: 8, top: 10 }}>
+              <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeOpacity={0.45} />
+              <XAxis dataKey="label" tickLine={false} axisLine={false} minTickGap={20} interval={financeModel.meta.tickInterval} />
+              <YAxis tickLine={false} axisLine={false} width={74} tickFormatter={(value) => formatCompactCurrency(Number(value))} />
+              <ChartTooltip content={<FinanceChartTooltip />} />
+              <Line type="monotone" dataKey="revenue" name="รายได้" stroke="var(--color-revenue)" strokeWidth={3} dot={false} activeDot={false} />
+              <Line type="monotone" dataKey="aiCost" name="ค่าใช้จ่าย AI" stroke="var(--color-aiCost)" strokeWidth={3} dot={false} activeDot={false} />
+            </LineChart>
+          </ChartContainer>
+        </div>
+      </article>
+
+      <div className="grid gap-4">
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.18fr)_minmax(0,0.82fr)]">
         <DataTableShell
-          caption="ตารางประวัติธุรกรรมและการชำระเงิน"
-          minWidthClass="min-w-[900px]"
-          toolbar={
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h3 className="text-base font-semibold">รายการธุรกรรม</h3>
-                <p className="text-sm text-muted-foreground">ประวัติการชำระเงิน รีฟันด์ และรายการล้มเหลว</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[150px]">
-                    <SelectValue placeholder="ทุกสถานะ" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">ทุกสถานะ</SelectItem>
-                    <SelectItem value="success">สำเร็จ</SelectItem>
-                    <SelectItem value="failed">ล้มเหลว</SelectItem>
-                    <SelectItem value="refunded">คืนเงิน</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button
-                  size="sm"
-                  onClick={() =>
-                    exportCSV(
-                      "transactions",
-                      filteredTransactions.map((transaction) => ({
-                        id: transaction.id,
-                        date: transaction.date,
-                        user: transaction.user,
-                        userId: transaction.userId,
-                        amount: transaction.amount,
-                        plan: transaction.plan,
-                        paymentMethod: transaction.paymentMethod,
-                        status: transaction.status,
-                      })),
-                    )
-                  }
-                >
-                  Export CSV
-                </Button>
-              </div>
-            </div>
-          }
+          caption="ตารางรายได้แยกตามแพ็กเกจ"
+          minWidthClass="min-w-[760px]"
+          className="h-full min-w-0"
+          toolbar={(
+            <SectionToolbar
+              title="รายได้แยกตามแพ็กเกจ"
+              badge="แพ็กเกจ"
+            />
+          )}
         >
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>วันที่</TableHead>
-                <TableHead>ผู้ใช้</TableHead>
-                <TableHead>จำนวนเงิน</TableHead>
                 <TableHead>แพ็กเกจ</TableHead>
-                <TableHead>วิธีชำระ</TableHead>
-                <TableHead>สถานะ</TableHead>
+                <TableHead>ราคา</TableHead>
+                <TableHead>จำนวนผู้ใช้</TableHead>
+                <TableHead>รายได้</TableHead>
+                <TableHead>สัดส่วน</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredTransactions.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">
-                    ไม่พบรายการตามเงื่อนไข
+              {financeModel.packageRows.map((row) => (
+                <TableRow key={row.planKey}>
+                  <TableCell>
+                    <div>
+                      <p className="font-medium text-foreground">{row.label}</p>
+                      {row.planKey === financeModel.leadingPlan.planKey ? (
+                        <p className="text-xs text-muted-foreground">แพ็กเกจนำรายได้ในช่วงนี้</p>
+                      ) : null}
+                    </div>
+                  </TableCell>
+                  <TableCell>{row.priceLabel}</TableCell>
+                  <TableCell className="font-semibold text-foreground">{formatNumber(row.users)}</TableCell>
+                  <TableCell className="font-semibold text-foreground">{formatCurrencyTHB(row.revenue)}</TableCell>
+                  <TableCell>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
+                        <span>{formatPercent(row.share)}</span>
+                        {row.planKey === financeModel.leadingPlan.planKey ? (
+                          <Badge variant="secondary" className="rounded-full px-2.5 py-1 text-[11px]">
+                            เด่นสุด
+                          </Badge>
+                        ) : null}
+                      </div>
+                      <div className="h-2 rounded-full bg-muted">
+                        <div className="h-2 rounded-full bg-primary" style={{ width: `${row.share}%` }} />
+                      </div>
+                    </div>
                   </TableCell>
                 </TableRow>
-              ) : (
-                filteredTransactions.map((transaction) => (
-                  <TableRow key={transaction.id}>
-                    <TableCell className="font-medium">{transaction.id}</TableCell>
-                    <TableCell>{transaction.date}</TableCell>
-                    <TableCell>
-                      <p className="font-medium">{transaction.user}</p>
-                      <p className="text-xs text-muted-foreground">{transaction.userId}</p>
-                    </TableCell>
-                    <TableCell className="font-semibold">{formatCurrencyTHB(transaction.amount)}</TableCell>
-                    <TableCell>{transaction.plan}</TableCell>
-                    <TableCell>{transaction.paymentMethod}</TableCell>
-                    <TableCell>
-                      <Badge
-                        className={
-                          transaction.status === "success"
-                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300"
-                            : transaction.status === "failed"
-                              ? "bg-rose-100 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300"
-                              : "bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300"
-                        }
-                      >
-                        {transaction.status === "success" ? "สำเร็จ" : transaction.status === "failed" ? "ล้มเหลว" : "คืนเงิน"}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
+              ))}
+            </TableBody>
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={3}>รวม</TableCell>
+                <TableCell className="font-semibold">{formatCurrencyTHB(financeModel.totalRevenue)}</TableCell>
+                <TableCell>{formatPercent(100)}</TableCell>
+              </TableRow>
+            </TableFooter>
+          </Table>
+        </DataTableShell>
+        <DataTableShell
+          caption="ตารางต้นทุนและกำไรต่อผู้ใช้"
+          minWidthClass="min-w-[480px]"
+          className="h-full min-w-0"
+          toolbar={(
+            <SectionToolbar
+              title="ต้นทุนและกำไรต่อผู้ใช้"
+              badge="ต่อผู้ใช้"
+            />
+          )}
+        >
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ตัวชี้วัด</TableHead>
+                <TableHead>FREE</TableHead>
+                <TableHead>PLUS</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell className="font-medium">รายได้/คน/เดือน</TableCell>
+                <TableCell>
+                  <p className="font-semibold text-foreground">{formatCurrencyTHB(0)}</p>
+                  <p className="text-xs text-muted-foreground">ไม่มี recurring revenue</p>
+                </TableCell>
+                <TableCell>
+                  <p className="font-semibold text-foreground">{formatCurrencyTHB(financeModel.plusRevenuePerUser)}</p>
+                  <p className="text-xs text-muted-foreground">เฉลี่ยจาก mix ของแพ็กเกจ PLUS</p>
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">ต้นทุน AI/คน/เดือน</TableCell>
+                <TableCell>
+                  <p className="font-semibold text-foreground">{formatCurrencyTHB(financeModel.freeCostPerUser)}</p>
+                  <p className="text-xs text-muted-foreground">FREE ยังมีต้นทุนตรงจากการใช้ AI</p>
+                </TableCell>
+                <TableCell>
+                  <p className="font-semibold text-foreground">{formatCurrencyTHB(financeModel.plusCostPerUser)}</p>
+                  <p className="text-xs text-muted-foreground">ผู้ใช้ PLUS ใช้ AI หนาแน่นกว่า</p>
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">กำไร/คน/เดือน</TableCell>
+                <TableCell>
+                  <p className="font-semibold text-rose-600 dark:text-rose-400">ขาดทุน {formatCurrencyTHB(financeModel.freeCostPerUser)}</p>
+                  <p className="text-xs text-muted-foreground">FREE เป็น cost ด้าน acquisition และ engagement</p>
+                </TableCell>
+                <TableCell>
+                  <p className="font-semibold text-emerald-600 dark:text-emerald-400">กำไร {formatCurrencyTHB(financeModel.plusProfitPerUser)}</p>
+                  <p className="text-xs text-muted-foreground">PLUS ยังมี spread บวกต่อคนอย่างชัดเจน</p>
+                </TableCell>
+              </TableRow>
             </TableBody>
           </Table>
         </DataTableShell>
-      )}
+        </div>
+
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+        <article className={sectionCardClass}>
+          <SectionToolbar
+            title="การแปลงและการรักษาผู้ใช้"
+            badge="การรักษา"
+          />
+
+          <div className="grid gap-3 md:grid-cols-2">
+            <FinanceDetailCard
+              label="ทดลองใช้ → สมัครจริง"
+              value={formatPercent(financeModel.trialToPaidRate)}
+              tone="positive"
+              meter={financeModel.trialToPaidRate}
+            />
+            <FinanceDetailCard
+              label="อัตราการยกเลิก"
+              value={formatPercent(financeModel.churnRate)}
+              tone="warning"
+              meter={financeModel.churnRate}
+            />
+            <FinanceDetailCard
+              label="ชวนเพื่อนสำเร็จ"
+              value={formatNumber(financeModel.successfulReferrals)}
+            />
+            <FinanceDetailCard
+              label="รายได้เฉลี่ยต่อผู้ใช้"
+              value={formatCurrencyTHB(financeModel.arpu)}
+            />
+          </div>
+
+          <div className="mt-4 rounded-xl border border-border/70 bg-background/80 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="font-semibold text-foreground">เหตุผลยกเลิกหลัก</p>
+              <span className="text-sm font-semibold text-foreground">{formatPercent(churnAnalysis.churnRate)}</span>
+            </div>
+            <div className="mt-3 space-y-3">
+              {churnAnalysis.churnReasons.slice(0, 3).map((item) => (
+                <div key={item.reason}>
+                  <div className="flex items-center justify-between gap-3 text-sm">
+                    <span className="text-muted-foreground">{item.reason}</span>
+                    <span className="font-semibold text-foreground">{item.ratio}%</span>
+                  </div>
+                  <div className="mt-2 h-2 rounded-full bg-muted">
+                    <div className="h-2 rounded-full bg-amber-500" style={{ width: `${item.ratio}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </article>
+
+        <article className={cn(sectionCardClass, "min-w-0")}>
+          <SectionToolbar
+            title="แรงกดต่อ margin"
+            badge="แรงกด"
+          />
+
+          <div className="grid gap-3">
+            <FinanceDetailCard
+              label="FREE burn รวม"
+              value={formatCurrencyTHB(financeModel.freeCostTotal)}
+              tone="warning"
+            />
+            <FinanceDetailCard
+              label="สัดส่วนรายได้จากแพ็กเกจนำ"
+              value={formatPercent(financeModel.leadingPlan.share)}
+            />
+            <FinanceDetailCard
+              label="AI cost load"
+              value={formatPercent(financeModel.costLoadRate)}
+              tone={financeModel.costLoadRate > 45 ? "warning" : "neutral"}
+              meter={financeModel.costLoadRate}
+            />
+            <FinanceDetailCard
+              label="กำไรต่อ PLUS หนึ่งคน"
+              value={formatCurrencyTHB(financeModel.plusProfitPerUser)}
+              tone="positive"
+            />
+          </div>
+        </article>
+        </div>
+      </div>
     </DashboardPageShell>
   );
 }

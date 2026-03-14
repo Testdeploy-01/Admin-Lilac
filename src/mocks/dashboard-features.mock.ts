@@ -146,7 +146,7 @@ function splitIntegerTotal(total: number, weights: number[]) {
   const weightSum = weights.reduce((sum, weight) => sum + weight, 0);
   const rawValues = weights.map((weight) => (weight / weightSum) * total);
   const baseValues = rawValues.map((value) => Math.floor(value));
-  let remainder = total - baseValues.reduce((sum, value) => sum + value, 0);
+  const remainder = total - baseValues.reduce((sum, value) => sum + value, 0);
 
   const rankedFractions = rawValues
     .map((value, index) => ({ index, fraction: value - Math.floor(value) }))
@@ -241,8 +241,6 @@ const plusUsers = totalUsers - freeUsers;
 const plusMonthly = managedUsers.filter((u) => u.plan === "PLUS_MONTHLY").length;
 const plusTerm = managedUsers.filter((u) => u.plan === "PLUS_TERM").length;
 const plusYearly = managedUsers.filter((u) => u.plan === "PLUS_YEARLY").length;
-const totalMonthlyTokens = managedUsers.reduce((s, u) => s + u.inputVoiceTokens + u.inputTextTokens + u.outputTextTokens, 0);
-const totalAiCost = managedUsers.reduce((s, u) => s + u.aiCostTHB, 0);
 const totalAiCalls = managedUsers.reduce((s, u) => s + u.aiCallsTotal, 0);
 const totalWidgetInstalls = managedUsers.reduce((s, u) => s + u.widgetInstalls, 0);
 
@@ -377,11 +375,11 @@ export const activityFeed = [
 
 // 1.9 Top AI Prompts
 export const topTextPrompts = [
-  { prompt: "ช่วยสรุปบทเรียนวิชาฟิสิกส์", count: 4820, percentage: 16.8 },
-  { prompt: "จัดตารางอ่านหนังสือสอบ", count: 4390, percentage: 15.3 },
-  { prompt: "อธิบายงบกำไรขาดทุนแบบง่าย", count: 3720, percentage: 13.0 },
-  { prompt: "แปลเนื้อหานี้เป็นภาษาอังกฤษ", count: 3185, percentage: 11.1 },
-  { prompt: "ช่วยวางแผนการเงินรายเดือน", count: 2950, percentage: 10.3 },
+  { prompt: "ช่วยสรุปบทเรียนวิชาฟิสิกส์", count: 4820, percentage: 16.8, feature: "การเรียน" },
+  { prompt: "จัดตารางอ่านหนังสือสอบ", count: 4390, percentage: 15.3, feature: "การเรียน" },
+  { prompt: "อธิบายงบกำไรขาดทุนแบบง่าย", count: 3720, percentage: 13.0, feature: "การเงิน" },
+  { prompt: "แปลเนื้อหานี้เป็นภาษาอังกฤษ", count: 3185, percentage: 11.1, feature: "AI Chat" },
+  { prompt: "ช่วยวางแผนการเงินรายเดือน", count: 2950, percentage: 10.3, feature: "การเงิน" },
 ];
 
 
@@ -476,22 +474,182 @@ export const churnList = managedUsers
 /* ──────────────────────────────────────────────
  * 3. AI Monitor – Page 3
  * ────────────────────────────────────────────── */
+const AI_AVG_VOICE_SECONDS = 8;
+const AI_DAYS_PER_MONTH = 30;
+const USD_TO_THB = 32;
+const WHISPER_PRICE_PER_MINUTE_USD = 0.006;
+const COHERE_PRICE_PER_MILLION_TOKENS_USD = 0.12;
+const HAIKU_INPUT_PRICE_PER_MILLION_TOKENS_USD = 0.8;
+const HAIKU_OUTPUT_PRICE_PER_MILLION_TOKENS_USD = 4;
+
+const aiUsersThisMonth = managedUsers.filter((u) => u.aiCallsTotal > 0).length;
+const totalTextCommands = managedUsers.reduce((sum, user) => sum + user.textCommands, 0);
+const totalVoiceCommands = managedUsers.reduce((sum, user) => sum + user.voiceCommands, 0);
+const totalInputVoiceTokens = managedUsers.reduce((sum, user) => sum + user.inputVoiceTokens, 0);
+const totalInputTextTokens = managedUsers.reduce((sum, user) => sum + user.inputTextTokens, 0);
+const totalOutputTokensPerMonth = managedUsers.reduce((sum, user) => sum + user.outputTextTokens, 0);
+const totalInputTokensPerMonth = totalInputVoiceTokens + totalInputTextTokens;
+const totalTokensPerMonth = totalInputTokensPerMonth + totalOutputTokensPerMonth;
+const totalMonthlyAiCostTHB = managedUsers.reduce((sum, user) => sum + user.aiCostTHB, 0);
+const totalMonthlyAiCostUSD = totalMonthlyAiCostTHB / USD_TO_THB;
+const avgCommandsPerUserPerDay = totalAiCalls / Math.max(aiUsersThisMonth, 1) / AI_DAYS_PER_MONTH;
+const todayCommandCount = Math.round(totalAiCalls / AI_DAYS_PER_MONTH);
+const todayTextCommands = Math.round(todayCommandCount * (totalTextCommands / Math.max(totalAiCalls, 1)));
+const todayVoiceCommands = todayCommandCount - todayTextCommands;
+const whisperMinutesPerMonth = totalVoiceCommands * (AI_AVG_VOICE_SECONDS / 60);
+const whisperMinutesPerDay = todayVoiceCommands * (AI_AVG_VOICE_SECONDS / 60);
+const aiCostPerCommandTHB = totalMonthlyAiCostTHB / Math.max(totalAiCalls, 1);
+const costPerUserPerMonthTHB = totalMonthlyAiCostTHB / Math.max(aiUsersThisMonth, 1);
+const costPerUserPerDayTHB = costPerUserPerMonthTHB / AI_DAYS_PER_MONTH;
+const freeMonthlyAiCostTHB = managedUsers.filter((u) => u.plan === "FREE").reduce((sum, user) => sum + user.aiCostTHB, 0);
+const plusMonthlyAiCostTHB = managedUsers.filter((u) => u.plan !== "FREE").reduce((sum, user) => sum + user.aiCostTHB, 0);
+const freeCostPerUserPerMonthTHB = freeMonthlyAiCostTHB / Math.max(freeUsers, 1);
+const plusCostPerUserPerMonthTHB = plusMonthlyAiCostTHB / Math.max(plusUsers, 1);
+const monthlyFailureRate = Math.min(0.08, ((totalVoiceCommands / Math.max(totalAiCalls, 1)) * 0.04) + ((freeUsers / Math.max(totalUsers, 1)) * 0.05));
+const aiSuccessRate = +(100 - (monthlyFailureRate * 100)).toFixed(1);
+const plusPriceTHB = 99;
+const rollingYearLabels = ["เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค.", "ม.ค.", "ก.พ.", "มี.ค."];
+const rollingYearMultipliers = [0.84, 0.87, 0.9, 0.92, 0.95, 0.97, 1, 1.02, 1.04, 1.07, 1.05, 1.09];
+
+const buildScaledCommandSeries = (labels: string[], multipliers: number[]) => labels.map((label, index) => {
+  const commands = Math.round(totalAiCalls * multipliers[index]);
+  const text = Math.round(commands * (totalTextCommands / Math.max(totalAiCalls, 1)));
+  return {
+    label,
+    text,
+    voice: commands - text,
+  };
+});
+
+const monthDayWeights = Array.from({ length: AI_DAYS_PER_MONTH }, (_, index) => (
+  1
+  + (Math.sin((index + 1) * 0.72) * 0.14)
+  + ((index % 7) >= 5 ? 0.12 : -0.03)
+  + (index % 9 === 0 ? 0.06 : 0)
+));
+const monthTextSeries = splitIntegerTotal(totalTextCommands, monthDayWeights);
+const monthVoiceSeries = splitIntegerTotal(totalVoiceCommands, monthDayWeights);
+
+const textHourlyWeights = [
+  0.44, 0.42, 0.4, 0.39, 0.38, 0.42, 0.56, 0.72, 0.84, 0.91, 0.95, 0.98,
+  1, 1.04, 1.02, 0.98, 0.96, 0.99, 1.08, 1.12, 1.14, 1.06, 0.82, 0.62,
+];
+const voiceHourlyWeights = [
+  0.36, 0.34, 0.33, 0.32, 0.31, 0.35, 0.44, 0.56, 0.64, 0.72, 0.76, 0.82,
+  0.88, 0.93, 0.98, 1, 1.02, 1.08, 1.16, 1.22, 1.18, 1.04, 0.82, 0.58,
+];
+const hourlyTextSeries = splitIntegerTotal(todayTextCommands, textHourlyWeights);
+const hourlyVoiceSeries = splitIntegerTotal(todayVoiceCommands, voiceHourlyWeights);
+const sixMonthCommandSeries = buildScaledCommandSeries(rollingYearLabels.slice(-6), rollingYearMultipliers.slice(-6));
+const yearCommandSeries = buildScaledCommandSeries(rollingYearLabels, rollingYearMultipliers);
+
+const totalCommandsPerMonth = totalAiCalls;
+const totalCommandsLast6Months = sixMonthCommandSeries.reduce((sum, item) => sum + item.text + item.voice, 0);
+const totalCommandsLastYear = yearCommandSeries.reduce((sum, item) => sum + item.text + item.voice, 0);
+
+export const aiCostSummary = {
+  users: aiUsersThisMonth,
+  commandsPerUserPerDay: +avgCommandsPerUserPerDay.toFixed(1),
+  totalCommandsPerDay: todayCommandCount,
+  voiceCommandsPerDay: todayVoiceCommands,
+  textCommandsPerDay: todayTextCommands,
+  voiceMinutesPerDay: whisperMinutesPerDay,
+  inputTokensPerMonth: totalInputTokensPerMonth,
+  outputTokensPerMonth: totalOutputTokensPerMonth,
+  totalMonthlyCostUSD: totalMonthlyAiCostUSD,
+  totalMonthlyCostTHB: totalMonthlyAiCostTHB,
+  costPerUserPerMonthTHB,
+  costPerUserPerDayTHB,
+  plusProfitPerMonthTHB: plusPriceTHB - costPerUserPerMonthTHB,
+  freeLossPerMonthTHB: costPerUserPerMonthTHB,
+};
+
 export const aiMonitorStats = [
-  { label: "คำสั่ง AI วันนี้", value: Math.round(totalAiCalls / 30).toLocaleString(), note: "รวมเสียงและข้อความ" },
-  { label: "โทเคนวันนี้", value: Math.round(totalMonthlyTokens / 30).toLocaleString(), note: "Input + Output" },
-  { label: "ต้นทุน AI วันนี้", value: `฿${Math.round(totalAiCost / 30).toLocaleString()}`, note: "ค่าใช้จ่ายเฉลี่ยต่อวัน" },
-  { label: "ผู้ใช้ที่ใช้ AI วันนี้", value: dau.toLocaleString(), note: "ผู้ใช้ที่ส่งคำสั่ง AI อย่างน้อย 1 ครั้ง" },
+  { label: "คำสั่ง AI", value: totalCommandsPerMonth.toLocaleString(), note: "รวม 30 วันล่าสุด" },
+  { label: "ผู้ใช้ที่ใช้ AI", value: aiUsersThisMonth.toLocaleString(), note: "ผู้ใช้ที่มีการเรียก AI ในเดือนนี้" },
+  { label: "อัตราสำเร็จ", value: `${aiSuccessRate.toFixed(1)}%`, note: "คำสั่งที่ระบบตอบกลับสำเร็จ" },
+  { label: "ต้นทุนต่อคำสั่ง", value: `฿${aiCostPerCommandTHB.toFixed(2)}`, note: "เฉลี่ยต่อ 1 คำสั่ง" },
 ];
 
-export const aiCallVolumeHourly = (() => {
-  const data: Array<{ hour: string; text: number; voice: number }> = [];
-  for (let h = 0; h < 24; h++) {
-    const baseText = h >= 7 && h <= 22 ? 180 + Math.floor(rand() * 120) : 30 + Math.floor(rand() * 40);
-    const baseVoice = h >= 7 && h <= 22 ? 80 + Math.floor(rand() * 60) : 10 + Math.floor(rand() * 15);
-    data.push({ hour: `${String(h).padStart(2, "0")}:00`, text: baseText, voice: baseVoice });
-  }
-  return data;
-})();
+export const aiCallVolumeMonthly = monthTextSeries.map((text, index) => ({
+  day: String(index + 1),
+  text,
+  voice: monthVoiceSeries[index],
+}));
+
+export type AiMonitorPeriod = "today" | "month" | "6months" | "year";
+
+export const aiCommandSeriesByPeriod = {
+  today: Array.from({ length: 24 }, (_, hour) => ({
+    label: `${String(hour).padStart(2, "0")}:00`,
+    text: hourlyTextSeries[hour],
+    voice: hourlyVoiceSeries[hour],
+  })),
+  month: aiCallVolumeMonthly.map((item) => ({
+    label: item.day,
+    text: item.text,
+    voice: item.voice,
+  })),
+  "6months": sixMonthCommandSeries,
+  year: yearCommandSeries,
+} satisfies Record<AiMonitorPeriod, Array<{ label: string; text: number; voice: number }>>;
+
+export const aiStatsByPeriod = {
+  today: {
+    commands: todayCommandCount,
+    users: dau,
+    successRate: Math.min(99.9, +(aiSuccessRate + 0.4).toFixed(1)),
+    costPerCommandTHB: aiCostPerCommandTHB,
+    totalCostTHB: totalMonthlyAiCostTHB / AI_DAYS_PER_MONTH,
+    commandNote: "รวมวันนี้",
+    usersNote: "ผู้ใช้ที่เรียก AI วันนี้",
+    successNote: "คำสั่งที่ระบบตอบกลับสำเร็จวันนี้",
+    totalCostNote: "ต้นทุนรวมวันนี้",
+  },
+  month: {
+    commands: totalCommandsPerMonth,
+    users: aiUsersThisMonth,
+    successRate: aiSuccessRate,
+    costPerCommandTHB: aiCostPerCommandTHB,
+    totalCostTHB: totalMonthlyAiCostTHB,
+    commandNote: "รวม 30 วันล่าสุด",
+    usersNote: "ผู้ใช้ที่มีการเรียก AI ในเดือนนี้",
+    successNote: "คำสั่งที่ระบบตอบกลับสำเร็จ",
+    totalCostNote: "ต้นทุนรวมเดือนนี้",
+  },
+  "6months": {
+    commands: totalCommandsLast6Months,
+    users: aiUsersThisMonth,
+    successRate: Math.max(90, +(aiSuccessRate - 0.3).toFixed(1)),
+    costPerCommandTHB: aiCostPerCommandTHB,
+    totalCostTHB: totalCommandsLast6Months * aiCostPerCommandTHB,
+    commandNote: "รวม 6 เดือนล่าสุด",
+    usersNote: "ผู้ใช้ที่มีการเรียก AI ในช่วง 6 เดือน",
+    successNote: "ค่าเฉลี่ยสำเร็จย้อนหลัง 6 เดือน",
+    totalCostNote: "ต้นทุนรวม 6 เดือนล่าสุด",
+  },
+  year: {
+    commands: totalCommandsLastYear,
+    users: totalUsers,
+    successRate: Math.max(90, +(aiSuccessRate - 0.7).toFixed(1)),
+    costPerCommandTHB: aiCostPerCommandTHB,
+    totalCostTHB: totalCommandsLastYear * aiCostPerCommandTHB,
+    commandNote: "รวม 12 เดือนล่าสุด",
+    usersNote: "ผู้ใช้ที่มีการเรียก AI ในรอบ 1 ปี",
+    successNote: "ค่าเฉลี่ยสำเร็จย้อนหลัง 1 ปี",
+    totalCostNote: "ต้นทุนรวม 1 ปีที่ผ่านมา",
+  },
+} satisfies Record<AiMonitorPeriod, {
+  commands: number;
+  users: number;
+  successRate: number;
+  costPerCommandTHB: number;
+  totalCostTHB: number;
+  commandNote: string;
+  usersNote: string;
+  successNote: string;
+  totalCostNote: string;
+}>;
 
 export const errorRateHourly = (() => {
   const data: Array<{ hour: string; errorRate: number; median: number; p95: number }> = [];
@@ -550,48 +708,214 @@ export const flaggedPrompts: FlaggedPrompt[] = [
 ];
 
 export const tokenUsageCost = {
-  today: { tokens: Math.round(totalMonthlyTokens / 30), cost: Math.round(totalAiCost / 30) },
-  thisMonth: { tokens: totalMonthlyTokens, cost: totalAiCost },
-  lastMonth: { tokens: Math.round(totalMonthlyTokens * 0.92), cost: Math.round(totalAiCost * 0.92) },
-  costPerUserFree: Math.round(totalAiCost / Math.max(freeUsers, 1) * 0.3),
-  costPerUserPlus: Math.round(totalAiCost / Math.max(plusUsers, 1) * 0.7),
+  today: { tokens: Math.round(totalTokensPerMonth / AI_DAYS_PER_MONTH), cost: totalMonthlyAiCostTHB / AI_DAYS_PER_MONTH },
+  thisMonth: { tokens: totalTokensPerMonth, cost: totalMonthlyAiCostTHB },
+  lastMonth: { tokens: Math.round(totalTokensPerMonth * 0.94), cost: +(totalMonthlyAiCostTHB * 0.94).toFixed(2) },
+  costPerUserFree: freeCostPerUserPerMonthTHB,
+  costPerUserPlus: plusCostPerUserPerMonthTHB,
 };
 
-export const tokenUsageDaily = (() => {
-  const data: Array<{ day: string; tokens: number; cost: number }> = [];
-  for (let i = 1; i <= 30; i++) {
-    data.push({
-      day: String(i),
-      tokens: Math.round((totalMonthlyTokens / 30) * (0.85 + rand() * 0.3)),
-      cost: Math.round((totalAiCost / 30) * (0.85 + rand() * 0.3)),
-    });
-  }
-  return data;
-})();
+const aiFeatureUsageSummaryMonth = FEATURE_BUCKETS
+  .map((feature) => {
+    const commands = managedUsers.reduce((sum, user) => (
+      sum + (user.aiFeatureUsage.find((item) => item.feature === feature)?.calls ?? 0)
+    ), 0);
+    const costTHB = managedUsers.reduce((sum, user) => (
+      sum + (user.aiFeatureUsage.find((item) => item.feature === feature)?.costTHB ?? 0)
+    ), 0);
+
+    return {
+      feature,
+      commands,
+      costTHB: +costTHB.toFixed(2),
+      sharePercent: Math.round((commands / Math.max(totalCommandsPerMonth, 1)) * 100),
+    };
+  })
+  .sort((a, b) => b.commands - a.commands);
+
+const aiPeriodCommandRatio = {
+  today: aiStatsByPeriod.today.commands / Math.max(totalCommandsPerMonth, 1),
+  month: 1,
+  "6months": aiStatsByPeriod["6months"].commands / Math.max(totalCommandsPerMonth, 1),
+  year: aiStatsByPeriod.year.commands / Math.max(totalCommandsPerMonth, 1),
+} satisfies Record<AiMonitorPeriod, number>;
+
+const aiPeriodCostRatio = {
+  today: aiStatsByPeriod.today.totalCostTHB / Math.max(totalMonthlyAiCostTHB, 1),
+  month: 1,
+  "6months": aiStatsByPeriod["6months"].totalCostTHB / Math.max(totalMonthlyAiCostTHB, 1),
+  year: aiStatsByPeriod.year.totalCostTHB / Math.max(totalMonthlyAiCostTHB, 1),
+} satisfies Record<AiMonitorPeriod, number>;
+
+const aiFeaturePeriodWeights: Record<AiMonitorPeriod, Record<UserFeatureName, number>> = {
+  today: { การเงิน: 1.06, การเรียน: 0.96, ไลฟ์สไตล์: 0.98 },
+  month: { การเงิน: 1, การเรียน: 1, ไลฟ์สไตล์: 1 },
+  "6months": { การเงิน: 1.02, การเรียน: 1.04, ไลฟ์สไตล์: 0.94 },
+  year: { การเงิน: 1.08, การเรียน: 0.99, ไลฟ์สไตล์: 0.93 },
+};
+
+function scaleByRatio(value: number, ratio: number) {
+  return Math.max(1, Math.round(value * ratio));
+}
+
+export const aiFeatureUsageSummaryByPeriod = Object.fromEntries(
+  (Object.keys(aiStatsByPeriod) as AiMonitorPeriod[]).map((period) => {
+    const weightedCommands = aiFeatureUsageSummaryMonth.map((item) => ({
+      ...item,
+      commands: item.commands * aiPeriodCommandRatio[period] * aiFeaturePeriodWeights[period][item.feature],
+      costTHB: item.costTHB * aiPeriodCostRatio[period] * aiFeaturePeriodWeights[period][item.feature],
+    }));
+    const totalCommands = weightedCommands.reduce((sum, item) => sum + item.commands, 0);
+
+    return [period, weightedCommands
+      .map((item) => ({
+        feature: item.feature,
+        commands: Math.max(1, Math.round(item.commands)),
+        costTHB: +item.costTHB.toFixed(2),
+        sharePercent: Math.round((item.commands / Math.max(totalCommands, 1)) * 100),
+      }))
+      .sort((a, b) => b.commands - a.commands)];
+  }),
+) as Record<AiMonitorPeriod, typeof aiFeatureUsageSummaryMonth>;
+
+export const aiFeatureUsageSummary = aiFeatureUsageSummaryByPeriod.month;
+
+const tokenUsageDailySeries = splitIntegerTotal(totalTokensPerMonth, monthDayWeights);
+
+export const tokenUsageDaily = tokenUsageDailySeries.map((tokens, index) => ({
+  day: String(index + 1),
+  tokens,
+  cost: +((tokens / Math.max(totalTokensPerMonth, 1)) * totalMonthlyAiCostTHB).toFixed(2),
+}));
+
+export const aiTokenSummary = {
+  totalTokens: totalTokensPerMonth,
+  totalTokensLabel: `${(totalTokensPerMonth / 1_000_000).toFixed(2)}M tokens`,
+  inputTokens: totalInputTokensPerMonth,
+  outputTokens: totalOutputTokensPerMonth,
+  monthlyCostTHB: totalMonthlyAiCostTHB,
+  costPerUserPerMonthTHB,
+  costPerCommandTHB: aiCostPerCommandTHB,
+};
+
+const aiPromptTemplates: Record<UserFeatureName, [string, string]> = {
+  การเงิน: ["สรุปรายจ่ายเดือนนี้ให้หน่อย", "ช่วยวางแผนการเงินรายเดือน"],
+  การเรียน: ["ช่วยสรุปเนื้อหาก่อนสอบ", "จัดตารางอ่านหนังสือสอบให้หน่อย"],
+  ไลฟ์สไตล์: ["ช่วยวางแผนวันพรุ่งนี้ให้หน่อย", "ตั้งเตือนงานสำคัญให้หน่อย"],
+};
+
+export const aiTopPromptsByFeatureByPeriod = Object.fromEntries(
+  (Object.keys(aiStatsByPeriod) as AiMonitorPeriod[]).map((period) => [period, aiFeatureUsageSummaryByPeriod[period].map((featureUsage) => ({
+    feature: featureUsage.feature,
+    prompts: [
+      { prompt: aiPromptTemplates[featureUsage.feature][0], count: Math.max(1, Math.round(featureUsage.commands * 0.18)) },
+      { prompt: aiPromptTemplates[featureUsage.feature][1], count: Math.max(1, Math.round(featureUsage.commands * 0.14)) },
+    ],
+  }))]),
+) as Record<AiMonitorPeriod, Array<{
+  feature: UserFeatureName;
+  prompts: Array<{ prompt: string; count: number }>;
+}>>;
+
+export const aiTopPromptsByFeature = aiTopPromptsByFeatureByPeriod.month;
+
+const whisperMonthlyCostUSD = whisperMinutesPerMonth * WHISPER_PRICE_PER_MINUTE_USD;
+const cohereMonthlyCostUSD = (totalInputTokensPerMonth / 1_000_000) * COHERE_PRICE_PER_MILLION_TOKENS_USD;
+const haikuInputMonthlyCostUSD = (totalInputTokensPerMonth / 1_000_000) * HAIKU_INPUT_PRICE_PER_MILLION_TOKENS_USD;
+const haikuOutputMonthlyCostUSD = (totalOutputTokensPerMonth / 1_000_000) * HAIKU_OUTPUT_PRICE_PER_MILLION_TOKENS_USD;
+const haikuMonthlyCostUSD = haikuInputMonthlyCostUSD + haikuOutputMonthlyCostUSD;
+const theoreticalMonthlyAiCostTHB = (whisperMonthlyCostUSD + cohereMonthlyCostUSD + haikuMonthlyCostUSD) * USD_TO_THB;
+const whisperAllocatedCostTHB = theoreticalMonthlyAiCostTHB > 0
+  ? +((totalMonthlyAiCostTHB * ((whisperMonthlyCostUSD * USD_TO_THB) / theoreticalMonthlyAiCostTHB)).toFixed(2))
+  : 0;
+const cohereAllocatedCostTHB = theoreticalMonthlyAiCostTHB > 0
+  ? +((totalMonthlyAiCostTHB * ((cohereMonthlyCostUSD * USD_TO_THB) / theoreticalMonthlyAiCostTHB)).toFixed(2))
+  : 0;
+const haikuAllocatedCostTHB = +(totalMonthlyAiCostTHB - whisperAllocatedCostTHB - cohereAllocatedCostTHB).toFixed(2);
 
 export const aiModelUsage = [
   {
-    model: "GPT-4o mini",
-    description: "ประมวลผลข้อความและการโต้ตอบ (Text Input/Output)",
-    pricing: "In: ฿5.37 / Out: ฿21.48 (ต่อ 1M Token)",
-    tokens: Math.round(totalMonthlyTokens * 0.55),
-    costTHB: Math.round(totalAiCost * 0.30)
+    model: "Claude Haiku 3.5",
+    description: "ประมวลผล input และ output ตาม token usage จริงจาก managedUsers",
+    pricing: "Input ฿25.60 / Output ฿128.00 ต่อ 1M tokens",
+    tokens: totalTokensPerMonth,
+    costUSD: haikuAllocatedCostTHB / USD_TO_THB,
+    costTHB: haikuAllocatedCostTHB,
+    breakdown: `Input ${(totalInputTokensPerMonth / 1_000_000).toFixed(2)}M / Output ${(totalOutputTokensPerMonth / 1_000_000).toFixed(2)}M tokens`,
+    unitLabel: "input + output",
   },
   {
-    model: "Claude 3.5 Haiku",
-    description: "สรุปเนื้อหายาว และจัดรูปแบบโน้ต (Text Output)",
-    pricing: "In: ฿9.00 / Out: ฿45.00 (ต่อ 1M Token)",
-    tokens: Math.round(totalMonthlyTokens * 0.25),
-    costTHB: Math.round(totalAiCost * 0.20)
+    model: "Cohere Embed v4",
+    description: "Embed input จากข้อความและเสียงตาม token usage จริงใน managedUsers",
+    pricing: "฿3.84 ต่อ 1M tokens",
+    tokens: totalInputTokensPerMonth,
+    costUSD: cohereAllocatedCostTHB / USD_TO_THB,
+    costTHB: cohereAllocatedCostTHB,
+    breakdown: `${totalCommandsPerMonth.toLocaleString()} คำสั่ง / Input ${(totalInputTokensPerMonth / 1_000_000).toFixed(2)}M tokens`,
+    unitLabel: "input tokens",
   },
   {
     model: "OpenAI Whisper",
-    description: "ถอดเสียงบรรยายเป็นข้อความ (Voice to Text)",
-    pricing: "฿0.21 ต่อความยาวเสียง 1 นาที",
-    tokens: Math.round(totalMonthlyTokens * 0.20),
-    costTHB: Math.round(totalAiCost * 0.50)
+    description: "แปลงเสียงเป็นข้อความจากจำนวน voice commands จริง โดยใช้อัตราเฉลี่ย 8 วินาทีต่อครั้ง",
+    pricing: "฿0.19 ต่อนาที",
+    tokens: Math.round(whisperMinutesPerMonth),
+    costUSD: whisperAllocatedCostTHB / USD_TO_THB,
+    costTHB: whisperAllocatedCostTHB,
+    breakdown: `${totalVoiceCommands.toLocaleString()} คำสั่งเสียง / ${whisperMinutesPerMonth.toFixed(0)} นาที`,
+    unitLabel: "นาทีเสียง",
   },
 ];
+
+const aiModelPeriodWeights: Record<AiMonitorPeriod, Record<string, number>> = {
+  today: { "Claude Haiku 3.5": 1.02, "Cohere Embed v4": 1, "OpenAI Whisper": 0.98 },
+  month: { "Claude Haiku 3.5": 1, "Cohere Embed v4": 1, "OpenAI Whisper": 1 },
+  "6months": { "Claude Haiku 3.5": 1.04, "Cohere Embed v4": 1.01, "OpenAI Whisper": 0.95 },
+  year: { "Claude Haiku 3.5": 1.08, "Cohere Embed v4": 1.03, "OpenAI Whisper": 0.91 },
+};
+
+export const aiModelUsageByPeriod = Object.fromEntries(
+  (Object.keys(aiStatsByPeriod) as AiMonitorPeriod[]).map((period) => {
+    const scaledModels = aiModelUsage.map((model) => {
+      const tokenRatio = model.unitLabel === "นาทีเสียง" ? aiPeriodCommandRatio[period] : aiPeriodCommandRatio[period] * aiModelPeriodWeights[period][model.model];
+      const costRatio = aiPeriodCostRatio[period] * aiModelPeriodWeights[period][model.model];
+
+      return {
+        ...model,
+        tokens: scaleByRatio(model.tokens, tokenRatio),
+        costTHB: +(model.costTHB * costRatio).toFixed(2),
+        costUSD: +((model.costTHB * costRatio) / USD_TO_THB).toFixed(2),
+      };
+    });
+
+    return [period, scaledModels];
+  }),
+) as Record<AiMonitorPeriod, typeof aiModelUsage>;
+
+type UnresolvedQuery = typeof unresolvedQueries[number];
+
+const unresolvedQueriesMonth: UnresolvedQuery[] = [
+  { query: "ช่วยจองตั๋วเครื่องบินให้หน่อย", count: 89, category: "off-topic" },
+  { query: "ราคาทองวันนี้เท่าไหร่", count: 67, category: "ไลฟ์สไตล์" },
+  { query: "แปลโค้ด Python นี้ให้หน่อย", count: 45, category: "การเรียน" },
+  { query: "วิเคราะห์หุ้น xxx ให้หน่อย", count: 38, category: "การเงิน" },
+  { query: "เขียน essay ภาษาจีนให้หน่อย", count: 31, category: "การเรียน" },
+];
+
+const unresolvedPeriodWeights = {
+  today: [0.92, 1.04, 0.96, 1.02, 0.9],
+  month: [1, 1, 1, 1, 1],
+  "6months": [1.08, 0.94, 1.12, 1.05, 1.09],
+  year: [1.12, 0.9, 1.16, 1.08, 1.12],
+} satisfies Record<AiMonitorPeriod, number[]>;
+
+export const unresolvedQueriesByPeriod = Object.fromEntries(
+  (Object.keys(aiStatsByPeriod) as AiMonitorPeriod[]).map((period) => [period, unresolvedQueriesMonth
+    .map((query, index) => ({
+      ...query,
+      count: scaleByRatio(query.count, aiPeriodCommandRatio[period] * unresolvedPeriodWeights[period][index]),
+    }))
+    .sort((a, b) => b.count - a.count)]),
+) as Record<AiMonitorPeriod, UnresolvedQuery[]>;
 
 export type AiUsageRow = {
   userId: string;

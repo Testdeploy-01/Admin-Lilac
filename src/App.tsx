@@ -13,16 +13,16 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<DashboardLayout />}>
-          <Route index element={<Navigate to="/overview" replace />} />
+        <Route element={<DashboardLayout />}>
+          <Route path="/" element={<Navigate to="/overview" replace />} />
           <Route path="overview" element={<Suspense><OverviewPage /></Suspense>} />
           <Route path="user-management" element={<Suspense><UserManagementPage /></Suspense>} />
           <Route path="ai-monitor" element={<Suspense><AiMonitorPage /></Suspense>} />
           <Route path="finance" element={<Suspense><FinancePage /></Suspense>} />
           <Route path="notifications" element={<Suspense><NotificationsPage /></Suspense>} />
           <Route path="settings" element={<Suspense><SettingsPage /></Suspense>} />
-          <Route path="*" element={<Navigate to="/overview" replace />} />
         </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );

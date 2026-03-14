@@ -179,15 +179,7 @@ const FloatingDockDesktop = ({
 
   return (
     <motion.div
-      layoutScroll
-      className={cn(
-        "fixed z-30",
-        orientation === "vertical"
-          ? "left-[var(--dock-left,1.5rem)] top-1/2 -translate-y-1/2 hidden items-center rounded-2xl border border-border bg-card shadow-sm md:flex md:flex-col"
-          : "bottom-6 left-1/2 -translate-x-1/2 hidden h-16 items-end gap-4 rounded-2xl border border-border bg-card px-4 pb-3 shadow-sm md:flex",
-        className,
-      )}
-      style={verticalDockStyle}
+      layoutScroll={false}
       onMouseMove={(e) => pointer.set(orientation === "vertical" ? e.clientY : e.clientX)}
       onMouseEnter={() => {
         hoverProgressRaw.set(1);
@@ -198,6 +190,14 @@ const FloatingDockDesktop = ({
         hoverProgressRaw.set(0);
         onDockHoverChange?.(false);
       }}
+      style={verticalDockStyle}
+      className={cn(
+        "fixed z-30",
+        orientation === "vertical"
+          ? "left-[var(--dock-left,1.5rem)] top-1/2 -translate-y-1/2 hidden items-center rounded-2xl border border-border bg-card shadow-sm md:flex md:flex-col"
+      : "bottom-6 left-1/2 -translate-x-1/2 hidden h-16 items-end gap-4 rounded-2xl border border-border bg-card px-4 pb-3 shadow-sm md:flex",
+        className,
+      )}
     >
       <LayoutGroup id={`dock-active-indicator-${dockInstanceId}`}>
         {items.map((item) => (
@@ -206,6 +206,7 @@ const FloatingDockDesktop = ({
             hoverProgress={hoverProgress}
             orientation={orientation}
             dockScale={dockScale}
+            activeDotLayoutId={`dock-active-dot-${dockInstanceId}`}
             key={item.title}
             {...item}
           />
@@ -231,6 +232,7 @@ function IconContainer({
   variant = "default",
   badge,
   align = "default",
+  activeDotLayoutId,
 }: {
   pointer: MotionValue;
   hoverProgress: MotionValue<number>;
@@ -247,6 +249,7 @@ function IconContainer({
   variant?: "default" | "logo" | "avatar";
   badge?: number;
   align?: "default" | "bottom";
+  activeDotLayoutId: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -357,7 +360,7 @@ function IconContainer({
         <motion.div
           style={{ width: widthIcon, height: heightIcon }}
           className={cn(
-            "flex items-center justify-center transform-gpu will-change-auto",
+            "flex items-center justify-center transform-gpu will-change-transform",
             (variant === "avatar" || variant === "logo") && "h-full w-full overflow-hidden rounded-full",
           )}
         >
@@ -378,8 +381,8 @@ function IconContainer({
         ) : null}
         {active && !showLogo ? (
           <motion.span
-            layoutId="dock-active-indicator"
-            initial={false}
+            layoutId={activeDotLayoutId}
+            layoutScroll={false}
             transition={{ type: "spring", stiffness: 300, damping: 34, mass: 0.9 }}
             className={cn(
               "absolute rounded-full bg-primary",
@@ -388,7 +391,6 @@ function IconContainer({
             style={{ width: `${activeDotSize}px`, height: `${activeDotSize}px` }}
           />
         ) : null}
-
       </motion.div>
     </DockLink>
   );
