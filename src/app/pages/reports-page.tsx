@@ -395,7 +395,6 @@ export function ReportsPage() {
             value={formatNumber(summary.totalUsers)}
             delta={summary.usersDelta}
             trend={summary.usersTrend}
-            trendColor="positive"
             note={`ผู้ใช้ใหม่ ${formatNumber(summary.rows.reduce((s, r) => s + r.newUsers, 0))} คน`}
             className="min-h-[132px] p-5"
           />
@@ -406,7 +405,6 @@ export function ReportsPage() {
             value={formatCurrencyTHB(summary.totalRevenue)}
             delta={summary.revenueDelta}
             trend={summary.revenueTrend}
-            trendColor="positive"
             note={`ตามช่วง${timeRangeLabels[timeRange]}`}
             className="min-h-[132px] p-5"
           />
@@ -417,7 +415,6 @@ export function ReportsPage() {
             value={formatNumber(summary.totalAiCommands)}
             delta={summary.aiDelta}
             trend={summary.aiTrend}
-            trendColor="positive"
             note={`เฉลี่ย ${(summary.totalAiCommands / Math.max(summary.totalUsers, 1)).toFixed(1)} คำสั่ง/ผู้ใช้`}
             className="min-h-[132px] p-5"
           />
@@ -428,7 +425,6 @@ export function ReportsPage() {
             value={formatNumber(summary.totalPlusNew)}
             delta={summary.plusDelta}
             trend={summary.plusTrend}
-            trendColor="positive"
             note={`จากทั้งหมด ${formatNumber(managedUsers.filter(u => u.plan !== "FREE").length)} คน`}
             className="min-h-[132px] p-5"
           />

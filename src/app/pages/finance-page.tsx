@@ -359,7 +359,6 @@ export function FinancePage() {
           note="ตามช่วงเวลาที่เลือก"
           delta={financeModel.mockDeltas.revenue.value}
           trend={financeModel.mockDeltas.revenue.trend}
-          trendColor={financeModel.mockDeltas.revenue.color}
           className="min-h-[132px] p-5"
         />
         <MetricCard
@@ -368,7 +367,6 @@ export function FinancePage() {
           note="ตามช่วงเวลาที่เลือก"
           delta={financeModel.mockDeltas.newMembers.value}
           trend={financeModel.mockDeltas.newMembers.trend}
-          trendColor={financeModel.mockDeltas.newMembers.color}
           className="min-h-[132px] p-5"
         />
         <MetricCard
@@ -377,7 +375,6 @@ export function FinancePage() {
           note="อัตราการแปลงสมาชิก"
           delta={financeModel.mockDeltas.conversion.value}
           trend={financeModel.mockDeltas.conversion.trend}
-          trendColor={financeModel.mockDeltas.conversion.color}
           className="min-h-[132px] p-5"
         />
         <MetricCard
@@ -386,7 +383,6 @@ export function FinancePage() {
           note="ตามช่วงเวลาที่เลือก"
           delta={financeModel.mockDeltas.churn.value}
           trend={financeModel.mockDeltas.churn.trend}
-          trendColor={financeModel.mockDeltas.churn.color} // Green when down
           className="min-h-[132px] p-5"
         />
         <MetricCard
@@ -395,7 +391,6 @@ export function FinancePage() {
           note="ตามช่วงเวลาที่เลือก"
           delta={financeModel.mockDeltas.referrals.value}
           trend={financeModel.mockDeltas.referrals.trend}
-          trendColor={financeModel.mockDeltas.referrals.color}
           className="min-h-[132px] p-5"
         />
       </div>
