@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./app/context/auth-context";
 import { DashboardLayout } from "./app/layout/dashboard-layout";
 import { RequireOwner } from "./app/routes/require-owner";
@@ -20,7 +20,7 @@ function ChunkSuspense({ children }: { children: React.ReactNode }) {
 
 function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <AuthProvider>
         <Routes>
           {/* Login — outside DashboardLayout (no dock / sidebar) */}
@@ -40,7 +40,7 @@ function App() {
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </AuthProvider>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 
