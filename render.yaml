@@ -9,6 +9,15 @@ services:
     envVars:
       - key: NODE_VERSION
         value: "22.12.0"
+    headers:
+      # Hashed assets are immutable — cache forever (1 year)
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+      # index.html must never be cached so deploys take effect immediately
+      - path: /index.html
+        name: Cache-Control
+        value: no-cache, no-store, must-revalidate
     routes:
       - type: rewrite
         source: /*

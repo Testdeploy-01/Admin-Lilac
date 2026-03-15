@@ -195,7 +195,7 @@ export function LoginPage() {
                   transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                 />
                 <motion.img
-                  src="/Logo.png"
+                  src="/Logo.webp"
                   alt="Lilac Admin Logo"
                   className="relative h-20 w-20 object-contain"
                   initial={{ scale: 0, rotate: -60 }}

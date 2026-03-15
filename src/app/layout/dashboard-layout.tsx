@@ -35,6 +35,26 @@ export function DashboardLayout() {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
+  // Prefetch all page chunks during idle time so navigations feel instant
+  useEffect(() => {
+    const cb = () => {
+      import("../pages/overview-page");
+      import("../pages/user-management-page");
+      import("../pages/ai-monitor-page");
+      import("../pages/finance-page");
+      import("../pages/notifications-page");
+      import("../pages/reports-page");
+      import("../pages/settings-page");
+    };
+    if ("requestIdleCallback" in window) {
+      const id = requestIdleCallback(cb, { timeout: 3000 });
+      return () => cancelIdleCallback(id);
+    }
+    // Fallback for browsers without requestIdleCallback
+    const t = setTimeout(cb, 3000);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
     <DashboardUIProvider>
       <DashboardLayoutFrame

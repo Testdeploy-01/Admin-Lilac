@@ -34,8 +34,24 @@ type DockRenderItem = {
   variant?: "default" | "logo" | "avatar";
   align?: "default" | "bottom";
   badge?: number;
+  onMouseEnter?: () => void;
 };
 
+
+// Map route path → dynamic import for hover-based prefetch
+const routePrefetch: Record<string, () => Promise<unknown>> = {
+  "/overview": () => import("../../app/pages/overview-page"),
+  "/user-management": () => import("../../app/pages/user-management-page"),
+  "/ai-monitor": () => import("../../app/pages/ai-monitor-page"),
+  "/finance": () => import("../../app/pages/finance-page"),
+  "/notifications": () => import("../../app/pages/notifications-page"),
+  "/reports": () => import("../../app/pages/reports-page"),
+  "/settings": () => import("../../app/pages/settings-page"),
+};
+
+export function prefetchRoute(href: string) {
+  routePrefetch[href]?.();
+}
 
 const leftDockItems: DockItem[] = [
   { title: "ภาพรวม", href: "/overview", icon: LayoutDashboard, activePrefixes: ["/overview"] },
@@ -62,7 +78,7 @@ export function DockBrandLogo() {
   return (
     <Link to="/overview" className="flex flex-col items-center gap-2.5 group">
       <img
-        src="/Logo.png"
+        src="/Logo.webp"
         alt="Lilac logo"
         className="h-14 w-14 object-contain drop-shadow-sm transition-transform duration-200 group-hover:scale-110"
       />
@@ -80,6 +96,7 @@ export function FloatingDockNav({ onHoverChange }: FloatingDockNavProps) {
   const toRenderItem = (item: DockItem): DockRenderItem => {
     const active = isRouteActive(pathname, item.activePrefixes);
     const iconNode = item.customIcon ? (
+
       <span className={cn("block h-full w-full rounded-full", active && "ring-2 ring-primary/70 ring-offset-1 ring-offset-background")}>
         {item.customIcon}
       </span>
@@ -95,6 +112,8 @@ export function FloatingDockNav({ onHoverChange }: FloatingDockNavProps) {
       variant: item.variant,
       align: item.align,
       icon: iconNode,
+      // Prefetch the page chunk when user hovers the dock item
+      onMouseEnter: item.href ? () => prefetchRoute(item.href!) : undefined,
     };
   };
 
