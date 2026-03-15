@@ -57,11 +57,11 @@ export function ContentSkeleton() {
           </div>
           <div className="p-6 pt-0 flex-1 pb-0 shadow-none">
             <div className="mt-4 flex h-[250px] items-end justify-around gap-3">
-              {Array.from({ length: 3 }).map((_, i) => (
+              {[72, 88, 65].map((h, i) => (
                 <Skeleton
                   key={`bar-${i}`}
                   className="w-16 rounded-t-xl"
-                  style={{ height: `${60 + Math.random() * 40}%` }}
+                  style={{ height: `${h}%` }}
                 />
               ))}
             </div>

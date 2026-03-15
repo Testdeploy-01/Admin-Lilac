@@ -1,4 +1,4 @@
-﻿import { managedUsers, tokenUsageCost, transactionHistory, type HealthStatus } from "./dashboard-features.mock";
+import { managedUsers, tokenUsageCost, type HealthStatus } from "./dashboard-features.mock";
 
 export type OverviewKpi = {
   label: string;
@@ -31,7 +31,6 @@ export type OverviewSystemOwner = {
   systems: string[];
 };
 
-const overviewRevenueDate = "2026-03-04";
 const overviewToday = "2026-03-11";
 const overviewYesterday = "2026-03-10";
 const totalUsers = managedUsers.length;
@@ -40,10 +39,8 @@ const newUsersToday = managedUsers.filter((user) => user.signupDate === overview
 const newUsersYesterday = managedUsers.filter((user) => user.signupDate === overviewYesterday).length;
 const aiCostToday = Math.round((tokenUsageCost.thisMonth.cost / 30) * (dau / Math.max(totalUsers, 1)));
 const aiCostPerActiveUser = aiCostToday / Math.max(dau, 1);
-const revenueTodayTransactions = transactionHistory.filter(
-  (transaction) => transaction.date === overviewRevenueDate && transaction.status === "success",
-);
-const revenueToday = revenueTodayTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+const revenueToday = Math.round(managedUsers.filter(u => u.plan !== "FREE").reduce((sum, u) => sum + (u.plan === "PLUS_MONTHLY" ? 79 : u.plan === "PLUS_TERM" ? 259/4 : 699/12), 0) / 30);
+
 const newUsersDelta = newUsersYesterday
   ? `${newUsersToday >= newUsersYesterday ? "+" : ""}${(((newUsersToday - newUsersYesterday) / newUsersYesterday) * 100).toFixed(1)}%`
   : "+0.0%";
@@ -72,7 +69,7 @@ export const overviewRevenueKpi: OverviewKpi = {
     currency: "THB",
     maximumFractionDigits: 0,
   }).format(revenueToday),
-  delta: `ธุรกรรมสำเร็จ ${revenueTodayTransactions.length} รายการ`,
+  delta: `ประมาณการตามเงื่อนไขแพ็กเกจ`,
   trend: "up",
 };
 

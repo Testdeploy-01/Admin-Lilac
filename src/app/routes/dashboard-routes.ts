@@ -4,6 +4,7 @@ export type DashboardRouteKey =
   | "ai-monitor"
   | "finance"
   | "notifications"
+  | "reports"
   | "settings";
 
 export type DashboardRouteGroup = "หลัก" | "การจัดการ" | "ระบบ";
@@ -57,6 +58,14 @@ export const dashboardRouteMeta: DashboardRouteMeta[] = [
     group: "ระบบ",
     searchKeywords: ["notifications", "broadcast", "campaign", "a/b test", "แจ้งเตือน", "schedule"],
     exportKey: "notifications",
+  },
+  {
+    key: "reports",
+    path: "/reports",
+    titleTH: "รายงาน",
+    group: "ระบบ",
+    searchKeywords: ["reports", "report", "รายงาน", "export", "csv", "pdf", "สรุป", "system owner"],
+    exportKey: "reports",
   },
   {
     key: "settings",

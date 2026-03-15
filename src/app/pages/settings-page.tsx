@@ -5,302 +5,301 @@ import { DataTableShell } from "@/components/dashboard/ui/data-table-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Check, X } from "lucide-react";
 import {
   adminAccounts,
-  adminRoles,
   auditLog,
-  featureFlags,
   planPricingSettings,
-  plusFeatures,
-  subscriptionPlans,
   type AdminAccount,
-  type FeatureFlag,
 } from "../../mocks/dashboard-features.mock";
-import { formatCurrencyTHB } from "../../lib/formatters";
 
-type TabKey = "admins" | "features" | "logs" | "plans";
+type TabKey = "admins" | "logs" | "plans";
 
 export function SettingsPage() {
   const [tab, setTab] = useState<TabKey>("admins");
-  const [flags, setFlags] = useState<FeatureFlag[]>(featureFlags);
   const [admins, setAdmins] = useState<AdminAccount[]>(adminAccounts);
-  const [plans, setPlans] = useState(subscriptionPlans);
-  const [features, setFeatures] = useState(plusFeatures);
   const [savedAt, setSavedAt] = useState("ยังไม่บันทึก");
   const [trialDays, setTrialDays] = useState(String(planPricingSettings.freeTrialDays));
   const [freeDailyAiLimit, setFreeDailyAiLimit] = useState(String(planPricingSettings.freeDailyAiLimit));
+  
+  const [editingAdmin, setEditingAdmin] = useState<AdminAccount | null>(null);
 
   const handleSave = () => setSavedAt(new Date().toLocaleString("th-TH"));
 
   return (
-    <DashboardPageShell title="ตั้งค่าระบบ" description="จัดการผู้ดูแล ฟีเจอร์ และขบเพื่อคา">
+    <DashboardPageShell title="ตั้งค่าระบบ" description="จัดการผู้ดูแล ฟีเจอร์ และข้อมูล">
       <AppTabs
         value={tab}
         onValueChange={(value) => setTab(value as TabKey)}
         items={[
           { value: "admins", label: "ผู้ดูแลและสิทธิ์" },
-          { value: "features", label: "เปิด/ปิดฟีเจอร์" },
           { value: "logs", label: "บันทึกการใช้งาน" },
           { value: "plans", label: "แพ็กเกจและราคา" },
         ]}
       />
 
       {tab === "admins" ? (
-        <>
-          <DataTableShell
-            caption="ตารางรายชื่อ Admin และ Role"
-            minWidthClass="min-w-[700px]"
-            toolbar={
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-semibold">บัญชีผู้ดูแล</h3>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    const name = prompt("ชื่อ Admin ใหม่:");
-                    const email = prompt("อีเมล:");
-                    const role = prompt("ตำแหน่ง (Super Admin / Admin / Finance / Support / Marketing):");
-                    if (name && email && role) {
-                      setAdmins((prev) => [
-                        ...prev,
-                        {
-                          id: `ADM-${String(prev.length + 1).padStart(2, "0")}`,
-                          name,
-                          email,
-                          role,
-                          lastLogin: "-",
-                          avatar: `https://ui.shadcn.com/avatars/0${(prev.length % 6) + 1}.png`,
-                        },
-                      ]);
-                    }
-                  }}
-                >
-                  + เพิ่มผู้ดูแล
-                </Button>
-              </div>
-            }
-          >
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ผู้ดูแล</TableHead>
-                  <TableHead>อีเมล</TableHead>
-                  <TableHead>ตำแหน่ง</TableHead>
-                  <TableHead>เข้าใช้ล่าสุด</TableHead>
-                  <TableHead>จัดการ</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {admins.map((admin) => (
-                  <TableRow key={admin.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <img src={admin.avatar} alt={admin.name} className="h-8 w-8 rounded-full border border-border" />
-                        <span className="font-medium">{admin.name}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{admin.email}</TableCell>
-                    <TableCell>
-                      <Badge className="bg-primary/10 text-primary">{admin.role}</Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{admin.lastLogin}</TableCell>
-                    <TableCell>
-                      <Button size="sm" variant="destructive" onClick={() => setAdmins((prev) => prev.filter((item) => item.id !== admin.id))}>
-                        ลบ
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </DataTableShell>
-
-          <DataTableShell caption="ตาราง Roles และสิทธิ์การเข้าถึง" minWidthClass="min-w-[500px]">
-            <div className="mb-3">
-              <h3 className="text-base font-semibold">ตำแหน่งและสิทธิ์การเข้าถึง</h3>
+        <DataTableShell
+          caption="ตารางรายชื่อ Admin และ Role"
+          minWidthClass="min-w-[700px]"
+          toolbar={
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-semibold">บัญชีผู้ดูแล</h3>
+              <Button
+                size="sm"
+                onClick={() => {
+                  const name = prompt("ชื่อ Admin ใหม่:");
+                  const username = prompt("ชื่อผู้ใช้:");
+                  const role = prompt("ตำแหน่ง (Owner / ซุปเปอร์แอดมิน / Admin / การเงิน / ซัพพอร์ต / การตลาด):");
+                  if (name && username && role) {
+                    setAdmins((prev) => [
+                      ...prev,
+                      {
+                        id: `ADM-${String(prev.length + 1).padStart(2, "0")}`,
+                        name,
+                        username,
+                        role,
+                        lastLogin: "-",
+                        avatar: `https://ui.shadcn.com/avatars/0${(prev.length % 6) + 1}.png`,
+                      },
+                    ]);
+                  }
+                }}
+              >
+                + เพิ่มผู้ดูแล
+              </Button>
             </div>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ตำแหน่ง</TableHead>
-                  <TableHead>สิทธิ์</TableHead>
-                  <TableHead>จำนวนคน</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {adminRoles.map((role) => (
-                  <TableRow key={role.role}>
-                    <TableCell className="font-semibold">{role.role}</TableCell>
-                    <TableCell className="text-muted-foreground">{role.access}</TableCell>
-                    <TableCell>{role.users}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </DataTableShell>
-        </>
-      ) : null}
-
-      {tab === "features" ? (
-        <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <h3 className="text-base font-semibold">เปิด/ปิดฟีเจอร์</h3>
-          <p className="text-sm text-muted-foreground">เปิด/ปิดฟีเจอร์ พร้อมตั้ง % rollout และกลุ่มเป้าหมาย</p>
-          <div className="mt-4 space-y-4">
-            {flags.map((flag) => (
-              <div key={flag.id} className="rounded-xl border border-border bg-background p-5">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="font-semibold">{flag.name}</p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">{flag.description}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">กลุ่ม: {flag.targetGroup}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2">
-                      <label className="text-xs text-muted-foreground">เปิดให้ใช้ %</label>
-                      <Input
-                        type="number"
-                        min={0}
-                        max={100}
-                        value={flag.rolloutPercent}
-                        onChange={(event) =>
-                          setFlags((prev) => prev.map((item) => (item.id === flag.id ? { ...item, rolloutPercent: Number(event.target.value) } : item)))
-                        }
-                        className="w-20 text-center"
-                      />
-                    </div>
-                    <Switch
-                      checked={flag.enabled}
-                      onCheckedChange={(checked) => setFlags((prev) => prev.map((item) => (item.id === flag.id ? { ...item, enabled: checked } : item)))}
-                    />
-                  </div>
-                </div>
-                {flag.enabled ? (
-                  <div className="mt-3 h-2 rounded-full bg-muted">
-                    <div className="h-2 rounded-full bg-emerald-500 transition-all" style={{ width: `${flag.rolloutPercent}%` }} />
-                  </div>
-                ) : null}
-              </div>
-            ))}
-          </div>
-          <Button className="mt-4" onClick={handleSave}>
-            บันทึกการตั้งค่าฟีเจอร์
-          </Button>
-          <p className="mt-2 text-xs text-muted-foreground">อัปเดตล่าสุด: {savedAt}</p>
-        </article>
-      ) : null}
-
-      {tab === "logs" ? (
-        <DataTableShell caption="ตาราง Audit Log บันทึกการกระทำของ Admin" minWidthClass="min-w-[900px]">
-          <div className="mb-3">
-            <h3 className="text-base font-semibold">บันทึกการใช้งาน</h3>
-            <p className="text-sm text-muted-foreground">ทุกการกระทำของผู้ดูแลจะถูกบันทึกไว้ที่นี่</p>
-          </div>
+          }
+        >
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>เวลา</TableHead>
                 <TableHead>ผู้ดูแล</TableHead>
-                <TableHead>การกระทำ</TableHead>
-                <TableHead>เป้าหมาย</TableHead>
-                <TableHead>ก่อน</TableHead>
-                <TableHead>หลัง</TableHead>
+                <TableHead>ชื่อผู้ใช้</TableHead>
+                <TableHead>ตำแหน่ง</TableHead>
+                <TableHead>เข้าใช้ล่าสุด</TableHead>
+                <TableHead>จัดการ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {auditLog.map((entry) => (
-                <TableRow key={entry.id}>
-                  <TableCell className="text-muted-foreground">{entry.timestamp}</TableCell>
-                  <TableCell className="font-medium">{entry.adminName}</TableCell>
-                  <TableCell>{entry.action}</TableCell>
-                  <TableCell><Badge variant="secondary">{entry.target}</Badge></TableCell>
-                  <TableCell className="text-rose-600 dark:text-rose-400">{entry.before}</TableCell>
-                  <TableCell className="text-emerald-600 dark:text-emerald-400">{entry.after}</TableCell>
+              {admins.map((admin) => (
+                <TableRow key={admin.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <img src={admin.avatar} alt={admin.name} className="h-8 w-8 rounded-full border border-border" />
+                      <span className="font-medium">{admin.name}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{admin.username}</TableCell>
+                  <TableCell>
+                    <Badge 
+                      className={admin.role === "System Owner" ? "bg-[#7f68a8] text-white hover:bg-[#7f68a8]/90 border-transparent" : "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700"}
+                      variant={admin.role === "System Owner" ? "default" : "outline"}
+                    >
+                      {admin.role}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{admin.lastLogin}</TableCell>
+                  <TableCell>
+                    {admin.role === "System Owner" ? (
+                      <span className="text-sm text-muted-foreground">-</span>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Button size="sm" variant="outline" onClick={() => setEditingAdmin(admin)}>
+                          แก้ไข
+                        </Button>
+                        <Button size="sm" variant="destructive" onClick={() => setAdmins((prev) => prev.filter((item) => item.id !== admin.id))}>
+                          ลบ
+                        </Button>
+                      </div>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </DataTableShell>
-      ) : null}
-      {tab === "plans" ? (
-        <>
-          <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-            <h3 className="text-base font-semibold">ตั้งค่าราคาแพ็กเกจ</h3>
-            <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {plans.map((plan) => (
-                <div key={plan.id} className="rounded-xl border border-border bg-background p-6">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-wider text-primary">{plan.cycle}</p>
-                      <p className="mt-1 text-lg font-bold">{plan.name}</p>
-                    </div>
-                    <Badge className="bg-primary/10 text-primary">{plan.badge}</Badge>
-                  </div>
-                  <div className="mt-5">
-                    <p className="text-3xl font-black">{formatCurrencyTHB(plan.priceTHB)}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">อายุแพ็กเกจ {plan.durationDays} วัน</p>
-                  </div>
-                  <div className="mt-6 border-t border-border pt-5">
-                    <Button
-                      className="w-full"
-                      variant={plan.active ? "default" : "secondary"}
-                      onClick={() => setPlans((prev) => prev.map((row) => (row.id === plan.id ? { ...row, active: !row.active } : row)))}
-                    >
-                      {plan.active ? "เปิดใช้งานอยู่" : "คลิกเพื่อเปิดใช้งาน"}
-                    </Button>
+      ) : null}
+
+      <Dialog open={!!editingAdmin} onOpenChange={(open) => !open && setEditingAdmin(null)}>
+        <DialogContent className="max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>แก้ไขบัญชีผู้ดูแล</DialogTitle>
+          </DialogHeader>
+          <div className="mt-2 space-y-4">
+            <div className="space-y-1">
+              <label className="text-sm font-medium">ตำแหน่ง (Role)</label>
+              <select 
+                className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                value={editingAdmin?.role || "Admin"}
+                onChange={(e) => {
+                  const newRole = e.target.value;
+                  if (editingAdmin) {
+                    setAdmins(prev => prev.map(a => a.id === editingAdmin.id ? { ...a, role: newRole } : a));
+                    setEditingAdmin({ ...editingAdmin, role: newRole });
+                  }
+                }}
+              >
+                <option value="System Owner" className="bg-background text-foreground">System Owner</option>
+                <option value="Admin" className="bg-background text-foreground">Admin</option>
+              </select>
+            </div>
+            
+            <div className="rounded-xl border border-border bg-muted/20 p-4">
+              <p className="text-xs font-semibold uppercase text-muted-foreground mb-3 tracking-wider">สิทธิ์การเข้าถึง ({editingAdmin?.role})</p>
+              <div className="space-y-2.5">
+                {editingAdmin?.role === "System Owner" ? (
+                  <>
+                    <div className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500 shrink-0" /><span className="text-sm">ดูทุกหน้า</span></div>
+                    <div className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500 shrink-0" /><span className="text-sm">เพิ่ม/ลบ/แก้ไขบัญชีผู้ดูแล</span></div>
+                    <div className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500 shrink-0" /><span className="text-sm">เปลี่ยน Role ของ Admin</span></div>
+                    <div className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500 shrink-0" /><span className="text-sm">เปิด/ปิดฟีเจอร์</span></div>
+                    <div className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500 shrink-0" /><span className="text-sm">แก้ไขราคาแพ็กเกจ</span></div>
+                    <div className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500 shrink-0" /><span className="text-sm">แก้ไขขีดจำกัด FREE</span></div>
+                    <div className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500 shrink-0" /><span className="text-sm">แก้ไขระยะเวลา Trial</span></div>
+                    <div className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500 shrink-0" /><span className="text-sm">ดูบันทึกการใช้งานทุกคน</span></div>
+                    <div className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500 shrink-0" /><span className="text-sm">ส่งการแจ้งเตือน</span></div>
+                    <div className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500 shrink-0" /><span className="text-sm">ตอบกลับ Feedback</span></div>
+                    <div className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500 shrink-0" /><span className="text-sm">จัดการผู้ใช้ทั้งหมด</span></div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500 shrink-0" /><span className="text-sm">ดูทุกหน้า <span className="text-rose-500/80 font-medium">ยกเว้น Tab ผู้ดูแลและสิทธิ์</span></span></div>
+                    <div className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500 shrink-0" /><span className="text-sm">ส่งการแจ้งเตือน</span></div>
+                    <div className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500 shrink-0" /><span className="text-sm">ตอบกลับ Feedback</span></div>
+                    <div className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500 shrink-0" /><span className="text-sm">จัดการผู้ใช้ทั้งหมด</span></div>
+                    <div className="flex items-center gap-2 text-muted-foreground pt-1"><X className="h-4 w-4 text-rose-500 shrink-0" /><span className="text-sm text-muted-foreground/80">แก้ไขราคาแพ็กเกจ</span></div>
+                    <div className="flex items-center gap-2 text-muted-foreground"><X className="h-4 w-4 text-rose-500 shrink-0" /><span className="text-sm text-muted-foreground/80">เปิด/ปิดฟีเจอร์</span></div>
+                    <div className="flex items-center gap-2 text-muted-foreground"><X className="h-4 w-4 text-rose-500 shrink-0" /><span className="text-sm text-muted-foreground/80">เพิ่ม/ลบผู้ดูแล</span></div>
+                  </>
+                )}
+              </div>
+            </div>
+            <div className="pt-2 flex justify-end gap-2">
+              <Button onClick={() => setEditingAdmin(null)}>บันทึก / ปิด</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+
+
+      {tab === "logs" ? (
+        <article className="rounded-xl border border-border bg-card p-6 shadow-sm w-full">
+          <div className="mb-8">
+            <h3 className="text-base font-semibold">ประวัติการใช้งานระบบ</h3>
+            <p className="text-sm text-muted-foreground">บันทึกทุกการเคลื่อนไหวและการตั้งค่าต่างๆ โดยผู้ดูแลระบบ</p>
+          </div>
+          <div className="space-y-3">
+            {auditLog.map((entry) => (
+              <div key={entry.id} className="p-4 rounded-xl border border-border/80 bg-background/50 hover:bg-muted/10 transition-colors">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                  <p className="text-sm font-semibold">
+                    <span className="text-foreground">{entry.adminName}</span>
+                    <span className="text-muted-foreground font-normal mx-2">/</span>
+                    <span className="text-primary font-medium">{entry.action}</span>
+                  </p>
+                  <div className="flex items-center gap-4 sm:justify-end">
+                    <span className="text-[10px] text-muted-foreground/40 font-mono tracking-tighter">#{entry.id}</span>
+                    <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-tight">
+                      {entry.timestamp}
+                    </span>
                   </div>
                 </div>
-              ))}
+                <div className="mt-1.5">
+                  <p className="text-sm leading-relaxed">
+                    {entry.targetUserName && (
+                      <>
+                        <span className="font-bold text-foreground mr-1.5">{entry.targetUserName}</span>
+                        {entry.targetUserId && (
+                          <span className="text-muted-foreground font-normal mr-1.5">({entry.targetUserId})</span>
+                        )}
+                        <span className="text-muted-foreground/30 mr-2">/</span>
+                      </>
+                    )}
+                    <span className="text-foreground/80">{entry.details}</span>
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </article>
+      ) : null}
+
+      {tab === "plans" ? (
+        <div className="grid gap-6">
+          <article className="rounded-xl border border-border bg-card p-6 shadow-sm w-full">
+            <h3 className="text-base font-semibold">แพ็กเกจและราคา</h3>
+            <p className="text-sm text-muted-foreground mt-1 mb-6">ปรับแต่งราคาและรายละเอียดของแพ็กเกจ Lilac PLUS</p>
+            <div className="grid gap-5 sm:grid-cols-3">
+              <div className="rounded-xl border border-border bg-background p-5">
+                <p className="font-semibold text-lg text-primary">Lilac PLUS รายเดือน</p>
+                <div className="mt-4 flex items-center gap-2">
+                  <span className="text-2xl font-bold">฿</span>
+                  <Input defaultValue="79" className="text-xl font-bold w-24" />
+                  <span className="text-muted-foreground">/เดือน</span>
+                </div>
+                <Button variant="outline" className="w-full mt-6">บันทึกราคา</Button>
+              </div>
+              <div className="rounded-xl border border-border bg-background p-5">
+                <p className="font-semibold text-lg text-primary">Lilac PLUS รายเทอม</p>
+                <div className="mt-4 flex items-center gap-2">
+                  <span className="text-2xl font-bold">฿</span>
+                  <Input defaultValue="259" className="text-xl font-bold w-24" />
+                  <span className="text-muted-foreground">/เทอม</span>
+                </div>
+                <Button variant="outline" className="w-full mt-6">บันทึกราคา</Button>
+              </div>
+              <div className="rounded-xl border border-border bg-background p-5">
+                <p className="font-semibold text-lg text-primary">Lilac PLUS รายปี</p>
+                <div className="mt-4 flex items-center gap-2">
+                  <span className="text-2xl font-bold">฿</span>
+                  <Input defaultValue="699" className="text-xl font-bold w-24" />
+                  <span className="text-muted-foreground">/ปี</span>
+                </div>
+                <Button variant="outline" className="w-full mt-6">บันทึกราคา</Button>
+              </div>
             </div>
           </article>
 
-          <div className="grid gap-4 lg:grid-cols-[1fr_1.2fr]">
-            <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-              <h3 className="text-base font-semibold">ตั้งค่าส่วนกลาง</h3>
-              <div className="mt-4 space-y-3 text-sm">
-                <div>
-                  <p className="mb-1 text-muted-foreground">ทดลองใช้ฟรี (วัน)</p>
-                  <Input value={trialDays} onChange={(event) => setTrialDays(event.target.value)} />
+          <div className="grid gap-6 lg:grid-cols-2">
+            <article className="rounded-xl border border-border bg-card p-6 shadow-sm w-full">
+              <h3 className="text-lg font-semibold">ระยะเวลาทดลองใช้ (Trial)</h3>
+              <p className="mb-6 text-sm text-muted-foreground">ระยะเวลาให้ผู้ใช้ใหม่ทดลองใช้แพ็กเกจ PLUS ฟรี</p>
+              <div className="rounded-xl border border-border bg-background p-5">
+                <p className="font-semibold text-base mb-4">ต่อเนื่องเป็นเวลา</p>
+                <div className="flex items-center gap-3">
+                  <Input value={trialDays} onChange={(event) => setTrialDays(event.target.value)} className="w-24 text-xl font-bold text-center h-12" />
+                  <span className="text-base text-muted-foreground font-medium">วัน</span>
                 </div>
-                <div>
-                  <p className="mb-1 text-muted-foreground">จำกัด AI ต่อวัน สำหรับ FREE (ครั้ง/วัน)</p>
-                  <Input value={freeDailyAiLimit} onChange={(event) => setFreeDailyAiLimit(event.target.value)} />
-                </div>
-                <Button onClick={handleSave}>บันทึกการตั้งค่า</Button>
-                <p className="text-xs text-muted-foreground">อัปเดตล่าสุด: {savedAt}</p>
+                <Button onClick={handleSave} className="mt-6">บันทึกระยะเวลา</Button>
               </div>
             </article>
 
-            <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
-              <h3 className="text-base font-semibold">ตั้งค่าสิทธิพิเศษ PLUS+</h3>
-              <p className="text-sm text-muted-foreground">ฟีเจอร์ที่เปิดแสดงอยู่ {features.filter((item) => item.visible).length} / {features.length}</p>
-              <div className="mt-4 space-y-3">
-                {features.map((feature) => (
-                  <div key={feature.id} className="flex items-center justify-between gap-3 rounded-lg bg-background p-3">
-                    <div>
-                      <p className="text-sm font-semibold">{feature.title}</p>
-                      <p className="text-xs text-muted-foreground">{feature.description}</p>
-                    </div>
-                    <Switch
-                      checked={feature.visible}
-                      onCheckedChange={(checked) => setFeatures((prev) => prev.map((item) => (item.id === feature.id ? { ...item, visible: checked } : item)))}
-                    />
-                  </div>
-                ))}
+            <article className="rounded-xl border border-border bg-card p-6 shadow-sm w-full">
+              <h3 className="text-lg font-semibold text-primary">FREE Plan</h3>
+              <p className="mb-6 text-sm text-muted-foreground">ขีดจำกัดการใช้งานสำหรับผู้ใช้ทั่วไป</p>
+              <div className="rounded-xl border border-border bg-background p-5">
+                <p className="font-semibold text-base mb-4">Voice Input สูงสุด (นาที/วัน)</p>
+                <div className="flex items-center gap-3">
+                  <Input 
+                    value={freeDailyAiLimit} 
+                    onChange={(e) => setFreeDailyAiLimit(e.target.value)} 
+                    className="w-24 text-xl font-bold text-center h-12"
+                  />
+                  <span className="text-base text-muted-foreground font-medium">นาที</span>
+                </div>
+                <Button onClick={handleSave} className="mt-6">บันทึกขีดจำกัด</Button>
               </div>
+              {savedAt !== "ยังไม่บันทึก" && <p className="mt-3 text-xs text-muted-foreground">อัปเดตล่าสุด: {savedAt}</p>}
             </article>
           </div>
-        </>
+        </div>
       ) : null}
+
     </DashboardPageShell>
   );
 }
-
-
-
-
-
-
-
-
-

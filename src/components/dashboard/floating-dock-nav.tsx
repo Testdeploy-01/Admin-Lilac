@@ -1,10 +1,11 @@
 import {
   Bell,
   Bot,
+  ClipboardList,
+  CreditCard,
   LayoutDashboard,
   Settings,
   Users,
-  Wallet,
   type LucideIcon,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
@@ -42,8 +43,9 @@ const leftDockItems: DockItem[] = [
 ];
 
 const rightDockItems: DockItem[] = [
-  { title: "การเงิน", href: "/finance", icon: Wallet, activePrefixes: ["/finance"] },
+  { title: "การสมัครสมาชิก", href: "/finance", icon: CreditCard, activePrefixes: ["/finance"] },
   { title: "แจ้งเตือน", href: "/notifications", icon: Bell, activePrefixes: ["/notifications"] },
+  { title: "รายงาน", href: "/reports", icon: ClipboardList, activePrefixes: ["/reports"] },
   { title: "ตั้งค่า", href: "/settings", icon: Settings, activePrefixes: ["/settings"] },
 ];
 

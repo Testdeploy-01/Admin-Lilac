@@ -72,10 +72,10 @@ function rowsByKey(key: DashboardRouteKey): Array<Record<string, string | number
         เวลา: entry.timestamp,
         Admin: entry.adminName,
         Action: entry.action,
-        Target: entry.target,
-        ก่อน: entry.before,
-        หลัง: entry.after,
+        รายละเอียด: entry.details,
       }));
+    case "reports":
+      return [{ หมวด: "ใช้ปุ่ม Export ในหน้ารายงาน", ค่า: "-" }];
     default:
       return [{ หมวด: "ไม่มีข้อมูล", ค่า: "-" }];
   }

@@ -37,7 +37,7 @@ type NotificationHistoryItem = {
   type: NotificationType;
   sentAt: string;
   openRate: number | null;
-  status: "sent" | "scheduled";
+  status: "sent" | "scheduled" | "cancelled";
 };
 
 type FeedbackItem = {
@@ -93,6 +93,15 @@ const initialNotificationHistory: NotificationHistoryItem[] = [
     openRate: 58,
     status: "sent",
   },
+  {
+    id: "NT-100",
+    title: "ระบบขัดข้องชั่วคราว",
+    audience: "ทุกคน",
+    type: "แจ้งปัญหา",
+    sentAt: "10 มี.ค. 2026, 12:00",
+    openRate: null,
+    status: "cancelled",
+  },
 ];
 
 const initialFeedback: FeedbackItem[] = [
@@ -142,7 +151,6 @@ const initialFeedback: FeedbackItem[] = [
   },
 ];
 
-const sectionCardClass = "card-gray-gradient rounded-xl border border-border p-5 shadow-none sm:p-6";
 const mutedPanelClass = "rounded-xl border border-border/70 bg-background/80 p-4";
 
 function formatDateTime(date: Date) {
@@ -164,9 +172,9 @@ function formatScheduleDate(date: string, time: string) {
 }
 
 function getNotificationStatusBadgeClass(status: NotificationHistoryItem["status"]) {
-  return status === "sent"
-    ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
-    : "bg-amber-500/10 text-amber-700 dark:text-amber-300";
+  if (status === "sent") return "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300";
+  if (status === "scheduled") return "bg-sky-500/10 text-sky-700 dark:text-sky-300";
+  return "bg-rose-500/10 text-rose-700 dark:text-rose-300";
 }
 
 function getFeedbackStatusBadgeClass(status: FeedbackStatus) {
@@ -207,6 +215,7 @@ export function NotificationsPage() {
   const [feedbackStatusFilter, setFeedbackStatusFilter] = useState<FeedbackStatus | "ทั้งหมด">("ทั้งหมด");
   const [activeFeedbackId, setActiveFeedbackId] = useState<string | null>(null);
   const [replyDraft, setReplyDraft] = useState("");
+  const [isComposeModalOpen, setIsComposeModalOpen] = useState(false);
 
   const selectedFeedback = useMemo(
     () => feedbackItems.find((item) => item.id === activeFeedbackId) ?? null,
@@ -237,7 +246,6 @@ export function NotificationsPage() {
     };
   }, [feedbackItems]);
 
-  const lastSentSummary = history[0];
   const canSubmit = title.trim().length > 0 && message.trim().length > 0;
 
   const resetComposer = () => {
@@ -265,6 +273,7 @@ export function NotificationsPage() {
     };
 
     setHistory((prev) => [nextItem, ...prev]);
+    setIsComposeModalOpen(false);
     resetComposer();
   };
 
@@ -293,19 +302,7 @@ export function NotificationsPage() {
   };
 
   return (
-    <DashboardPageShell
-      title="การแจ้งเตือน"
-      actions={
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <Badge variant="secondary" className="rounded-full px-3 py-1.5">
-            รอตอบกลับ {feedbackStats.pending} รายการ
-          </Badge>
-          <Badge variant="secondary" className="rounded-full px-3 py-1.5">
-            ส่งล่าสุด {lastSentSummary?.sentAt ?? "-"}
-          </Badge>
-        </div>
-      }
-    >
+    <DashboardPageShell title="การแจ้งเตือน">
       <AppTabs
         value={tab}
         onValueChange={(value) => setTab(value as TabKey)}
@@ -317,188 +314,153 @@ export function NotificationsPage() {
 
       {tab === "notifications" ? (
         <>
-      <section className={sectionCardClass}>
-        <SectionHeader
-          title="ส่งการแจ้งเตือนถึงผู้ใช้"
-        />
-
-        <div className="grid gap-4 xl:grid-cols-[1.4fr_0.9fr]">
-          <div className="grid gap-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="grid gap-2 text-sm font-medium text-foreground">
-                <span>หัวข้อ</span>
-                <Input
-                  value={title}
-                  onChange={(event) => setTitle(event.target.value)}
-                  placeholder="เช่น แจ้งอัปเดตฟีเจอร์ใหม่"
-                  aria-label="หัวข้อการแจ้งเตือน"
-                />
-              </label>
-
-              <label className="grid gap-2 text-sm font-medium text-foreground">
-                <span>ส่งถึง</span>
-                <Select value={audience} onValueChange={(value) => setAudience(value as Audience)}>
-                  <SelectTrigger aria-label="เลือกกลุ่มเป้าหมาย">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {notificationAudienceOptions.map((option) => (
-                      <SelectItem key={option} value={option}>
-                        {option}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </label>
-            </div>
-
-            <label className="grid gap-2 text-sm font-medium text-foreground">
-              <span>ข้อความ</span>
-              <Textarea
-                value={message}
-                onChange={(event) => setMessage(event.target.value)}
-                placeholder="พิมพ์เนื้อหาที่ต้องการส่งถึงผู้ใช้"
-                rows={6}
-                aria-label="ข้อความการแจ้งเตือน"
-              />
-            </label>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="grid gap-2 text-sm font-medium text-foreground">
-                <span>ประเภท</span>
-                <Select value={type} onValueChange={(value) => setType(value as NotificationType)}>
-                  <SelectTrigger aria-label="เลือกประเภทการแจ้งเตือน">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {notificationTypeOptions.map((option) => (
-                      <SelectItem key={option} value={option}>
-                        {option}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </label>
-
-              <div className={cn(mutedPanelClass, "grid gap-3")}>
-                <p className="text-sm font-semibold text-foreground">ตั้งเวลาส่งล่วงหน้า</p>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <Input
-                    type="date"
-                    value={scheduleDate}
-                    onChange={(event) => setScheduleDate(event.target.value)}
-                    aria-label="วันที่ตั้งเวลาส่ง"
-                  />
-                  <Input
-                    type="time"
-                    value={scheduleTime}
-                    onChange={(event) => setScheduleTime(event.target.value)}
-                    aria-label="เวลาตั้งเวลาส่ง"
-                  />
-                </div>
-                <p className="text-xs leading-5 text-muted-foreground">
-                  หากยังไม่กำหนดวันและเวลา ระบบจะพร้อมสำหรับการส่งทันทีเท่านั้น
-                </p>
+          <DataTableShell
+            caption="ตารางประวัติการแจ้งเตือนที่ส่งแล้ว"
+            minWidthClass="min-w-[800px]"
+            toolbar={
+              <div className="flex w-full items-center justify-between">
+                <SectionHeader title="ประวัติการแจ้งเตือนที่ส่งแล้ว" />
+                <Button onClick={() => setIsComposeModalOpen(true)}>ส่งการแจ้งเตือนใหม่</Button>
               </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <Button onClick={() => handleCreateNotification("sent")} disabled={!canSubmit}>
-                ส่งทันที
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={() => handleCreateNotification("scheduled")}
-                disabled={!canSubmit || !scheduleDate || !scheduleTime}
-              >
-                ตั้งเวลาส่ง
-              </Button>
-              <Button variant="ghost" onClick={resetComposer} disabled={!title && !message && !scheduleDate && !scheduleTime}>
-                ล้างฟอร์ม
-              </Button>
-            </div>
-          </div>
-
-          <aside className="grid gap-4">
-            <div className={cn(sectionCardClass, "p-4 sm:p-5")}>
-              <h3 className="text-sm font-semibold text-foreground">ตัวอย่างที่ผู้ใช้จะเห็น</h3>
-
-              <div className="mt-4 rounded-2xl border border-border/70 bg-background/90 p-4">
-                <p className="text-sm font-semibold text-foreground">{title.trim() || "หัวข้อการแจ้งเตือน"}</p>
-                <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                  {message.trim() || "ข้อความตัวอย่างจะปรากฏที่นี่เมื่อเริ่มพิมพ์เนื้อหา"}
-                </p>
-              </div>
-
-              <div className="mt-4 grid gap-3">
-                <div className={mutedPanelClass}>
-                  <p className="text-sm font-semibold text-foreground">{lastSentSummary?.title ?? "ยังไม่มีประวัติ"}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {lastSentSummary ? `${lastSentSummary.sentAt} • เปิดอ่าน ${lastSentSummary.openRate ?? 0}%` : "ส่งประกาศครั้งแรกจากหน้านี้ได้เลย"}
-                  </p>
-                </div>
-
-                <div className={mutedPanelClass}>
-                  <ul className="space-y-2 text-sm leading-6 text-muted-foreground">
-                    <li>ใช้หัวข้อสั้นและชัด เพื่อให้ open rate สูงขึ้น</li>
-                    <li>ข้อความแจ้งปัญหาควรบอกผลกระทบและช่วงเวลาให้ครบ</li>
-                    <li>โปรโมชันควรเลือกกลุ่มเป้าหมายให้แคบที่สุดก่อนส่ง</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </aside>
-        </div>
-      </section>
-
-      <DataTableShell
-        caption="ตารางประวัติการแจ้งเตือนที่ส่งแล้ว"
-        minWidthClass="min-w-[780px]"
-        toolbar={
-          <SectionHeader
-            title="ประวัติการแจ้งเตือนที่ส่งแล้ว"
-          />
-        }
-      >
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>หัวข้อ</TableHead>
-              <TableHead>ประเภท</TableHead>
-              <TableHead>ส่งถึง</TableHead>
-              <TableHead>วันที่ส่ง</TableHead>
-              <TableHead className="text-right">อัตราเปิดอ่าน</TableHead>
-            </TableRow>
-          </TableHeader>
+            }
+          >
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>หัวข้อ</TableHead>
+                  <TableHead>ประเภท</TableHead>
+                  <TableHead>ส่งถึง</TableHead>
+                  <TableHead>วันที่ส่ง</TableHead>
+                  <TableHead>สถานะ</TableHead>
+                  <TableHead className="text-right w-[150px]">อัตราเปิดอ่าน</TableHead>
+                  <TableHead className="text-right w-[100px]">จัดการ</TableHead>
+                </TableRow>
+              </TableHeader>
               <TableBody>
                 {history.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell className="min-w-[260px]">
                       <div className="space-y-1">
                         <p className="font-medium text-foreground">{item.title}</p>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <Badge className={cn("rounded-full", getNotificationStatusBadgeClass(item.status))}>
-                            {item.status === "sent" ? "ส่งแล้ว" : "ตั้งเวลา"}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">{item.id}</span>
-                        </div>
+                        <span className="text-xs text-muted-foreground">{item.id}</span>
                       </div>
                     </TableCell>
-                <TableCell>{item.type}</TableCell>
-                <TableCell>{item.audience}</TableCell>
-                <TableCell>{item.sentAt}</TableCell>
-                <TableCell className="text-right font-medium text-foreground">
-                  {item.openRate === null ? "-" : `${item.openRate}%`}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </DataTableShell>
+                    <TableCell>{item.type}</TableCell>
+                    <TableCell>{item.audience}</TableCell>
+                    <TableCell>{item.sentAt}</TableCell>
+                    <TableCell>
+                      <Badge className={cn("rounded-full", getNotificationStatusBadgeClass(item.status))}>
+                        {item.status === "sent" ? "ส่งแล้ว" : item.status === "scheduled" ? "ตั้งเวลา" : "ยกเลิก"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {item.openRate === null ? (
+                        <span className="text-muted-foreground">-</span>
+                      ) : (
+                        <div className="flex items-center justify-end gap-2">
+                          <div className="h-1.5 w-16 overflow-hidden rounded-full bg-secondary">
+                            <div className="h-full bg-primary" style={{ width: `${item.openRate}%` }} />
+                          </div>
+                          <span className="font-medium text-foreground min-w-[32px]">{item.openRate}%</span>
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="outline" size="sm">ส่งซ้ำ</Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </DataTableShell>
 
+          <Dialog open={isComposeModalOpen} onOpenChange={setIsComposeModalOpen}>
+            <DialogContent className="max-w-2xl border-border bg-card">
+              <DialogHeader>
+                <DialogTitle>ส่งการแจ้งเตือนใหม่</DialogTitle>
+              </DialogHeader>
+              
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="grid gap-2 text-sm font-medium text-foreground">
+                    <span>หัวข้อ</span>
+                    <Input
+                      value={title}
+                      onChange={(event) => setTitle(event.target.value)}
+                      placeholder="เช่น แจ้งอัปเดตฟีเจอร์ใหม่"
+                    />
+                  </label>
+                  <label className="grid gap-2 text-sm font-medium text-foreground">
+                    <span>ส่งถึง</span>
+                    <Select value={audience} onValueChange={(value) => setAudience(value as Audience)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {notificationAudienceOptions.map((opt) => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </label>
+                </div>
+                <label className="grid gap-2 text-sm font-medium text-foreground">
+                  <span>ข้อความ</span>
+                  <Textarea
+                    value={message}
+                    onChange={(event) => setMessage(event.target.value)}
+                    placeholder="พิมพ์เนื้อหาที่ต้องการส่งถึงผู้ใช้"
+                    rows={4}
+                  />
+                </label>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="grid gap-2 text-sm font-medium text-foreground">
+                    <span>ประเภท</span>
+                    <Select value={type} onValueChange={(value) => setType(value as NotificationType)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {notificationTypeOptions.map((opt) => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </label>
+                  <div className="grid gap-2 text-sm font-medium text-foreground">
+                    <span>ตั้งเวลาส่งล่วงหน้า (เว้นว่างเพื่อส่งทันที)</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input
+                        type="date"
+                        value={scheduleDate}
+                        onChange={(event) => setScheduleDate(event.target.value)}
+                      />
+                      <Input
+                        type="time"
+                        value={scheduleTime}
+                        onChange={(event) => setScheduleTime(event.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-2 rounded-xl border border-border/70 bg-background/50 p-4">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Preview (สิ่งที่ผู้ใช้เห็น)</p>
+                  <p className="text-sm font-semibold text-foreground">{title.trim() || "หัวข้อการแจ้งเตือน"}</p>
+                  <p className="mt-2 text-sm text-muted-foreground whitespace-pre-line">{message.trim() || "ข้อความตัวอย่างจะปรากฏที่นี่"}</p>
+                </div>
+              </div>
+
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button variant="ghost" onClick={() => setIsComposeModalOpen(false)}>ยกเลิก</Button>
+                {scheduleDate && scheduleTime ? (
+                  <Button onClick={() => handleCreateNotification("scheduled")} disabled={!canSubmit}>ตั้งเวลา</Button>
+                ) : (
+                  <Button onClick={() => handleCreateNotification("sent")} disabled={!canSubmit}>ส่งทันที</Button>
+                )}
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </>
       ) : (
-        <>
+        <div className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <MetricCard label="Feedback ทั้งหมด" value={feedbackStats.total} className="min-h-[110px] p-5" />
+            <MetricCard label="รอตอบกลับ" value={feedbackStats.pending} className="min-h-[110px] p-5" />
+            <MetricCard label="ตอบแล้ว" value={feedbackStats.total - feedbackStats.pending} className="min-h-[110px] p-5" />
+          </div>
 
       <DataTableShell
         caption="ตาราง feedback จากผู้ใช้"
@@ -590,35 +552,7 @@ export function NotificationsPage() {
           </TableBody>
         </Table>
       </DataTableShell>
-
-      <section className="space-y-4">
-        <SectionHeader
-          title="สถิติ Feedback"
-        />
-
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <MetricCard label="Feedback ทั้งหมด" value={feedbackStats.total} />
-          <MetricCard
-            label="รอตอบกลับ"
-            value={feedbackStats.pending}
-            delta={`${feedbackStats.pending} ค้าง`}
-            trend={feedbackStats.pending > 0 ? "down" : "neutral"}
-          />
-          <MetricCard
-            label="ติชม"
-            value={`${feedbackStats.complimentRate}%`}
-            delta={`${feedbackStats.complimentRate}%`}
-            trend="up"
-          />
-          <MetricCard
-            label="แจ้งบัก"
-            value={`${feedbackStats.bugRate}%`}
-            delta={`${feedbackStats.bugRate}%`}
-            trend={feedbackStats.bugRate > 35 ? "down" : "neutral"}
-          />
         </div>
-      </section>
-        </>
       )}
 
       <Dialog

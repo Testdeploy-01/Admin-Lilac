@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { DashboardPageShell } from "@/components/dashboard/ui/dashboard-page-shell";
 import { AppTabs } from "@/components/dashboard/ui/app-tabs";
 import { DataTableShell } from "@/components/dashboard/ui/data-table-shell";
@@ -14,7 +14,6 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -22,8 +21,6 @@ import {
 import { cn } from "@/lib/utils";
 import { formatCurrencyTHB, formatNumber, formatPercent } from "../../lib/formatters";
 import {
-  aiCostSummary,
-  churnAnalysis,
   managedUsers,
   type PlanKey,
   weeklyRetentionByPlan,
@@ -34,7 +31,6 @@ type TimeRange = "today" | "month" | "6months" | "year";
 type FinanceSeriesPoint = {
   label: string;
   revenue: number;
-  aiCost: number;
 };
 
 type PackagePlan = {
@@ -42,6 +38,7 @@ type PackagePlan = {
   label: string;
   priceLabel: string;
   monthlyEquivalentRevenue: number;
+  fullPrice: number;
 };
 
 const periodTabs = [
@@ -52,32 +49,22 @@ const periodTabs = [
 ] as const;
 
 const periodMeta: Record<TimeRange, {
-  narrative: string;
-  chartCaption: string;
   tickInterval: number;
   monthsEquivalent: number;
 }> = {
   today: {
-    narrative: "โฟกัสเงินเข้าเทียบ AI burn แบบรายชั่วโมงเพื่อจับ anomaly ในวันเดียวกัน",
-    chartCaption: "แกน X แสดงเป็นรายชั่วโมง และแกน Y เป็นบาท",
     tickInterval: 2,
     monthsEquivalent: 1 / 30,
   },
   month: {
-    narrative: "ดูรายได้รับรู้และต้นทุน AI แบบรายวันของเดือนปัจจุบันเพื่ออ่านคุณภาพรายได้อย่างใกล้ชิด",
-    chartCaption: "แกน X แสดงเป็นรายวัน และแกน Y เป็นบาท",
     tickInterval: 4,
     monthsEquivalent: 1,
   },
   "6months": {
-    narrative: "อ่าน momentum ของรายได้เทียบต้นทุนในครึ่งปีล่าสุดว่ากำไรโตตามรายได้หรือไม่",
-    chartCaption: "แกน X แสดงเป็นรายเดือนย้อนหลัง 6 เดือน และแกน Y เป็นบาท",
     tickInterval: 0,
     monthsEquivalent: 6,
   },
   year: {
-    narrative: "ใช้มุมมองรอบปีเพื่อเทียบ margin, mix ของแพ็กเกจ และความเสี่ยงจาก churn",
-    chartCaption: "แกน X แสดงเป็นรายเดือนย้อนหลัง 12 เดือน และแกน Y เป็นบาท",
     tickInterval: 0,
     monthsEquivalent: 12,
   },
@@ -87,54 +74,49 @@ const packagePlans: PackagePlan[] = [
   {
     planKey: "PLUS_MONTHLY",
     label: "Lilac PLUS รายเดือน",
-    priceLabel: "฿59/เดือน",
-    monthlyEquivalentRevenue: 59,
+    priceLabel: "฿79/เดือน",
+    monthlyEquivalentRevenue: 79,
+    fullPrice: 79,
   },
   {
     planKey: "PLUS_TERM",
     label: "Lilac PLUS รายเทอม",
-    priceLabel: "฿199/เทอม",
-    monthlyEquivalentRevenue: 199 / 4,
+    priceLabel: "฿259/เทอม",
+    monthlyEquivalentRevenue: 259 / 4,
+    fullPrice: 259,
   },
   {
     planKey: "PLUS_YEARLY",
     label: "Lilac PLUS รายปี",
-    priceLabel: "฿599/ปี",
-    monthlyEquivalentRevenue: 599 / 12,
+    priceLabel: "฿699/ปี",
+    monthlyEquivalentRevenue: 699 / 12,
+    fullPrice: 699,
   },
 ];
 
 const yearlyTrendFactors = [
-  { label: "เม.ย.", revenueFactor: 0.74, costFactor: 0.8 },
-  { label: "พ.ค.", revenueFactor: 0.79, costFactor: 0.83 },
-  { label: "มิ.ย.", revenueFactor: 0.83, costFactor: 0.86 },
-  { label: "ก.ค.", revenueFactor: 0.87, costFactor: 0.89 },
-  { label: "ส.ค.", revenueFactor: 0.9, costFactor: 0.92 },
-  { label: "ก.ย.", revenueFactor: 0.93, costFactor: 0.95 },
-  { label: "ต.ค.", revenueFactor: 0.95, costFactor: 0.97 },
-  { label: "พ.ย.", revenueFactor: 0.98, costFactor: 0.99 },
-  { label: "ธ.ค.", revenueFactor: 1.01, costFactor: 1.01 },
-  { label: "ม.ค.", revenueFactor: 1.03, costFactor: 1.02 },
-  { label: "ก.พ.", revenueFactor: 1.01, costFactor: 1.01 },
-  { label: "มี.ค.", revenueFactor: 1.06, costFactor: 1.03 },
+  { label: "เม.ย.", revenueFactor: 0.74 },
+  { label: "พ.ค.", revenueFactor: 0.79 },
+  { label: "มิ.ย.", revenueFactor: 0.83 },
+  { label: "ก.ค.", revenueFactor: 0.87 },
+  { label: "ส.ค.", revenueFactor: 0.9 },
+  { label: "ก.ย.", revenueFactor: 0.93 },
+  { label: "ต.ค.", revenueFactor: 0.95 },
+  { label: "พ.ย.", revenueFactor: 0.98 },
+  { label: "ธ.ค.", revenueFactor: 1.01 },
+  { label: "ม.ค.", revenueFactor: 1.03 },
+  { label: "ก.พ.", revenueFactor: 1.01 },
+  { label: "มี.ค.", revenueFactor: 1.06 },
 ];
 
 const financeChartConfig = {
   revenue: {
     label: "รายได้",
-    color: "hsl(var(--chart-2))",
-  },
-  aiCost: {
-    label: "ค่าใช้จ่าย AI",
-    color: "hsl(var(--destructive))",
+    color: "hsl(var(--primary))",
   },
 } satisfies ChartConfig;
 
 const sectionCardClass = "card-gray-gradient rounded-xl border border-border p-5 shadow-sm lg:p-6";
-const sectionHeaderClass = "mb-4 flex items-start justify-between gap-3";
-const sectionTitleClass = "text-base font-semibold text-foreground";
-const innerPanelClass = "rounded-xl border border-border/70 bg-background/80 p-4";
-const chartPanelClass = "rounded-xl border border-border/70 bg-background/70 p-3";
 
 function roundToTwo(value: number) {
   return Number(value.toFixed(2));
@@ -159,7 +141,7 @@ function formatCompactCurrency(value: number) {
   return `฿${Math.round(value)}`;
 }
 
-function buildFinanceSeries(range: TimeRange, baseMonthlyRevenue: number, baseMonthlyAiCost: number): FinanceSeriesPoint[] {
+function buildFinanceSeries(range: TimeRange, baseMonthlyRevenue: number): FinanceSeriesPoint[] {
   if (range === "today") {
     const revenueWeights = Array.from({ length: 24 }, (_, hour) => {
       const businessPeak = hour >= 10 && hour <= 21 ? 0.42 : 0;
@@ -168,20 +150,11 @@ function buildFinanceSeries(range: TimeRange, baseMonthlyRevenue: number, baseMo
       return Math.max(0.2, 0.55 + businessPeak + morningLift + overnightDip + Math.sin((hour / 24) * Math.PI * 2 - 1.2) * 0.14);
     });
 
-    const costWeights = Array.from({ length: 24 }, (_, hour) => {
-      const eveningUsage = hour >= 18 && hour <= 23 ? 0.28 : 0;
-      const afternoonLift = hour >= 12 && hour <= 17 ? 0.15 : 0;
-      const overnightDip = hour <= 5 ? -0.12 : 0;
-      return Math.max(0.24, 0.62 + eveningUsage + afternoonLift + overnightDip + Math.cos((hour / 24) * Math.PI * 2 - 0.3) * 0.08);
-    });
-
     const revenueSeries = distributeTotal(baseMonthlyRevenue / 30, revenueWeights);
-    const costSeries = distributeTotal(baseMonthlyAiCost / 30, costWeights);
 
     return Array.from({ length: 24 }, (_, hour) => ({
       label: `${String(hour).padStart(2, "0")}:00`,
       revenue: revenueSeries[hour],
-      aiCost: costSeries[hour],
     }));
   }
 
@@ -193,20 +166,11 @@ function buildFinanceSeries(range: TimeRange, baseMonthlyRevenue: number, baseMo
       + (index % 6 === 0 ? 0.06 : 0)
     ));
 
-    const costWeights = Array.from({ length: 30 }, (_, index) => (
-      1
-      + (Math.cos((index + 1) * 0.38) * 0.1)
-      + ((index % 7) >= 5 ? 0.12 : -0.01)
-      + (index % 9 === 0 ? 0.04 : 0)
-    ));
-
     const revenueSeries = distributeTotal(baseMonthlyRevenue, revenueWeights);
-    const costSeries = distributeTotal(baseMonthlyAiCost, costWeights);
 
     return Array.from({ length: 30 }, (_, index) => ({
       label: String(index + 1),
       revenue: revenueSeries[index],
-      aiCost: costSeries[index],
     }));
   }
 
@@ -215,7 +179,6 @@ function buildFinanceSeries(range: TimeRange, baseMonthlyRevenue: number, baseMo
   return trendWindow.map((item) => ({
     label: item.label,
     revenue: roundToTwo(baseMonthlyRevenue * item.revenueFactor),
-    aiCost: roundToTwo(baseMonthlyAiCost * item.costFactor),
   }));
 }
 
@@ -238,7 +201,10 @@ function FinanceChartTooltip({
       <div className="mt-2 space-y-1.5">
         {payload.map((entry) => (
           <div key={`${entry.name}-${entry.color}`} className="flex items-center justify-between gap-4 text-xs">
-            <span className="text-muted-foreground">{entry.name}</span>
+             <span className="flex items-center gap-1.5">
+               <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: "var(--color-revenue)" }} />
+               <span className="text-muted-foreground">{entry.name}</span>
+             </span>
             <span className="font-semibold text-foreground">{formatCurrencyTHB(Number(entry.value ?? 0))}</span>
           </div>
         ))}
@@ -247,67 +213,11 @@ function FinanceChartTooltip({
   );
 }
 
-function SectionToolbar({
-  title,
-  description,
-  badge,
-}: {
-  title: string;
-  description?: string;
-  badge: string;
-}) {
-  return (
-    <div className={sectionHeaderClass}>
-      <div>
-        <h3 className={sectionTitleClass}>{title}</h3>
-        {description ? <p className="text-sm leading-6 text-muted-foreground">{description}</p> : null}
-      </div>
-      <Badge variant="secondary" className="rounded-full px-3 py-1">
-        {badge}
-      </Badge>
-    </div>
-  );
-}
-
-function FinanceDetailCard({
-  label,
-  value,
-  tone = "neutral",
-  meter,
-}: {
-  label: string;
-  value: string;
-  tone?: "positive" | "warning" | "neutral";
-  meter?: number;
-}) {
-  const toneClass =
-    tone === "positive"
-      ? "text-emerald-600 dark:text-emerald-400"
-      : tone === "warning"
-        ? "text-rose-600 dark:text-rose-400"
-        : "text-foreground";
-
-  const meterClass =
-    tone === "positive"
-      ? "bg-emerald-500"
-      : tone === "warning"
-        ? "bg-rose-500"
-        : "bg-primary";
-
-  return (
-    <div className={cn(innerPanelClass, "flex h-full flex-col justify-between")}>
-      <div>
-        <p className="text-sm font-medium text-muted-foreground">{label}</p>
-        <p className={cn("mt-2 text-lg font-semibold", toneClass)}>{value}</p>
-      </div>
-      {typeof meter === "number" ? (
-        <div className="mt-3 h-2 rounded-full bg-muted">
-          <div className={cn("h-2 rounded-full", meterClass)} style={{ width: `${Math.min(Math.max(meter, 0), 100)}%` }} />
-        </div>
-      ) : null}
-    </div>
-  );
-}
+const planAccentColors = [
+  "bg-[#9d8bbd]", // Soft Lilac (Monthly)
+  "bg-[#8e78b2]", // Medium Lilac (Term)
+  "bg-[#7f68a8]", // Darker Lilac (Yearly)
+];
 
 export function FinancePage() {
   const [period, setPeriod] = useState<TimeRange>("month");
@@ -326,22 +236,16 @@ export function FinancePage() {
       return counts;
     }, initialPlanCounts);
 
-    const totalUsers = managedUsers.length;
-    const freeUsers = planCounts.FREE;
-    const paidUsers = totalUsers - freeUsers;
-
-    let freeCostTotal = 0;
-    let plusCostTotal = 0;
-
-    for (const user of managedUsers) {
-      if (user.plan === "FREE") freeCostTotal += user.aiCostTHB;
-      else plusCostTotal += user.aiCostTHB;
-    }
+    const baseMonthlySignups = {
+      PLUS_MONTHLY: Math.round(planCounts.PLUS_MONTHLY * 0.22),
+      PLUS_TERM: Math.round(planCounts.PLUS_TERM * 0.12),
+      PLUS_YEARLY: Math.round(planCounts.PLUS_YEARLY * 0.08),
+    };
 
     const baseMonthlyRevenueByPlan = {
-      PLUS_MONTHLY: planCounts.PLUS_MONTHLY * packagePlans[0].monthlyEquivalentRevenue,
-      PLUS_TERM: planCounts.PLUS_TERM * packagePlans[1].monthlyEquivalentRevenue,
-      PLUS_YEARLY: planCounts.PLUS_YEARLY * packagePlans[2].monthlyEquivalentRevenue,
+      PLUS_MONTHLY: baseMonthlySignups.PLUS_MONTHLY * packagePlans[0].fullPrice,
+      PLUS_TERM: baseMonthlySignups.PLUS_TERM * packagePlans[1].fullPrice,
+      PLUS_YEARLY: baseMonthlySignups.PLUS_YEARLY * packagePlans[2].fullPrice,
     };
 
     const baseMonthlyRevenue =
@@ -349,370 +253,245 @@ export function FinancePage() {
       + baseMonthlyRevenueByPlan.PLUS_TERM
       + baseMonthlyRevenueByPlan.PLUS_YEARLY;
 
-    const baseMonthlyAiCost = aiCostSummary.totalMonthlyCostTHB;
-    const series = buildFinanceSeries(period, baseMonthlyRevenue, baseMonthlyAiCost);
-    const totalRevenue = roundToTwo(series.reduce((sum, item) => sum + item.revenue, 0));
-    const totalAiCost = roundToTwo(series.reduce((sum, item) => sum + item.aiCost, 0));
-    const netProfit = roundToTwo(totalRevenue - totalAiCost);
-    const marginRate = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
-    const costLoadRate = totalRevenue > 0 ? (totalAiCost / totalRevenue) * 100 : 0;
-    const rangeRevenueMultiplier = baseMonthlyRevenue > 0 ? totalRevenue / baseMonthlyRevenue : 0;
-    const paidShare = (paidUsers / Math.max(totalUsers, 1)) * 100;
+    const series = buildFinanceSeries(period, baseMonthlyRevenue);
+    const seriesTotal = roundToTwo(series.reduce((sum, item) => sum + item.revenue, 0));
+
+    const rangeRevenueMultiplier = baseMonthlyRevenue > 0 ? seriesTotal / baseMonthlyRevenue : 0;
 
     const packageRows = packagePlans.map((plan) => {
-      const revenue = roundToTwo(baseMonthlyRevenueByPlan[plan.planKey] * rangeRevenueMultiplier);
+      const estimatedRevenue = baseMonthlyRevenueByPlan[plan.planKey as keyof typeof baseMonthlyRevenueByPlan] * rangeRevenueMultiplier;
+      const users = Math.max(0, Math.round(estimatedRevenue / plan.fullPrice));
+      const exactRevenue = users * plan.fullPrice;
+
       return {
         ...plan,
-        users: planCounts[plan.planKey],
-        revenue,
-        share: totalRevenue > 0 ? (revenue / totalRevenue) * 100 : 0,
+        users,
+        revenue: exactRevenue,
+        usersShare: 0,
+        revenueShare: 0,
       };
     });
 
-    const leadingPlan = packageRows.reduce((best, row) => (row.revenue > best.revenue ? row : best), packageRows[0]);
-    const freeCostPerUser = freeCostTotal / Math.max(freeUsers, 1);
-    const plusCostPerUser = plusCostTotal / Math.max(paidUsers, 1);
-    const plusRevenuePerUser = baseMonthlyRevenue / Math.max(paidUsers, 1);
-    const plusProfitPerUser = plusRevenuePerUser - plusCostPerUser;
+    const totalRevenue = packageRows.reduce((sum, row) => sum + row.revenue, 0);
+    const paidUsers = packageRows.reduce((sum, row) => sum + row.users, 0);
+    const newMembers = paidUsers;
+
+    packageRows.forEach((row) => {
+      row.usersShare = paidUsers > 0 ? (row.users / paidUsers) * 100 : 0;
+      row.revenueShare = totalRevenue > 0 ? (row.revenue / totalRevenue) * 100 : 0;
+    });
+
+    const leadingPlan = packageRows.reduce((best, row) => (row.users > best.users ? row : best), packageRows[0]);
+
     const plusRetentionRate = weeklyRetentionByPlan.length > 0
       ? (weeklyRetentionByPlan[weeklyRetentionByPlan.length - 1].plus / Math.max(weeklyRetentionByPlan[0].plus, 1)) * 100
       : 0;
-    const trialToPaidRate = period === "today" ? 39.8 : period === "month" ? 41.6 : period === "6months" ? 43.1 : 42.4;
-    const churnRate = 100 * (1 - Math.pow(1 - (churnAnalysis.churnRate / 100), meta.monthsEquivalent));
+    // คำนวณเปอร์เซ็นต์แบบสะสมสมจริง (Cumulative Metrics)
+    const trialToPaidRate = period === "today" ? 12.8 : period === "month" ? 12.4 : period === "6months" ? 12.1 : 11.8;
+    const churnRate = period === "today" ? 0.12 : period === "month" ? 2.1 : period === "6months" ? 11.4 : 22.3;
     const successfulReferrals = Math.max(3, Math.round(118 * rangeRevenueMultiplier));
     const arpu = totalRevenue / Math.max(paidUsers, 1);
 
+    type DeltaEntry = { value: string; trend: "up" | "down"; color: "positive" | "negative" };
+    type PeriodDeltas = { revenue: DeltaEntry; newMembers: DeltaEntry; conversion: DeltaEntry; churn: DeltaEntry; referrals: DeltaEntry };
+    const mockDeltasByPeriod: Record<TimeRange, PeriodDeltas> = {
+      today: {
+        revenue: { value: "4.2%", trend: "up", color: "positive" },
+        newMembers: { value: "1.5%", trend: "up", color: "positive" },
+        conversion: { value: "0.2%", trend: "up", color: "positive" },
+        churn: { value: "0.01%", trend: "down", color: "positive" },
+        referrals: { value: "2", trend: "up", color: "positive" },
+      },
+      month: {
+        revenue: { value: "12.5%", trend: "up", color: "positive" },
+        newMembers: { value: "8.2%", trend: "up", color: "positive" },
+        conversion: { value: "0.4%", trend: "up", color: "positive" },
+        churn: { value: "0.2%", trend: "down", color: "positive" },
+        referrals: { value: "14", trend: "up", color: "positive" },
+      },
+      "6months": {
+        revenue: { value: "26.4%", trend: "up", color: "positive" },
+        newMembers: { value: "18.5%", trend: "up", color: "positive" },
+        conversion: { value: "0.3%", trend: "down", color: "negative" },
+        churn: { value: "1.1%", trend: "up", color: "negative" },
+        referrals: { value: "89", trend: "up", color: "positive" },
+      },
+      year: {
+        revenue: { value: "65.8%", trend: "up", color: "positive" },
+        newMembers: { value: "42.1%", trend: "up", color: "positive" },
+        conversion: { value: "1.2%", trend: "up", color: "positive" },
+        churn: { value: "0.8%", trend: "down", color: "positive" },
+        referrals: { value: "215", trend: "up", color: "positive" },
+      },
+    };
+
+    const mockDeltas = mockDeltasByPeriod[period];
+
     return {
       meta,
-      totalUsers,
       paidUsers,
-      paidShare,
-      freeUsers,
-      freeCostTotal,
       series,
       totalRevenue,
-      totalAiCost,
-      netProfit,
-      marginRate,
-      costLoadRate,
       packageRows,
       leadingPlan,
-      freeCostPerUser,
-      plusCostPerUser,
-      plusRevenuePerUser,
-      plusProfitPerUser,
       plusRetentionRate,
       trialToPaidRate,
       churnRate,
+      newMembers,
       successfulReferrals,
       arpu,
+      mockDeltas,
     };
   }, [period]);
 
-  const summaryCards = [
-    {
-      label: "รายได้รวม",
-      value: formatCurrencyTHB(financeModel.totalRevenue),
-    },
-    {
-      label: "ค่าใช้จ่าย AI",
-      value: formatCurrencyTHB(financeModel.totalAiCost),
-    },
-    {
-      label: "กำไรสุทธิ",
-      value: formatCurrencyTHB(financeModel.netProfit),
-    },
-    {
-      label: "อัตรากำไร",
-      value: formatPercent(financeModel.marginRate),
-    },
-  ];
-
   return (
-    <DashboardPageShell
-      title="การเงิน"
-    >
+    <DashboardPageShell title="การสมัครสมาชิก">
       <AppTabs
         value={period}
         onValueChange={(value) => setPeriod(value as TimeRange)}
         items={[...periodTabs]}
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {summaryCards.map((item) => (
-          <MetricCard key={item.label} label={item.label} value={item.value} className="min-h-[132px] p-5" />
-        ))}
-      </div>
-
-      <div className="grid gap-4 xl:grid-cols-2">
-        <article className={sectionCardClass}>
-          <SectionToolbar
-            title="ภาพรวมธุรกิจ"
-            badge={`มุมมอง ${periodTabs.find((item) => item.value === period)?.label}`}
-          />
-          <div className="grid gap-3 md:grid-cols-2">
-            <FinanceDetailCard
-              label="ฐานผู้ใช้ที่จ่ายเงิน"
-              value={formatNumber(financeModel.paidUsers)}
-            />
-            <FinanceDetailCard
-              label="แพ็กเกจนำรายได้"
-              value={financeModel.leadingPlan.label}
-            />
-            <FinanceDetailCard
-              label="AI burn ต่อรายได้"
-              value={formatPercent(financeModel.costLoadRate)}
-              tone={financeModel.costLoadRate > 45 ? "warning" : "neutral"}
-              meter={financeModel.costLoadRate}
-            />
-            <FinanceDetailCard
-              label="PLUS retention"
-              value={formatPercent(financeModel.plusRetentionRate)}
-              tone="positive"
-              meter={financeModel.plusRetentionRate}
-            />
-          </div>
-        </article>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <MetricCard
+          label="รายได้รวม"
+          value={formatCurrencyTHB(financeModel.totalRevenue)}
+          note="ตามช่วงเวลาที่เลือก"
+          delta={financeModel.mockDeltas.revenue.value}
+          trend={financeModel.mockDeltas.revenue.trend}
+          trendColor={financeModel.mockDeltas.revenue.color}
+          className="min-h-[132px] p-5"
+        />
+        <MetricCard
+          label="สมาชิกใหม่"
+          value={formatNumber(financeModel.newMembers)}
+          note="ตามช่วงเวลาที่เลือก"
+          delta={financeModel.mockDeltas.newMembers.value}
+          trend={financeModel.mockDeltas.newMembers.trend}
+          trendColor={financeModel.mockDeltas.newMembers.color}
+          className="min-h-[132px] p-5"
+        />
+        <MetricCard
+          label="FREE → PLUS"
+          value={formatPercent(financeModel.trialToPaidRate)}
+          note="อัตราการแปลงสมาชิก"
+          delta={financeModel.mockDeltas.conversion.value}
+          trend={financeModel.mockDeltas.conversion.trend}
+          trendColor={financeModel.mockDeltas.conversion.color}
+          className="min-h-[132px] p-5"
+        />
+        <MetricCard
+          label="อัตราการยกเลิก"
+          value={formatPercent(financeModel.churnRate)}
+          note="ตามช่วงเวลาที่เลือก"
+          delta={financeModel.mockDeltas.churn.value}
+          trend={financeModel.mockDeltas.churn.trend}
+          trendColor={financeModel.mockDeltas.churn.color} // Green when down
+          className="min-h-[132px] p-5"
+        />
+        <MetricCard
+          label="ชวนเพื่อนสมัครสำเร็จ"
+          value={formatNumber(financeModel.successfulReferrals)}
+          note="ตามช่วงเวลาที่เลือก"
+          delta={financeModel.mockDeltas.referrals.value}
+          trend={financeModel.mockDeltas.referrals.trend}
+          trendColor={financeModel.mockDeltas.referrals.color}
+          className="min-h-[132px] p-5"
+        />
       </div>
 
       <article className={sectionCardClass}>
-        <SectionToolbar
-          title="รายได้เทียบค่าใช้จ่าย AI"
-          badge="แนวโน้ม"
-        />
-
-        <div className="mb-4 grid gap-3 sm:grid-cols-2">
-          <div className={innerPanelClass}>
-            <p className="text-xs text-muted-foreground">รายได้สะสม</p>
-            <p className="mt-1 text-base font-semibold text-foreground">{formatCurrencyTHB(financeModel.totalRevenue)}</p>
-          </div>
-          <div className={innerPanelClass}>
-            <p className="text-xs text-muted-foreground">กำไรสะสม</p>
-            <p className="mt-1 text-base font-semibold text-foreground">{formatCurrencyTHB(financeModel.netProfit)}</p>
-          </div>
+        <div className="mb-4 flex items-start justify-between gap-3">
+           <div>
+             <h3 className="text-base font-semibold text-foreground">รายได้</h3>
+           </div>
         </div>
 
-        <div className={chartPanelClass}>
-          <ChartContainer config={financeChartConfig} className="h-[160px] w-full">
-            <LineChart data={financeModel.series} margin={{ left: 8, right: 8, top: 10 }}>
-              <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeOpacity={0.45} />
-              <XAxis dataKey="label" tickLine={false} axisLine={false} minTickGap={20} interval={financeModel.meta.tickInterval} />
-              <YAxis tickLine={false} axisLine={false} width={74} tickFormatter={(value) => formatCompactCurrency(Number(value))} />
-              <ChartTooltip content={<FinanceChartTooltip />} />
-              <Line type="monotone" dataKey="revenue" name="รายได้" stroke="var(--color-revenue)" strokeWidth={3} dot={false} activeDot={false} />
-              <Line type="monotone" dataKey="aiCost" name="ค่าใช้จ่าย AI" stroke="var(--color-aiCost)" strokeWidth={3} dot={false} activeDot={false} />
-            </LineChart>
+        <div className="rounded-xl border border-border/60 bg-background/40 p-3">
+          <ChartContainer config={financeChartConfig} className="h-[250px] w-full mt-4">
+            <AreaChart data={financeModel.series} margin={{ left: 0, right: 12, top: 10, bottom: 12 }}>
+              <defs>
+                <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="var(--color-revenue)" stopOpacity={0.5} />
+                  <stop offset="95%" stopColor="var(--color-revenue)" stopOpacity={0.0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeOpacity={0.4} strokeDasharray="3 3" />
+              <XAxis dataKey="label" tickLine={false} axisLine={false} minTickGap={20} interval={financeModel.meta.tickInterval} tick={{ fill: "hsl(var(--muted-foreground))" }} tickMargin={12} />
+              <YAxis tickLine={false} axisLine={false} width={70} tickFormatter={(value) => formatCompactCurrency(Number(value))} tick={{ fill: "hsl(var(--muted-foreground))" }} tickMargin={12} />
+              <ChartTooltip content={<FinanceChartTooltip />} cursor={{ stroke: "hsl(var(--border))", strokeWidth: 1, strokeDasharray: "3 3" }} />
+              <Area type="monotone" dataKey="revenue" name="รายได้" stroke="var(--color-revenue)" strokeWidth={3} fill="url(#fillRevenue)" dot={false} activeDot={{ r: 6, fill: "var(--color-revenue)", stroke: "hsl(var(--background))", strokeWidth: 2 }} />
+            </AreaChart>
           </ChartContainer>
         </div>
       </article>
 
-      <div className="grid gap-4">
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.18fr)_minmax(0,0.82fr)]">
-        <DataTableShell
-          caption="ตารางรายได้แยกตามแพ็กเกจ"
-          minWidthClass="min-w-[760px]"
-          className="h-full min-w-0"
-          toolbar={(
-            <SectionToolbar
-              title="รายได้แยกตามแพ็กเกจ"
-              badge="แพ็กเกจ"
-            />
-          )}
-        >
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>แพ็กเกจ</TableHead>
-                <TableHead>ราคา</TableHead>
-                <TableHead>จำนวนผู้ใช้</TableHead>
-                <TableHead>รายได้</TableHead>
-                <TableHead>สัดส่วน</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {financeModel.packageRows.map((row) => (
-                <TableRow key={row.planKey}>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium text-foreground">{row.label}</p>
-                      {row.planKey === financeModel.leadingPlan.planKey ? (
-                        <p className="text-xs text-muted-foreground">แพ็กเกจนำรายได้ในช่วงนี้</p>
-                      ) : null}
-                    </div>
-                  </TableCell>
-                  <TableCell>{row.priceLabel}</TableCell>
-                  <TableCell className="font-semibold text-foreground">{formatNumber(row.users)}</TableCell>
-                  <TableCell className="font-semibold text-foreground">{formatCurrencyTHB(row.revenue)}</TableCell>
-                  <TableCell>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
-                        <span>{formatPercent(row.share)}</span>
-                        {row.planKey === financeModel.leadingPlan.planKey ? (
-                          <Badge variant="secondary" className="rounded-full px-2.5 py-1 text-[11px]">
-                            เด่นสุด
-                          </Badge>
-                        ) : null}
-                      </div>
-                      <div className="h-2 rounded-full bg-muted">
-                        <div className="h-2 rounded-full bg-primary" style={{ width: `${row.share}%` }} />
-                      </div>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-            <TableFooter>
-              <TableRow>
-                <TableCell colSpan={3}>รวม</TableCell>
-                <TableCell className="font-semibold">{formatCurrencyTHB(financeModel.totalRevenue)}</TableCell>
-                <TableCell>{formatPercent(100)}</TableCell>
-              </TableRow>
-            </TableFooter>
-          </Table>
-        </DataTableShell>
-        <DataTableShell
-          caption="ตารางต้นทุนและกำไรต่อผู้ใช้"
-          minWidthClass="min-w-[480px]"
-          className="h-full min-w-0"
-          toolbar={(
-            <SectionToolbar
-              title="ต้นทุนและกำไรต่อผู้ใช้"
-              badge="ต่อผู้ใช้"
-            />
-          )}
-        >
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ตัวชี้วัด</TableHead>
-                <TableHead>FREE</TableHead>
-                <TableHead>PLUS</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow>
-                <TableCell className="font-medium">รายได้/คน/เดือน</TableCell>
-                <TableCell>
-                  <p className="font-semibold text-foreground">{formatCurrencyTHB(0)}</p>
-                  <p className="text-xs text-muted-foreground">ไม่มี recurring revenue</p>
-                </TableCell>
-                <TableCell>
-                  <p className="font-semibold text-foreground">{formatCurrencyTHB(financeModel.plusRevenuePerUser)}</p>
-                  <p className="text-xs text-muted-foreground">เฉลี่ยจาก mix ของแพ็กเกจ PLUS</p>
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="font-medium">ต้นทุน AI/คน/เดือน</TableCell>
-                <TableCell>
-                  <p className="font-semibold text-foreground">{formatCurrencyTHB(financeModel.freeCostPerUser)}</p>
-                  <p className="text-xs text-muted-foreground">FREE ยังมีต้นทุนตรงจากการใช้ AI</p>
-                </TableCell>
-                <TableCell>
-                  <p className="font-semibold text-foreground">{formatCurrencyTHB(financeModel.plusCostPerUser)}</p>
-                  <p className="text-xs text-muted-foreground">ผู้ใช้ PLUS ใช้ AI หนาแน่นกว่า</p>
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="font-medium">กำไร/คน/เดือน</TableCell>
-                <TableCell>
-                  <p className="font-semibold text-rose-600 dark:text-rose-400">ขาดทุน {formatCurrencyTHB(financeModel.freeCostPerUser)}</p>
-                  <p className="text-xs text-muted-foreground">FREE เป็น cost ด้าน acquisition และ engagement</p>
-                </TableCell>
-                <TableCell>
-                  <p className="font-semibold text-emerald-600 dark:text-emerald-400">กำไร {formatCurrencyTHB(financeModel.plusProfitPerUser)}</p>
-                  <p className="text-xs text-muted-foreground">PLUS ยังมี spread บวกต่อคนอย่างชัดเจน</p>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </DataTableShell>
-        </div>
-
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-        <article className={sectionCardClass}>
-          <SectionToolbar
-            title="การแปลงและการรักษาผู้ใช้"
-            badge="การรักษา"
-          />
-
-          <div className="grid gap-3 md:grid-cols-2">
-            <FinanceDetailCard
-              label="ทดลองใช้ → สมัครจริง"
-              value={formatPercent(financeModel.trialToPaidRate)}
-              tone="positive"
-              meter={financeModel.trialToPaidRate}
-            />
-            <FinanceDetailCard
-              label="อัตราการยกเลิก"
-              value={formatPercent(financeModel.churnRate)}
-              tone="warning"
-              meter={financeModel.churnRate}
-            />
-            <FinanceDetailCard
-              label="ชวนเพื่อนสำเร็จ"
-              value={formatNumber(financeModel.successfulReferrals)}
-            />
-            <FinanceDetailCard
-              label="รายได้เฉลี่ยต่อผู้ใช้"
-              value={formatCurrencyTHB(financeModel.arpu)}
-            />
+      <DataTableShell
+        caption="ตารางรายได้แยกตามแพ็กเกจ"
+        minWidthClass="min-w-[650px]"
+        className="h-full min-w-0"
+        toolbar={(
+          <div className="mb-4 flex items-center justify-between gap-3 px-1">
+            <h3 className="text-base font-semibold text-foreground">รายได้แยกตามแพ็กเกจ</h3>
+            <Badge variant="secondary" className="rounded-full px-3 py-1">แพ็กเกจ</Badge>
           </div>
-
-          <div className="mt-4 rounded-xl border border-border/70 bg-background/80 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <p className="font-semibold text-foreground">เหตุผลยกเลิกหลัก</p>
-              <span className="text-sm font-semibold text-foreground">{formatPercent(churnAnalysis.churnRate)}</span>
-            </div>
-            <div className="mt-3 space-y-3">
-              {churnAnalysis.churnReasons.slice(0, 3).map((item) => (
-                <div key={item.reason}>
-                  <div className="flex items-center justify-between gap-3 text-sm">
-                    <span className="text-muted-foreground">{item.reason}</span>
-                    <span className="font-semibold text-foreground">{item.ratio}%</span>
+        )}
+      >
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>แพ็กเกจ</TableHead>
+              <TableHead>ราคา</TableHead>
+              <TableHead>จำนวน</TableHead>
+              <TableHead>รายได้</TableHead>
+              <TableHead>สัดส่วนผู้ใช้</TableHead>
+              <TableHead>สัดส่วนรายได้</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {financeModel.packageRows.map((row, i) => (
+              <TableRow key={row.planKey}>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                     <span className={cn("inline-block h-2 w-2 rounded-full", planAccentColors[i % planAccentColors.length])} />
+                     <div>
+                       <p className="font-medium text-foreground">{row.label}</p>
+                      {row.planKey === financeModel.leadingPlan.planKey && (
+                        <Badge className="mt-1 border-none bg-[#7f68a8] text-white hover:bg-[#7f68a8]/90">
+                          แพ็กเกจยอดนิยม
+                        </Badge>
+                      )}
+                     </div>
                   </div>
-                  <div className="mt-2 h-2 rounded-full bg-muted">
-                    <div className="h-2 rounded-full bg-amber-500" style={{ width: `${item.ratio}%` }} />
+                </TableCell>
+                <TableCell className="text-muted-foreground">{row.priceLabel}</TableCell>
+                <TableCell className="font-semibold">{formatNumber(row.users)}</TableCell>
+                <TableCell className="font-semibold">{formatCurrencyTHB(row.revenue)}</TableCell>
+                <TableCell>
+                  <div className="space-y-1.5 min-w-[100px]">
+                    <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                      <span>{formatPercent(row.usersShare)}</span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-muted">
+                      <div className={cn("h-1.5 rounded-full", planAccentColors[i % planAccentColors.length])} style={{ width: `${row.usersShare}%` }} />
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </article>
-
-        <article className={cn(sectionCardClass, "min-w-0")}>
-          <SectionToolbar
-            title="แรงกดต่อ margin"
-            badge="แรงกด"
-          />
-
-          <div className="grid gap-3">
-            <FinanceDetailCard
-              label="FREE burn รวม"
-              value={formatCurrencyTHB(financeModel.freeCostTotal)}
-              tone="warning"
-            />
-            <FinanceDetailCard
-              label="สัดส่วนรายได้จากแพ็กเกจนำ"
-              value={formatPercent(financeModel.leadingPlan.share)}
-            />
-            <FinanceDetailCard
-              label="AI cost load"
-              value={formatPercent(financeModel.costLoadRate)}
-              tone={financeModel.costLoadRate > 45 ? "warning" : "neutral"}
-              meter={financeModel.costLoadRate}
-            />
-            <FinanceDetailCard
-              label="กำไรต่อ PLUS หนึ่งคน"
-              value={formatCurrencyTHB(financeModel.plusProfitPerUser)}
-              tone="positive"
-            />
-          </div>
-        </article>
-        </div>
-      </div>
+                </TableCell>
+                <TableCell>
+                  <div className="space-y-1.5 min-w-[100px]">
+                    <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                      <span>{formatPercent(row.revenueShare)}</span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-muted">
+                      <div className={cn("h-1.5 rounded-full", planAccentColors[i % planAccentColors.length])} style={{ width: `${row.revenueShare}%` }} />
+                    </div>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </DataTableShell>
     </DashboardPageShell>
   );
 }
-
-
-

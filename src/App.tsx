@@ -8,6 +8,7 @@ const UserManagementPage = lazy(() => import("./app/pages/user-management-page")
 const AiMonitorPage = lazy(() => import("./app/pages/ai-monitor-page").then((m) => ({ default: m.AiMonitorPage })));
 const FinancePage = lazy(() => import("./app/pages/finance-page").then((m) => ({ default: m.FinancePage })));
 const NotificationsPage = lazy(() => import("./app/pages/notifications-page").then((m) => ({ default: m.NotificationsPage })));
+const ReportsPage = lazy(() => import("./app/pages/reports-page").then((m) => ({ default: m.ReportsPage })));
 const SettingsPage = lazy(() => import("./app/pages/settings-page").then((m) => ({ default: m.SettingsPage })));
 
 /** Minimal generic fallback for chunk loading to prevent layout jumps */
@@ -29,6 +30,7 @@ function App() {
           <Route path="ai-monitor" element={<ChunkSuspense><AiMonitorPage /></ChunkSuspense>} />
           <Route path="finance" element={<ChunkSuspense><FinancePage /></ChunkSuspense>} />
           <Route path="notifications" element={<ChunkSuspense><NotificationsPage /></ChunkSuspense>} />
+          <Route path="reports" element={<ChunkSuspense><ReportsPage /></ChunkSuspense>} />
           <Route path="settings" element={<ChunkSuspense><SettingsPage /></ChunkSuspense>} />
         </Route>
 

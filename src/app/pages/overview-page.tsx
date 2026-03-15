@@ -333,9 +333,9 @@ export function OverviewPage() {
 
   const [growthRange, setGrowthRange] = useState<"3m" | "6m" | "1y">("6m");
   const overviewCards = [...overviewKpis, overviewRevenueKpi];
-  const calendarMonthOrder = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
 
   const growthData = useMemo(() => {
+    const calendarMonthOrder = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
     const orderedGrowthData = [...overviewGrowthFreeVsPlus]
       .sort((a, b) => calendarMonthOrder.indexOf(a.month) - calendarMonthOrder.indexOf(b.month))
       .map((item) => ({ ...item, displayMonth: item.month }));
@@ -349,7 +349,7 @@ export function OverviewPage() {
     }
 
     return orderedGrowthData;
-  }, [calendarMonthOrder, growthRange]);
+  }, [growthRange]);
 
   return (
     <DashboardPageShell title="ภาพรวม">
@@ -572,4 +572,3 @@ export function OverviewPage() {
     </DashboardPageShell>
   );
 }
-

@@ -1,4 +1,4 @@
-﻿export type TrendType = "up" | "down" | "neutral";
+export type TrendType = "up" | "down" | "neutral";
 export type StatsCardItem = {
   label: string;
   value: string;
@@ -31,9 +31,9 @@ export const PLAN_LABELS: Record<PlanKey, string> = {
 
 export const PLAN_PRICES: Record<PlanKey, number> = {
   FREE: 0,
-  PLUS_MONTHLY: 59,
-  PLUS_TERM: 199,
-  PLUS_YEARLY: 599,
+  PLUS_MONTHLY: 79,
+  PLUS_TERM: 259,
+  PLUS_YEARLY: 699,
 };
 
 export const subscriptionPlans = [
@@ -41,7 +41,7 @@ export const subscriptionPlans = [
     id: "plan-monthly",
     name: "Plus+ Monthly",
     cycle: "รายเดือน",
-    priceTHB: 59,
+    priceTHB: 79,
     durationDays: 30,
     active: true,
     badge: "Starter",
@@ -50,7 +50,7 @@ export const subscriptionPlans = [
     id: "plan-term",
     name: "Plus+ Term",
     cycle: "รายเทอม (4 เดือน)",
-    priceTHB: 199,
+    priceTHB: 259,
     durationDays: 120,
     active: true,
     badge: "Popular",
@@ -59,7 +59,7 @@ export const subscriptionPlans = [
     id: "plan-yearly",
     name: "Plus+ Yearly",
     cycle: "รายปี",
-    priceTHB: 599,
+    priceTHB: 699,
     durationDays: 365,
     active: true,
     badge: "Best Value",
@@ -245,7 +245,7 @@ const totalAiCalls = managedUsers.reduce((s, u) => s + u.aiCallsTotal, 0);
 const totalWidgetInstalls = managedUsers.reduce((s, u) => s + u.widgetInstalls, 0);
 
 // MRR calculation from real plan mix
-const mrr = (plusMonthly * 59) + (plusTerm * Math.round(199 / 4)) + (plusYearly * Math.round(599 / 12));
+const mrr = (plusMonthly * 79) + (plusTerm * Math.round(259 / 4)) + (plusYearly * Math.round(699 / 12));
 const arr = mrr * 12;
 const conversionRate = ((plusUsers / totalUsers) * 100).toFixed(1);
 const dau = Math.round(totalUsers * 0.26);
@@ -1004,9 +1004,9 @@ export const churnAnalysis = {
 
 // 4.5 Revenue by Plan & Billing Cycle
 export const revenueByPlan = [
-  { plan: "Plus+ Monthly", revenue: plusMonthly * 59, percentage: Math.round((plusMonthly * 59) / Math.max(mrr, 1) * 100) },
-  { plan: "Plus+ Term", revenue: plusTerm * Math.round(199 / 4), percentage: Math.round((plusTerm * Math.round(199 / 4)) / Math.max(mrr, 1) * 100) },
-  { plan: "Plus+ Yearly", revenue: plusYearly * Math.round(599 / 12), percentage: Math.round((plusYearly * Math.round(599 / 12)) / Math.max(mrr, 1) * 100) },
+  { plan: "Plus+ Monthly", revenue: plusMonthly * 79, percentage: Math.round((plusMonthly * 79) / Math.max(mrr, 1) * 100) },
+  { plan: "Plus+ Term", revenue: plusTerm * Math.round(259 / 4), percentage: Math.round((plusTerm * Math.round(259 / 4)) / Math.max(mrr, 1) * 100) },
+  { plan: "Plus+ Yearly", revenue: plusYearly * Math.round(699 / 12), percentage: Math.round((plusYearly * Math.round(699 / 12)) / Math.max(mrr, 1) * 100) },
 ];
 
 // 4.6 Transaction History Table
@@ -1127,26 +1127,25 @@ export const abTests: ABTest[] = [
 export type AdminAccount = {
   id: string;
   name: string;
-  email: string;
+  username: string;
   role: string;
   lastLogin: string;
   avatar: string;
 };
 
 export const adminAccounts: AdminAccount[] = [
-  { id: "ADM-01", name: "Admin User", email: "admin@lilac.ai", role: "Super Admin", lastLogin: "2026-03-04 14:30", avatar: "https://ui.shadcn.com/avatars/01.png" },
-  { id: "ADM-02", name: "Operations Lead", email: "ops@lilac.ai", role: "Admin", lastLogin: "2026-03-04 12:15", avatar: "https://ui.shadcn.com/avatars/02.png" },
-  { id: "ADM-03", name: "Finance Viewer", email: "finance@lilac.ai", role: "Finance", lastLogin: "2026-03-03 09:00", avatar: "https://ui.shadcn.com/avatars/03.png" },
-  { id: "ADM-04", name: "Support Staff 1", email: "support1@lilac.ai", role: "Support", lastLogin: "2026-03-04 10:45", avatar: "https://ui.shadcn.com/avatars/04.png" },
-  { id: "ADM-05", name: "Marketing Lead", email: "marketing@lilac.ai", role: "Marketing", lastLogin: "2026-03-04 08:30", avatar: "https://ui.shadcn.com/avatars/05.png" },
+  { id: "ADM-01", name: "Theodore Finch", username: "theodore", role: "System Owner", lastLogin: "2026-03-04 14:30", avatar: "https://ui.shadcn.com/avatars/01.png" },
+  { id: "ADM-02", name: "Natthaphon Sriwan", username: "natthaphon", role: "Admin", lastLogin: "2026-03-04 12:15", avatar: "https://ui.shadcn.com/avatars/02.png" },
+  { id: "ADM-03", name: "Pimchanok Teerawat", username: "pimchanok", role: "Admin", lastLogin: "2026-03-03 09:00", avatar: "https://ui.shadcn.com/avatars/03.png" },
 ];
 
 export const adminRoles = [
-  { role: "Super Admin", access: "เข้าถึงทุกหน้า ทุก action รวมถึง Settings", users: 1 },
-  { role: "Admin", access: "เข้าถึงทุกหน้า ยกเว้น Settings > Admin Management", users: 2 },
-  { role: "Finance", access: "เข้าถึงหน้า Finance เท่านั้น (read-only)", users: 1 },
-  { role: "Support", access: "เข้าถึงหน้า Users (read + basic actions) และ Dashboard", users: 3 },
-  { role: "Marketing", access: "เข้าถึงหน้า Notifications และ Dashboard", users: 1 },
+  { role: "Owner", access: "เข้าถึงทุกหน้า ทุก action รวมถึงลบและเพิ่มผู้ดูแลได้", users: 1 },
+  { role: "ซุปเปอร์แอดมิน", access: "เข้าถึงทุกหน้า ทุก action รวมถึงตั้งค่าระบบ", users: 1 },
+  { role: "Admin", access: "เข้าถึงทุกหน้า ยกเว้น ตั้งค่าระบบ > จัดการผู้ดูแล", users: 2 },
+  { role: "การเงิน", access: "เข้าถึงหน้า การสมัครสมาชิก เท่านั้น", users: 1 },
+  { role: "ซัพพอร์ต", access: "เข้าถึงหน้า จัดการผู้ใช้ และ ภาพรวม", users: 3 },
+  { role: "การตลาด", access: "เข้าถึงหน้า การแจ้งเตือน และ ภาพรวม", users: 1 },
 ];
 
 // 6.2 Feature Flags
@@ -1171,19 +1170,20 @@ export type AuditLogEntry = {
   id: string;
   timestamp: string;
   adminName: string;
+  avatar: string;
   action: string;
-  target: string;
-  before: string;
-  after: string;
+  targetUserId?: string;
+  targetUserName?: string;
+  details: string;
 };
 
 export const auditLog: AuditLogEntry[] = [
-  { id: "AUD-01", timestamp: "2026-03-04 14:30", adminName: "Admin User", action: "เปลี่ยนแผน user", target: "U-0042", before: "FREE", after: "PLUS_MONTHLY" },
-  { id: "AUD-02", timestamp: "2026-03-04 12:15", adminName: "Operations Lead", action: "ระงับบัญชี", target: "U-1293", before: "active", after: "suspended" },
-  { id: "AUD-03", timestamp: "2026-03-04 10:00", adminName: "Admin User", action: "เปลี่ยน Feature Flag", target: "FF-03", before: "rollout 30%", after: "rollout 50%" },
-  { id: "AUD-04", timestamp: "2026-03-03 18:45", adminName: "Admin User", action: "อัปเดต API Key", target: "Anthropic API", before: "sk-***old", after: "sk-***new" },
-  { id: "AUD-05", timestamp: "2026-03-03 15:20", adminName: "Operations Lead", action: "ส่ง Broadcast", target: "NTF-003", before: "Draft", after: "Sent" },
-  { id: "AUD-06", timestamp: "2026-03-03 11:00", adminName: "Admin User", action: "เปลี่ยนราคาแพ็กเกจ", target: "Plus+ Monthly", before: "฿49", after: "฿59" },
+  { id: "AUD-01", timestamp: "2026-03-04 14:30", adminName: "Theodore", avatar: "https://ui.shadcn.com/avatars/01.png", action: "แก้ไขราคาแพ็กเกจ", details: "PLUS รายเดือน ฿59 → ฿79" },
+  { id: "AUD-02", timestamp: "2026-03-04 12:15", adminName: "Natthaphon", avatar: "https://ui.shadcn.com/avatars/02.png", action: "เปลี่ยนแพ็กเกจผู้ใช้", targetUserId: "U-0042", targetUserName: "Somsak P.", details: "FREE → PLUS รายเดือน" },
+  { id: "AUD-03", timestamp: "2026-03-04 10:00", adminName: "Pimchanok", avatar: "https://ui.shadcn.com/avatars/03.png", action: "ระงับบัญชีผู้ใช้", targetUserId: "U-1293", targetUserName: "Wichai S.", details: "เหตุผล: พฤติกรรมไม่เหมาะสม" },
+  { id: "AUD-04", timestamp: "2026-03-03 18:45", adminName: "Theodore", avatar: "https://ui.shadcn.com/avatars/01.png", action: "เปิดฟีเจอร์", details: "Voice Input · เปิดใช้งานแล้ว" },
+  { id: "AUD-05", timestamp: "2026-03-03 15:20", adminName: "Natthaphon", avatar: "https://ui.shadcn.com/avatars/02.png", action: "ส่งการแจ้งเตือน", targetUserName: "ผู้ใช้ทุกคน", details: "NTF-003 · \"อัปเดตระบบชำระเงินคืนนี้\"" },
+  { id: "AUD-06", timestamp: "2026-03-03 11:00", adminName: "Pimchanok", avatar: "https://ui.shadcn.com/avatars/03.png", action: "ตอบกลับ Feedback", targetUserId: "U-0891", targetUserName: "Anong K.", details: "\"ขอบคุณที่แจ้งมานะคะ ทีมกำลังแก้ไขอยู่\"" },
 ];
 
 // 6.4 API & Integration Config

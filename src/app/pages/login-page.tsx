@@ -27,27 +27,42 @@ function getInitialTheme(): "light" | "dark" {
 }
 
 // ── Animated particles for AI vibe ──
+// Pre-compute particle data outside the component to avoid impure Math.random() during render
+const PARTICLE_DATA = Array.from({ length: 18 }, (_, i) => {
+  const seed = (i + 1) * 7;
+  const pseudo = (n: number) => ((Math.sin(seed * n) * 10000) % 1 + 1) % 1;
+  return {
+    width: pseudo(1) * 4 + 2,
+    height: pseudo(2) * 4 + 2,
+    left: `${pseudo(3) * 100}%`,
+    top: `${pseudo(4) * 100}%`,
+    yOffset: -(pseudo(5) * 80 + 30),
+    duration: pseudo(6) * 4 + 3,
+    delay: pseudo(7) * 3,
+  };
+});
+
 function AiParticles() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      {Array.from({ length: 18 }).map((_, i) => (
+      {PARTICLE_DATA.map((p, i) => (
         <motion.div
           key={i}
           className="absolute rounded-full bg-primary/20"
           style={{
-            width: Math.random() * 4 + 2,
-            height: Math.random() * 4 + 2,
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
+            width: p.width,
+            height: p.height,
+            left: p.left,
+            top: p.top,
           }}
           animate={{
-            y: [0, -(Math.random() * 80 + 30)],
+            y: [0, p.yOffset],
             opacity: [0, 0.7, 0],
           }}
           transition={{
-            duration: Math.random() * 4 + 3,
+            duration: p.duration,
             repeat: Infinity,
-            delay: Math.random() * 3,
+            delay: p.delay,
             ease: "easeInOut",
           }}
         />
