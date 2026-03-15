@@ -2,7 +2,6 @@ import { Download, RefreshCcw, Route, Search, UserRound } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDashboardUI } from "@/app/context/dashboard-ui-context";
-import { useAuth } from "@/app/context/auth-context";
 import { resolveExportByPath } from "@/app/export/export-resolver";
 import { dashboardRouteMeta, findRouteMeta } from "@/app/routes/dashboard-routes";
 import {
@@ -43,7 +42,6 @@ export function DashboardCommandCenter() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { commandOpen, setCommandOpen, triggerRefresh } = useDashboardUI();
-  const { isOwner } = useAuth();
   const [query, setQuery] = useState("");
   const currentRoute = findRouteMeta(pathname);
 
@@ -70,11 +68,7 @@ export function DashboardCommandCenter() {
   }, [setCommandOpen]);
 
   const items = useMemo<DashboardCommandItem[]>(() => {
-    const visibleRoutes = isOwner
-      ? dashboardRouteMeta
-      : dashboardRouteMeta.filter((r) => r.key !== "settings");
-
-    const routeItems: DashboardCommandItem[] = visibleRoutes.map((route) => ({
+    const routeItems: DashboardCommandItem[] = dashboardRouteMeta.map((route) => ({
       id: `route-${route.key}`,
       title: route.titleTH,
       subtitle: `หน้า ${route.group}`,
@@ -129,7 +123,7 @@ export function DashboardCommandCenter() {
     ];
 
     return [...actionItems, ...routeItems, ...userItems];
-  }, [close, currentRoute.titleTH, isOwner, navigate, pathname, triggerRefresh]);
+  }, [close, currentRoute.titleTH, navigate, pathname, triggerRefresh]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -187,4 +181,3 @@ export function DashboardCommandCenter() {
     </CommandDialog>
   );
 }
-

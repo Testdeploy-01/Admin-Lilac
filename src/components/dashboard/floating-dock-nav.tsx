@@ -11,7 +11,6 @@ import {
 import { Link, useLocation } from "react-router-dom";
 import { FloatingDock } from "@/components/ui/floating-dock";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/app/context/auth-context";
 import { pendingUsersCount } from "@/mocks/dashboard-features.mock";
 
 type DockItem = {
@@ -75,7 +74,6 @@ export function DockBrandLogo() {
 
 export function FloatingDockNav({ onHoverChange }: FloatingDockNavProps) {
   const { pathname } = useLocation();
-  const { isOwner } = useAuth();
 
   const toRenderItem = (item: DockItem): DockRenderItem => {
     const active = isRouteActive(pathname, item.activePrefixes);
@@ -98,9 +96,7 @@ export function FloatingDockNav({ onHoverChange }: FloatingDockNavProps) {
     };
   };
 
-  const filteredRightItems = isOwner
-    ? rightDockItems
-    : rightDockItems.filter((item) => item.href !== "/settings");
+  const filteredRightItems = rightDockItems;
 
   const items: DockRenderItem[] = [
     ...leftDockItems.map(toRenderItem),

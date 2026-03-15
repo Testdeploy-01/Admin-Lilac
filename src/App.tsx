@@ -2,7 +2,6 @@ import { lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./app/context/auth-context";
 import { DashboardLayout } from "./app/layout/dashboard-layout";
-import { RequireOwner } from "./app/routes/require-owner";
 
 const LoginPage = lazy(() => import("./app/pages/login-page").then((m) => ({ default: m.LoginPage })));
 const OverviewPage = lazy(() => import("./app/pages/overview-page").then((m) => ({ default: m.OverviewPage })));
@@ -34,7 +33,7 @@ function App() {
             <Route path="finance" element={<ChunkSuspense><FinancePage /></ChunkSuspense>} />
             <Route path="notifications" element={<ChunkSuspense><NotificationsPage /></ChunkSuspense>} />
             <Route path="reports" element={<ChunkSuspense><ReportsPage /></ChunkSuspense>} />
-            <Route path="settings" element={<RequireOwner><ChunkSuspense><SettingsPage /></ChunkSuspense></RequireOwner>} />
+            <Route path="settings" element={<ChunkSuspense><SettingsPage /></ChunkSuspense>} />
           </Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />
