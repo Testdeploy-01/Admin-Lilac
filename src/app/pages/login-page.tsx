@@ -186,14 +186,8 @@ export function LoginPage() {
               transition={{ delay: 0.15, duration: 0.4 }}
               className="mb-8 flex flex-col items-center gap-4"
             >
-              {/* Logo with glow */}
+              {/* Logo */}
               <div className="relative">
-                <motion.div
-                  className="absolute inset-0 scale-[2] rounded-full opacity-25 blur-3xl"
-                  style={{ background: "hsl(var(--primary))" }}
-                  animate={{ opacity: [0.15, 0.3, 0.15], scale: [1.8, 2.2, 1.8] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                />
                 <motion.img
                   src="/Logo.webp"
                   alt="Lilac Admin Logo"
