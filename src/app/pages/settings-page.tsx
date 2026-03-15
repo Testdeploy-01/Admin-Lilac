@@ -167,7 +167,7 @@ export function SettingsPage() {
                   </>
                 ) : (
                   <>
-                    <div className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500 shrink-0" /><span className="text-sm">ดูทุกหน้า <span className="text-rose-500/80 font-medium">ยกเว้น Tab ผู้ดูแลและสิทธิ์</span></span></div>
+                    <div className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500 shrink-0" /><span className="text-sm">ดูทุกหน้า <span className="text-rose-500/80 font-medium">ยกเว้นหน้าตั้งค่า</span></span></div>
                     <div className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500 shrink-0" /><span className="text-sm">ส่งการแจ้งเตือน</span></div>
                     <div className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500 shrink-0" /><span className="text-sm">ตอบกลับ Feedback</span></div>
                     <div className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500 shrink-0" /><span className="text-sm">จัดการผู้ใช้ทั้งหมด</span></div>
