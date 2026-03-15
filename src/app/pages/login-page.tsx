@@ -6,14 +6,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BackgroundBeams } from "@/components/ui/background-beams";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/app/context/auth-context";
+import { mockCredentials } from "@/mocks/admin-profile.mock";
+import type { AdminProfile } from "@/types/admin-profile";
 
 // ─── Auth config placeholder ────────────────────────────────────────────────
-// TODO: Replace this mock with a real auth call (e.g. Supabase, REST API, etc.)
-async function mockSignIn(email: string, password: string): Promise<void> {
+async function mockSignIn(username: string, password: string): Promise<AdminProfile> {
   await new Promise((res) => setTimeout(res, 900));
-  if (!email.trim() || !password.trim()) {
-    throw new Error("กรุณากรอกอีเมลและรหัสผ่าน");
+  if (!username.trim() || !password.trim()) {
+    throw new Error("กรุณากรอกชื่อผู้ใช้และรหัสผ่าน");
   }
+  const match = mockCredentials.find(
+    (c) => c.username.toLowerCase() === username.trim().toLowerCase() && c.password === password,
+  );
+  if (!match) {
+    throw new Error("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
+  }
+  return match.profile;
 }
 // ────────────────────────────────────────────────────────────────────────────
 
@@ -73,7 +82,8 @@ function AiParticles() {
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const auth = useAuth();
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -91,7 +101,8 @@ export function LoginPage() {
     setError(null);
     setLoading(true);
     try {
-      await mockSignIn(email, password);
+      const profile = await mockSignIn(username, password);
+      auth.login(profile);
       // Ensure the skeleton shows up the next time we visit overview
       sessionStorage.removeItem("hasVisitedOverview");
       navigate("/overview", { replace: true });
@@ -216,19 +227,19 @@ export function LoginPage() {
               {/* Email */}
               <div className="space-y-2">
                 <label
-                  htmlFor="login-email"
+                  htmlFor="login-username"
                   className="block text-sm font-medium text-foreground/80"
                 >
-                  อีเมล
+                  ชื่อผู้ใช้
                 </label>
                 <div className="group relative">
                   <Input
-                    id="login-email"
-                    type="email"
-                    autoComplete="email"
-                    placeholder="admin@lilac.ai"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    id="login-username"
+                    type="text"
+                    autoComplete="username"
+                    placeholder="Admin หรือ Owner"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                     disabled={loading}
                     className="h-11 rounded-xl border-border/50 bg-background/50 pl-4 text-sm transition-all duration-200 placeholder:text-muted-foreground/40 focus:border-primary/50 focus:bg-background focus:shadow-[0_0_0_3px_hsl(var(--primary)/0.1)]"
                     required

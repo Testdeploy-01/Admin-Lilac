@@ -1,6 +1,8 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { AuthProvider } from "./app/context/auth-context";
 import { DashboardLayout } from "./app/layout/dashboard-layout";
+import { RequireOwner } from "./app/routes/require-owner";
 
 const LoginPage = lazy(() => import("./app/pages/login-page").then((m) => ({ default: m.LoginPage })));
 const OverviewPage = lazy(() => import("./app/pages/overview-page").then((m) => ({ default: m.OverviewPage })));
@@ -19,23 +21,25 @@ function ChunkSuspense({ children }: { children: React.ReactNode }) {
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Login — outside DashboardLayout (no dock / sidebar) */}
-        <Route path="login" element={<Suspense><LoginPage /></Suspense>} />
+      <AuthProvider>
+        <Routes>
+          {/* Login — outside DashboardLayout (no dock / sidebar) */}
+          <Route path="login" element={<Suspense><LoginPage /></Suspense>} />
 
-        <Route element={<DashboardLayout />}>
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="overview" element={<ChunkSuspense><OverviewPage /></ChunkSuspense>} />
-          <Route path="user-management" element={<ChunkSuspense><UserManagementPage /></ChunkSuspense>} />
-          <Route path="ai-monitor" element={<ChunkSuspense><AiMonitorPage /></ChunkSuspense>} />
-          <Route path="finance" element={<ChunkSuspense><FinancePage /></ChunkSuspense>} />
-          <Route path="notifications" element={<ChunkSuspense><NotificationsPage /></ChunkSuspense>} />
-          <Route path="reports" element={<ChunkSuspense><ReportsPage /></ChunkSuspense>} />
-          <Route path="settings" element={<ChunkSuspense><SettingsPage /></ChunkSuspense>} />
-        </Route>
+          <Route element={<DashboardLayout />}>
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="overview" element={<ChunkSuspense><OverviewPage /></ChunkSuspense>} />
+            <Route path="user-management" element={<ChunkSuspense><UserManagementPage /></ChunkSuspense>} />
+            <Route path="ai-monitor" element={<ChunkSuspense><AiMonitorPage /></ChunkSuspense>} />
+            <Route path="finance" element={<ChunkSuspense><FinancePage /></ChunkSuspense>} />
+            <Route path="notifications" element={<ChunkSuspense><NotificationsPage /></ChunkSuspense>} />
+            <Route path="reports" element={<ChunkSuspense><ReportsPage /></ChunkSuspense>} />
+            <Route path="settings" element={<RequireOwner><ChunkSuspense><SettingsPage /></ChunkSuspense></RequireOwner>} />
+          </Route>
 
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

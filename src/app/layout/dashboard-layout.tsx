@@ -1,6 +1,7 @@
 import { startTransition, useEffect, useState, type CSSProperties } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { DashboardUIProvider, useDashboardUI } from "@/app/context/dashboard-ui-context";
+import { useAuth } from "@/app/context/auth-context";
 import { DashboardCommandCenter } from "@/components/dashboard/dashboard-command-center";
 import { BackgroundBeams } from "@/components/ui/background-beams";
 import { DockBrandLogo, FloatingDockNav } from "../../components/dashboard/floating-dock-nav";
@@ -54,6 +55,8 @@ type DashboardLayoutFrameProps = {
 
 function DashboardLayoutFrame({ theme, pathname, onToggleTheme }: DashboardLayoutFrameProps) {
   const { refreshTick } = useDashboardUI();
+  const { profile } = useAuth();
+  const activeProfile = profile ?? adminProfileMock;
   const [dockHovered, setDockHovered] = useState(false);
   const handleDockHoverChange = (hovered: boolean) => {
     startTransition(() => {
@@ -91,7 +94,7 @@ function DashboardLayoutFrame({ theme, pathname, onToggleTheme }: DashboardLayou
             <TopRightControls
               theme={theme}
               onToggleTheme={onToggleTheme}
-              profile={adminProfileMock}
+              profile={activeProfile}
               profileMenuSide="right"
               profileMenuAlign="end"
               profileMenuOffset={12}
@@ -104,7 +107,7 @@ function DashboardLayoutFrame({ theme, pathname, onToggleTheme }: DashboardLayou
           <TopRightControls
             theme={theme}
             onToggleTheme={onToggleTheme}
-            profile={adminProfileMock}
+            profile={activeProfile}
             profileMenuSide="top"
             profileMenuAlign="end"
             profileMenuOffset={8}

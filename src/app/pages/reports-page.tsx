@@ -90,11 +90,11 @@ function buildMonthlyData(range: TimeRange): MonthlyRow[] {
   for (let i = 0; i < monthCount; i++) {
     const monthIdx = (actualStart + i) % 12;
     const growthFactor = 1 + i * 0.03 + rand() * 0.06;
-    
+
     // Adjust logic slightly for 'today'
     const isToday = range === "today";
     const divider = isToday ? 30 : 1;
-    
+
     const newUsers = Math.round((baseNewUsers * growthFactor * (0.9 + rand() * 0.2)) / divider);
     const revenue = Math.round((baseRevenue * growthFactor * (0.9 + rand() * 0.2)) / divider);
     const aiCommands = Math.round((baseAiCommands * growthFactor * (0.9 + rand() * 0.2)) / divider);
@@ -178,7 +178,7 @@ function buildReportSummary(range: TimeRange, category: ReportCategory): ReportS
       text: `คำสั่ง AI รวม ${formatNumber(totalAiCommands)} คำสั่ง ในช่วง${timeRangeLabels[range]}`,
     });
     const avgAiPerUser = +(totalAiCommands / Math.max(totalUsers, 1)).toFixed(1);
-    
+
     // adjust cost rough estimate for 'today'
     const costFactor = range === "today" ? (1 / 30) : range === "month" ? 1 : range === "quarter" ? 3 : 12;
     highlights.push({

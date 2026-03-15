@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/app/context/auth-context";
 import type { AdminProfile } from "@/types/admin-profile";
 
 interface TopRightControlsProps {
@@ -34,6 +35,7 @@ export function TopRightControls({
   profileMenuOffset = 4,
 }: TopRightControlsProps) {
   const navigate = useNavigate();
+  const { isOwner, logout } = useAuth();
 
   const initials = profile.name
     .split(" ")
@@ -52,8 +54,8 @@ export function TopRightControls({
   };
 
   const onLogout = () => {
-    window.localStorage.removeItem("mockup-theme");
-    navigate("/", { replace: true });
+    logout();
+    navigate("/login", { replace: true });
   };
 
   return (
@@ -89,10 +91,12 @@ export function TopRightControls({
               <User className="h-4 w-4 text-muted-foreground" />
               ดูโปรไฟล์
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={onOpenSettings} className="cursor-pointer">
-              <Settings className="h-4 w-4 text-muted-foreground" />
-              ตั้งค่า
-            </DropdownMenuItem>
+            {isOwner && (
+              <DropdownMenuItem onSelect={onOpenSettings} className="cursor-pointer">
+                <Settings className="h-4 w-4 text-muted-foreground" />
+                ตั้งค่า
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={onLogout} className="cursor-pointer text-rose-600 focus:text-rose-700">
               <LogOut className="h-4 w-4" />
