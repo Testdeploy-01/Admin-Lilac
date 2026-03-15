@@ -132,7 +132,7 @@ function DashboardLayoutFrame({ theme, pathname, onToggleTheme }: DashboardLayou
             profileMenuSide="top"
             profileMenuAlign="end"
             profileMenuOffset={8}
-            className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(0.75rem,env(safe-area-inset-right))] z-40 sm:bottom-6 sm:right-4"
+            className="fixed bottom-[max(5rem,calc(env(safe-area-inset-bottom)+4rem))] right-[max(0.75rem,env(safe-area-inset-right))] z-40 sm:bottom-[5.5rem] sm:right-4"
           />
         </div>
 
