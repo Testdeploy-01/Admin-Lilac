@@ -17,7 +17,7 @@ export function BackgroundBeams({ className }: { className?: string }) {
           <linearGradient id="beam-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0" />
             <stop offset="45%" stopColor="hsl(var(--primary))" stopOpacity="0.45" />
-            <stop offset="100%" stopColor="#14b8a6" stopOpacity="0" />
+            <stop offset="100%" stopColor="hsl(var(--chart-2))" stopOpacity="0" />
           </linearGradient>
         </defs>
         {BEAMS.map((beam) => (

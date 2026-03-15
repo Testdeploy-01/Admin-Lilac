@@ -1,60 +1,62 @@
 ﻿@import url("https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap");
 
 @layer base {
+  /* ─── Light Theme  ·  "Clean Amethyst" ─── */
   :root {
-    --background: 262 25% 97%;
-    --foreground: 261 30% 10%;
+    --background: 240 6% 97%;
+    --foreground: 258 30% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 261 30% 10%;
+    --card-foreground: 258 30% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 261 30% 10%;
-    --primary: 261 32% 64%;
-    --primary-foreground: 210 20% 98%;
-    --primary-soft: 262 28% 92%;
-    --secondary: 262 18% 94%;
-    --secondary-foreground: 261 25% 15%;
-    --muted: 262 15% 93%;
-    --muted-foreground: 261 10% 44%;
-    --accent: 262 18% 93%;
-    --accent-foreground: 261 25% 15%;
+    --popover-foreground: 258 30% 10%;
+    --primary: 262 42% 50%;
+    --primary-foreground: 0 0% 100%;
+    --primary-soft: 262 32% 94%;
+    --secondary: 250 10% 95%;
+    --secondary-foreground: 258 25% 13%;
+    --muted: 250 8% 93%;
+    --muted-foreground: 255 8% 42%;
+    --accent: 250 12% 94%;
+    --accent-foreground: 258 25% 13%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 20% 98%;
-    --border: 261 14% 88%;
-    --input: 261 14% 88%;
-    --ring: 262.1 83.3% 57.8%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 255 8% 87%;
+    --input: 255 8% 87%;
+    --ring: 262 55% 50%;
     --radius: 0.5rem;
-    --chart-1: 261 45% 58%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 290 30% 50%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 330 60% 55%;
+    --chart-1: 262 48% 50%;
+    --chart-2: 173 52% 40%;
+    --chart-3: 290 35% 50%;
+    --chart-4: 43 70% 58%;
+    --chart-5: 340 60% 52%;
   }
 
+  /* ─── Dark Theme  ·  "Deep Amethyst Night" ─── */
   .dark {
-    --background: 0 0% 4%;
-    --foreground: 210 20% 98%;
-    --card: 0 0% 9%;
-    --card-foreground: 210 20% 98%;
-    --popover: 0 0% 9%;
-    --popover-foreground: 210 20% 98%;
-    --primary: 261 32% 64%;
-    --primary-foreground: 210 20% 98%;
-    --primary-soft: 262 25% 24%;
-    --secondary: 215 27.9% 16.9%;
-    --secondary-foreground: 210 20% 98%;
-    --muted: 215 27.9% 16.9%;
-    --muted-foreground: 217.9 10.6% 64.9%;
-    --accent: 215 27.9% 16.9%;
-    --accent-foreground: 210 20% 98%;
+    --background: 260 14% 5%;
+    --foreground: 240 10% 96%;
+    --card: 260 10% 9%;
+    --card-foreground: 240 10% 96%;
+    --popover: 260 10% 9%;
+    --popover-foreground: 240 10% 96%;
+    --primary: 262 48% 62%;
+    --primary-foreground: 0 0% 100%;
+    --primary-soft: 262 28% 18%;
+    --secondary: 258 16% 14%;
+    --secondary-foreground: 240 10% 96%;
+    --muted: 258 14% 15%;
+    --muted-foreground: 255 8% 60%;
+    --accent: 258 16% 14%;
+    --accent-foreground: 240 10% 96%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 20% 98%;
-    --border: 261 10% 16%;
-    --input: 261 18% 22%;
-    --ring: 263.4 70% 50.4%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --destructive-foreground: 240 10% 96%;
+    --border: 260 10% 17%;
+    --input: 260 12% 20%;
+    --ring: 262 60% 56%;
+    --chart-1: 262 55% 58%;
+    --chart-2: 173 50% 46%;
+    --chart-3: 40 75% 56%;
+    --chart-4: 290 50% 62%;
+    --chart-5: 340 65% 56%;
   }
 }

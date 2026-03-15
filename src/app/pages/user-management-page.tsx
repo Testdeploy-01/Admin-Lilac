@@ -49,26 +49,14 @@ type SortDir = "asc" | "desc";
 type BulkAction = "" | "export" | "suspend" | "activate";
 
 const PAGE_SIZE = 15;
-const DETAIL_PLAN_LABELS = {
+const PLAN_LABEL = {
   FREE: "สมาชิก FREE",
   PLUS_MONTHLY: "PLUS รายเดือน",
   PLUS_TERM: "PLUS รายเทอม",
   PLUS_YEARLY: "PLUS รายปี",
 } as const;
 
-const DETAIL_STATUS_LABELS = {
-  active: "ปกติ",
-  suspended: "ระงับ",
-} as const;
-
-const USER_PLAN_LABELS = {
-  FREE: "สมาชิก FREE",
-  PLUS_MONTHLY: "PLUS รายเดือน",
-  PLUS_TERM: "PLUS รายเทอม",
-  PLUS_YEARLY: "PLUS รายปี",
-} as const;
-
-const USER_STATUS_LABELS = {
+const STATUS_LABEL = {
   active: "ปกติ",
   suspended: "ระงับ",
 } as const;
@@ -283,8 +271,8 @@ export function UserManagementPage() {
 
       {tab === "all" ? (
         <>
-          
-          
+
+
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
             {userStatsBar.map((item) => (
               <MetricCard
@@ -294,7 +282,7 @@ export function UserManagementPage() {
                 delta={item.delta}
                 trend={item.trend}
                 note={item.note}
-                className="min-h-[126px] p-3.5 lg:p-4"
+                className="min-h-[132px] p-5"
               />
             ))}
           </div>
@@ -446,7 +434,7 @@ export function UserManagementPage() {
                         </Button>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={user.plan === "FREE" ? "secondary" : "default"}>{USER_PLAN_LABELS[user.plan]}</Badge>
+                        <Badge variant={user.plan === "FREE" ? "secondary" : "default"}>{PLAN_LABEL[user.plan]}</Badge>
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -458,7 +446,7 @@ export function UserManagementPage() {
                                 : "bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300"
                           }
                         >
-                          {USER_STATUS_LABELS[user.status]}
+                          {STATUS_LABEL[user.status]}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -627,9 +615,16 @@ export function UserManagementPage() {
       ) : (
         <div className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            <MetricCard label="ยกเลิกทั้งหมด" value={churnSummary.total} className="min-h-[126px] p-3.5 lg:p-4" />
-            <MetricCard label="ยกเลิกเดือนนี้" value={churnSummary.thisMonth} className="min-h-[126px] p-3.5 lg:p-4" />
-            <MetricCard label="เหตุผลยอดนิยม" value={churnSummary.topReason} className="min-h-[126px] p-3.5 lg:p-4" />
+            <MetricCard label="ยกเลิกทั้งหมด" value={churnSummary.total} delta="+3.2%" trend="down" className="min-h-[132px] p-5" />
+            <MetricCard label="ยกเลิกเดือนนี้" value={churnSummary.thisMonth} delta="-8.5%" trend="up" className="min-h-[132px] p-5" />
+            <MetricCard
+              label="เหตุผลยอดนิยม"
+              value={churnSummary.topReason}
+              delta={`${churnSummary.total} คน`}
+              trend="neutral"
+              note={`จากทั้งหมด ${churnSummary.total.toLocaleString()} คน`}
+              className="min-h-[132px] p-5"
+            />
           </div>
         <DataTableShell caption="รายชื่อผู้ใช้ที่ยกเลิก PLUS สำหรับ win-back" minWidthClass="min-w-[880px]">
           <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -715,7 +710,7 @@ export function UserManagementPage() {
               <div className="mt-6 grid grid-cols-2 gap-3">
                 <div className="rounded-lg border border-border bg-background p-3">
                   <p className="text-xs text-muted-foreground">แพ็กเกจ</p>
-                  <p className="mt-1 font-bold">{DETAIL_PLAN_LABELS[selectedUser.plan]}</p>
+                  <p className="mt-1 font-bold">{PLAN_LABEL[selectedUser.plan]}</p>
                 </div>
                 <div className="rounded-lg border border-border bg-background p-3">
                   <p className="text-xs text-muted-foreground">สถานะ</p>
@@ -727,7 +722,7 @@ export function UserManagementPage() {
                         : "text-foreground"
                       }`}
                   >
-                    {DETAIL_STATUS_LABELS[selectedUser.status]}
+                    {STATUS_LABEL[selectedUser.status]}
                   </p>
                 </div>
                 <div className="rounded-lg border border-border bg-background p-3">
@@ -806,10 +801,10 @@ export function UserManagementPage() {
                       <SelectValue placeholder="เลือกแพ็กเกจ" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="FREE">{DETAIL_PLAN_LABELS.FREE}</SelectItem>
-                      <SelectItem value="PLUS_MONTHLY">{DETAIL_PLAN_LABELS.PLUS_MONTHLY}</SelectItem>
-                      <SelectItem value="PLUS_TERM">{DETAIL_PLAN_LABELS.PLUS_TERM}</SelectItem>
-                      <SelectItem value="PLUS_YEARLY">{DETAIL_PLAN_LABELS.PLUS_YEARLY}</SelectItem>
+                      <SelectItem value="FREE">{PLAN_LABEL.FREE}</SelectItem>
+                      <SelectItem value="PLUS_MONTHLY">{PLAN_LABEL.PLUS_MONTHLY}</SelectItem>
+                      <SelectItem value="PLUS_TERM">{PLAN_LABEL.PLUS_TERM}</SelectItem>
+                      <SelectItem value="PLUS_YEARLY">{PLAN_LABEL.PLUS_YEARLY}</SelectItem>
                     </SelectContent>
                   </Select>
                   <Button

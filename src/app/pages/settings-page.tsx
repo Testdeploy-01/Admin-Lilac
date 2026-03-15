@@ -5,9 +5,10 @@ import { DataTableShell } from "@/components/dashboard/ui/data-table-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Check, X } from "lucide-react";
 import {
   adminAccounts,
@@ -15,6 +16,8 @@ import {
   planPricingSettings,
   type AdminAccount,
 } from "../../mocks/dashboard-features.mock";
+
+const ROLE_OPTIONS = ["System Owner", "Admin"] as const;
 
 type TabKey = "admins" | "logs" | "plans";
 
@@ -24,8 +27,33 @@ export function SettingsPage() {
   const [savedAt, setSavedAt] = useState("ยังไม่บันทึก");
   const [trialDays, setTrialDays] = useState(String(planPricingSettings.freeTrialDays));
   const [freeDailyAiLimit, setFreeDailyAiLimit] = useState(String(planPricingSettings.freeDailyAiLimit));
-  
+
   const [editingAdmin, setEditingAdmin] = useState<AdminAccount | null>(null);
+
+  /* ─── Add Admin Dialog state ─── */
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newUsername, setNewUsername] = useState("");
+  const [newRole, setNewRole] = useState<string>("Admin");
+
+  const handleAddAdmin = () => {
+    if (!newName.trim() || !newUsername.trim()) return;
+    setAdmins((prev) => [
+      ...prev,
+      {
+        id: `ADM-${String(prev.length + 1).padStart(2, "0")}`,
+        name: newName.trim(),
+        username: newUsername.trim(),
+        role: newRole,
+        lastLogin: "-",
+        avatar: `https://ui.shadcn.com/avatars/0${(prev.length % 6) + 1}.png`,
+      },
+    ]);
+    setNewName("");
+    setNewUsername("");
+    setNewRole("Admin");
+    setIsAddOpen(false);
+  };
 
   const handleSave = () => setSavedAt(new Date().toLocaleString("th-TH"));
 
@@ -50,24 +78,7 @@ export function SettingsPage() {
               <h3 className="text-base font-semibold">บัญชีผู้ดูแล</h3>
               <Button
                 size="sm"
-                onClick={() => {
-                  const name = prompt("ชื่อ Admin ใหม่:");
-                  const username = prompt("ชื่อผู้ใช้:");
-                  const role = prompt("ตำแหน่ง (Owner / ซุปเปอร์แอดมิน / Admin / การเงิน / ซัพพอร์ต / การตลาด):");
-                  if (name && username && role) {
-                    setAdmins((prev) => [
-                      ...prev,
-                      {
-                        id: `ADM-${String(prev.length + 1).padStart(2, "0")}`,
-                        name,
-                        username,
-                        role,
-                        lastLogin: "-",
-                        avatar: `https://ui.shadcn.com/avatars/0${(prev.length % 6) + 1}.png`,
-                      },
-                    ]);
-                  }
-                }}
+                onClick={() => setIsAddOpen(true)}
               >
                 + เพิ่มผู้ดูแล
               </Button>
@@ -95,8 +106,8 @@ export function SettingsPage() {
                   </TableCell>
                   <TableCell className="text-muted-foreground">{admin.username}</TableCell>
                   <TableCell>
-                    <Badge 
-                      className={admin.role === "System Owner" ? "bg-[#7f68a8] text-white hover:bg-[#7f68a8]/90 border-transparent" : "bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700"}
+                    <Badge
+                      className={admin.role === "System Owner" ? "bg-primary text-primary-foreground hover:bg-primary/90 border-transparent" : "bg-muted text-muted-foreground border-border"}
                       variant={admin.role === "System Owner" ? "default" : "outline"}
                     >
                       {admin.role}
@@ -132,22 +143,26 @@ export function SettingsPage() {
           <div className="mt-2 space-y-4">
             <div className="space-y-1">
               <label className="text-sm font-medium">ตำแหน่ง (Role)</label>
-              <select 
-                className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              <Select
                 value={editingAdmin?.role || "Admin"}
-                onChange={(e) => {
-                  const newRole = e.target.value;
+                onValueChange={(value) => {
                   if (editingAdmin) {
-                    setAdmins(prev => prev.map(a => a.id === editingAdmin.id ? { ...a, role: newRole } : a));
-                    setEditingAdmin({ ...editingAdmin, role: newRole });
+                    setAdmins(prev => prev.map(a => a.id === editingAdmin.id ? { ...a, role: value } : a));
+                    setEditingAdmin({ ...editingAdmin, role: value });
                   }
                 }}
               >
-                <option value="System Owner" className="bg-background text-foreground">System Owner</option>
-                <option value="Admin" className="bg-background text-foreground">Admin</option>
-              </select>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ROLE_OPTIONS.map((role) => (
+                    <SelectItem key={role} value={role}>{role}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            
+
             <div className="rounded-xl border border-border bg-muted/20 p-4">
               <p className="text-xs font-semibold uppercase text-muted-foreground mb-3 tracking-wider">สิทธิ์การเข้าถึง ({editingAdmin?.role})</p>
               <div className="space-y-2.5">
@@ -182,6 +197,42 @@ export function SettingsPage() {
               <Button onClick={() => setEditingAdmin(null)}>บันทึก / ปิด</Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── Add Admin Dialog ─── */}
+      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+        <DialogContent className="max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>เพิ่มผู้ดูแลใหม่</DialogTitle>
+          </DialogHeader>
+          <div className="mt-2 space-y-4">
+            <div className="space-y-1">
+              <label className="text-sm font-medium">ชื่อผู้ดูแล</label>
+              <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="ชื่อ - นามสกุล" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">ชื่อผู้ใช้</label>
+              <Input value={newUsername} onChange={(e) => setNewUsername(e.target.value)} placeholder="Username" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">ตำแหน่ง (Role)</label>
+              <Select value={newRole} onValueChange={setNewRole}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ROLE_OPTIONS.map((role) => (
+                    <SelectItem key={role} value={role}>{role}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="ghost" onClick={() => setIsAddOpen(false)}>ยกเลิก</Button>
+            <Button onClick={handleAddAdmin} disabled={!newName.trim() || !newUsername.trim()}>เพิ่มผู้ดูแล</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -267,7 +318,7 @@ export function SettingsPage() {
 
           <div className="grid gap-6 lg:grid-cols-2">
             <article className="rounded-xl border border-border bg-card p-6 shadow-sm w-full">
-              <h3 className="text-lg font-semibold">ระยะเวลาทดลองใช้ (Trial)</h3>
+              <h3 className="text-base font-semibold">ระยะเวลาทดลองใช้ (Trial)</h3>
               <p className="mb-6 text-sm text-muted-foreground">ระยะเวลาให้ผู้ใช้ใหม่ทดลองใช้แพ็กเกจ PLUS ฟรี</p>
               <div className="rounded-xl border border-border bg-background p-5">
                 <p className="font-semibold text-base mb-4">ต่อเนื่องเป็นเวลา</p>
@@ -280,14 +331,14 @@ export function SettingsPage() {
             </article>
 
             <article className="rounded-xl border border-border bg-card p-6 shadow-sm w-full">
-              <h3 className="text-lg font-semibold text-primary">FREE Plan</h3>
+              <h3 className="text-base font-semibold">FREE Plan</h3>
               <p className="mb-6 text-sm text-muted-foreground">ขีดจำกัดการใช้งานสำหรับผู้ใช้ทั่วไป</p>
               <div className="rounded-xl border border-border bg-background p-5">
                 <p className="font-semibold text-base mb-4">Voice Input สูงสุด (นาที/วัน)</p>
                 <div className="flex items-center gap-3">
-                  <Input 
-                    value={freeDailyAiLimit} 
-                    onChange={(e) => setFreeDailyAiLimit(e.target.value)} 
+                  <Input
+                    value={freeDailyAiLimit}
+                    onChange={(e) => setFreeDailyAiLimit(e.target.value)}
                     className="w-24 text-xl font-bold text-center h-12"
                   />
                   <span className="text-base text-muted-foreground font-medium">นาที</span>

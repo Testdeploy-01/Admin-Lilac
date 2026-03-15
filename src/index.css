@@ -95,14 +95,14 @@
 @layer components {
   .card-gray-gradient {
     background: linear-gradient(160deg,
-        hsl(262, 20%, 99%) 0%,
-        hsl(262, 18%, 94%) 100%);
+        hsl(250, 8%, 99%) 0%,
+        hsl(250, 8%, 95%) 100%);
   }
 
   .dark .card-gray-gradient {
     background: linear-gradient(160deg,
-        hsl(0, 0%, 11%) 0%,
-        hsl(0, 0%, 7%) 100%);
+        hsl(260, 10%, 11%) 0%,
+        hsl(260, 10%, 7%) 100%);
   }
 
   /* Zebra-striped rows */
@@ -246,5 +246,16 @@
   .dark .rounded-lg[class*="border"] {
     box-shadow: 0 1px 6px 0 hsla(261, 40%, 50%, 0.10),
       0 0 1px 0 hsla(261, 30%, 60%, 0.12);
+  }
+}
+
+/* ─── Date / Time picker icon contrast ─── */
+@layer base {
+  .dark input[type="date"]::-webkit-calendar-picker-indicator,
+  .dark input[type="time"]::-webkit-calendar-picker-indicator,
+  .dark input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.6;
+    cursor: pointer;
   }
 }

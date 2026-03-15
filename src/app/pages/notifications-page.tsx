@@ -261,6 +261,11 @@ export function NotificationsPage() {
     if (!canSubmit) return;
     if (mode === "scheduled" && (!scheduleDate || !scheduleTime)) return;
 
+    const confirmMessage = mode === "sent"
+      ? `ยืนยันส่งการแจ้งเตือน "${title.trim()}" ถึง${audience} ทันทีหรือไม่?`
+      : `ยืนยันตั้งเวลาส่ง "${title.trim()}" ถึง${audience} ในวันที่ ${formatScheduleDate(scheduleDate, scheduleTime)} หรือไม่?`;
+    if (!confirm(confirmMessage)) return;
+
     const nextId = `NT-${String(history.length + 101).padStart(3, "0")}`;
     const nextItem: NotificationHistoryItem = {
       id: nextId,
@@ -379,7 +384,7 @@ export function NotificationsPage() {
               <DialogHeader>
                 <DialogTitle>ส่งการแจ้งเตือนใหม่</DialogTitle>
               </DialogHeader>
-              
+
               <div className="grid gap-4 py-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <label className="grid gap-2 text-sm font-medium text-foreground">
@@ -457,9 +462,16 @@ export function NotificationsPage() {
       ) : (
         <div className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-3">
-            <MetricCard label="Feedback ทั้งหมด" value={feedbackStats.total} className="min-h-[110px] p-5" />
-            <MetricCard label="รอตอบกลับ" value={feedbackStats.pending} className="min-h-[110px] p-5" />
-            <MetricCard label="ตอบแล้ว" value={feedbackStats.total - feedbackStats.pending} className="min-h-[110px] p-5" />
+            <MetricCard label="Feedback ทั้งหมด" value={feedbackStats.total} delta="+4.2%" trend="up" note="เทียบกับเดือนก่อน" className="min-h-[132px] p-5" />
+            <MetricCard label="รอตอบกลับ" value={feedbackStats.pending} delta="-12.0%" trend="up" note="เทียบกับเดือนก่อน" className="min-h-[132px] p-5" />
+            <MetricCard
+              label="ตอบแล้ว"
+              value={feedbackStats.total - feedbackStats.pending}
+              delta="+15.3%"
+              trend="up"
+              note="เทียบกับเดือนก่อน"
+              className="min-h-[132px] p-5"
+            />
           </div>
 
       <DataTableShell

@@ -1,5 +1,11 @@
 import type { AdminProfile } from "../types/admin-profile";
 
+/**
+ * ⚠️  MOCK DATA ONLY — Do NOT use in production.
+ * These credentials exist purely for local UI development.
+ * Replace with a real authentication provider before deployment.
+ */
+
 export const ownerProfileMock: AdminProfile = {
   name: "Theodore Finch",
   email: "owner@lilac.ai",

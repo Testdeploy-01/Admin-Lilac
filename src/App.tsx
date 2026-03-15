@@ -2,7 +2,7 @@ import { lazy, Suspense } from "react";
 import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./app/context/auth-context";
 import { DashboardLayout } from "./app/layout/dashboard-layout";
-import { RequireOwner } from "./app/routes/require-owner";
+import { RequireAuth, RequireOwner } from "./app/routes/require-owner";
 
 const LoginPage = lazy(() => import("./app/pages/login-page").then((m) => ({ default: m.LoginPage })));
 const OverviewPage = lazy(() => import("./app/pages/overview-page").then((m) => ({ default: m.OverviewPage })));
@@ -26,7 +26,7 @@ function App() {
           {/* Login — outside DashboardLayout (no dock / sidebar) */}
           <Route path="login" element={<Suspense><LoginPage /></Suspense>} />
 
-          <Route element={<DashboardLayout />}>
+          <Route element={<RequireAuth><DashboardLayout /></RequireAuth>}>
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="overview" element={<ChunkSuspense><OverviewPage /></ChunkSuspense>} />
             <Route path="user-management" element={<ChunkSuspense><UserManagementPage /></ChunkSuspense>} />

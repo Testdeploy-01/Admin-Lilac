@@ -6,7 +6,6 @@ import { DashboardCommandCenter } from "@/components/dashboard/dashboard-command
 import { BackgroundBeams } from "@/components/ui/background-beams";
 import { DockBrandLogo, FloatingDockNav } from "../../components/dashboard/floating-dock-nav";
 import { TopRightControls } from "../../components/dashboard/top-right-controls";
-import { adminProfileMock } from "../../mocks/admin-profile.mock";
 
 const THEME_KEY = "mockup-theme";
 
@@ -56,8 +55,10 @@ type DashboardLayoutFrameProps = {
 function DashboardLayoutFrame({ theme, pathname, onToggleTheme }: DashboardLayoutFrameProps) {
   const { refreshTick } = useDashboardUI();
   const { profile } = useAuth();
-  const activeProfile = profile ?? adminProfileMock;
   const [dockHovered, setDockHovered] = useState(false);
+  // RequireAuth guarantees profile is non-null inside DashboardLayout
+  if (!profile) return null;
+  const activeProfile = profile;
   const handleDockHoverChange = (hovered: boolean) => {
     startTransition(() => {
       setDockHovered(hovered);

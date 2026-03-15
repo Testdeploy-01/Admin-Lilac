@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { BackgroundBeams } from "@/components/ui/background-beams";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +17,10 @@ export function DashboardPageShell({
   children,
   className,
 }: DashboardPageShellProps) {
+  useEffect(() => {
+    document.title = `${title} — Lilac Admin`;
+  }, [title]);
+
   return (
     <section className={cn("relative space-y-6 overflow-hidden pb-2", className)}>
       <div className="pointer-events-none absolute inset-0 -z-10 opacity-30">

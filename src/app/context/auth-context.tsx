@@ -14,12 +14,31 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+const VALID_ROLES: ReadonlySet<string> = new Set<AdminRole>(["system-owner", "admin"]);
+
+function isValidProfile(data: unknown): data is AdminProfile {
+  if (typeof data !== "object" || data === null) return false;
+  const obj = data as Record<string, unknown>;
+  return (
+    typeof obj.name === "string" &&
+    typeof obj.email === "string" &&
+    typeof obj.role === "string" &&
+    VALID_ROLES.has(obj.role)
+  );
+}
+
 function loadSession(): AdminProfile | null {
   try {
     const raw = sessionStorage.getItem(SESSION_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as AdminProfile;
+    const parsed: unknown = JSON.parse(raw);
+    if (!isValidProfile(parsed)) {
+      sessionStorage.removeItem(SESSION_KEY);
+      return null;
+    }
+    return parsed;
   } catch {
+    sessionStorage.removeItem(SESSION_KEY);
     return null;
   }
 }

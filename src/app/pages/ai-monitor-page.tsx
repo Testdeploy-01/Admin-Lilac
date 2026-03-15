@@ -15,7 +15,7 @@ import {
   type AiMonitorPeriod,
   unresolvedQueriesByPeriod,
 } from "../../mocks/dashboard-features.mock";
-import { formatCurrencyTHB, formatCurrencyUSD, formatNumber } from "../../lib/formatters";
+import { formatCurrencyTHB, formatNumber } from "../../lib/formatters";
 
 const periodTabs = [
   { value: "today", label: "วันนี้" },
@@ -31,10 +31,15 @@ const chartTitles: Record<AiMonitorPeriod, string> = {
   year: "คำสั่ง AI ย้อนหลัง 1 ปี",
 };
 
+const featureAccentColors = [
+  { panelBg: "bg-gradient-to-br from-background via-background to-card", badge: "bg-primary/15 text-primary", dot: "bg-primary" },
+  { panelBg: "bg-gradient-to-br from-background via-background to-card", badge: "bg-primary/15 text-primary", dot: "bg-primary" },
+  { panelBg: "bg-gradient-to-br from-background via-background to-card", badge: "bg-primary/15 text-primary", dot: "bg-primary" },
+] as const;
+
 const sectionCardClass = "card-gray-gradient rounded-xl border border-border p-5 shadow-sm lg:p-6";
 const sectionHeaderClass = "mb-4 flex items-start justify-between gap-3";
 const sectionTitleClass = "text-base font-semibold text-foreground";
-const innerPanelClass = "rounded-xl border border-border/70 bg-background/80 p-4";
 const chartPanelClass = "rounded-xl border border-border/70 bg-background/70 p-3";
 
 const chartTooltipStyle = {
@@ -59,23 +64,29 @@ export function AiMonitorPage() {
   const topPromptsByFeature = aiTopPromptsByFeatureByPeriod[period];
   const unresolvedQueries = unresolvedQueriesByPeriod[period];
   const modelUsage = aiModelUsageByPeriod[period];
-  const totalModelCost = modelUsage.reduce((sum, model) => sum + model.costTHB, 0);
-  const totalModelUsage = modelUsage.reduce((sum, model) => sum + model.tokens, 0);
 
   const statsCards = [
-    { label: "คำสั่ง AI", value: formatNumber(periodStats.commands) },
-    { label: "ผู้ใช้ที่ใช้ AI", value: formatNumber(periodStats.users) },
-    { label: "อัตราสำเร็จ", value: `${periodStats.successRate.toFixed(1)}%` },
-    { label: "ต้นทุนรวม", value: formatCurrencyTHB(periodStats.totalCostTHB) },
+    { label: "คำสั่ง AI", value: formatNumber(periodStats.commands), delta: "+7.4%", trend: "up" as const, note: "ตามช่วงเวลาที่เลือก" },
+    { label: "ผู้ใช้งาน AI", value: formatNumber(periodStats.users), delta: "+5.1%", trend: "up" as const, note: "ตามช่วงเวลาที่เลือก" },
+    { label: "อัตราสำเร็จ", value: `${periodStats.successRate.toFixed(1)}%`, delta: "+0.3%", trend: "up" as const, note: "เทียบกับช่วงก่อนหน้า" },
+    { label: "ต้นทุนรวม", value: formatCurrencyTHB(periodStats.totalCostTHB), delta: "+12.8%", trend: "up" as const, note: "ตามช่วงเวลาที่เลือก" },
   ];
 
   return (
-    <DashboardPageShell title="ตรวจสอบ AI">
+    <DashboardPageShell title="มอนิเตอร์การใช้งาน AI">
       <AppTabs value={period} onValueChange={(value) => setPeriod(value as AiMonitorPeriod)} items={[...periodTabs]} />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {statsCards.map((item) => (
-          <MetricCard key={item.label} label={item.label} value={item.value} className="min-h-[132px] p-5" />
+          <MetricCard
+            key={item.label}
+            label={item.label}
+            value={item.value}
+            delta={item.delta}
+            trend={item.trend}
+            note={item.note}
+            className="min-h-[132px] p-5"
+          />
         ))}
       </div>
 
@@ -107,7 +118,7 @@ export function AiMonitorPage() {
                   formatter={(value, name) => [formatTooltipValue(value), name]}
                 />
                 <Bar dataKey="text" stackId="a" fill="hsl(var(--primary))" name="ข้อความ" radius={[6, 6, 0, 0]} />
-                <Bar dataKey="voice" stackId="a" fill="#8b5cf6" name="เสียง" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="voice" stackId="a" fill="hsl(var(--primary) / 0.6)" name="เสียง" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -156,13 +167,13 @@ export function AiMonitorPage() {
           </Table>
         </DataTableShell>
 
-        <DataTableShell caption="รายการ query ที่ AI ตอบไม่ได้" minWidthClass="min-w-[520px]" className="h-full">
+        <DataTableShell caption="รายการคำถามที่ AI ตอบไม่ได้" minWidthClass="min-w-[520px]" className="h-full">
           <div className={sectionHeaderClass}>
             <div>
               <h3 className={sectionTitleClass}>คำถามที่ AI ตอบไม่ได้</h3>
             </div>
             <Badge variant="secondary" className="rounded-full px-3 py-1">
-              ต้องปรับปรุงความครอบคลุม
+              คำถามนอกขอบเขตของ AI
             </Badge>
           </div>
           <Table>
@@ -191,29 +202,28 @@ export function AiMonitorPage() {
       </div>
 
       <div className="grid gap-4 xl:grid-cols-3">
-        {topPromptsByFeature.map((group) => {
+        {topPromptsByFeature.map((group, groupIndex) => {
           const groupTotal = group.prompts.reduce((sum, item) => sum + item.count, 0);
+          const accent = featureAccentColors[groupIndex % featureAccentColors.length];
 
           return (
-            <article key={group.feature} className={`${sectionCardClass} h-full`}>
+            <article key={group.feature} className="card-gray-gradient rounded-xl border border-border p-5 shadow-sm lg:p-6 h-full">
               <div className={sectionHeaderClass}>
-                <div>
+                <div className="flex items-center gap-2">
+                  <span className={`h-4 w-1 rounded-full ${accent.dot}`} aria-hidden="true" />
                   <h3 className={sectionTitleClass}>{group.feature}</h3>
                 </div>
-                <Badge variant="secondary" className="rounded-full px-3 py-1">
-                  Ranked List
-                </Badge>
               </div>
               <div className="space-y-3">
                 {group.prompts.map((item, idx) => (
-                  <div key={item.prompt} className={innerPanelClass}>
+                  <div key={item.prompt} className="rounded-xl border border-border/80 bg-gradient-to-br from-background via-background to-card p-4 shadow-sm transition-colors hover:border-border">
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="inline-flex rounded-full border border-border bg-card px-2 py-1 text-[11px] font-semibold text-foreground">
+                          <span className={`inline-flex rounded-full px-2 py-1 text-[11px] font-semibold ${accent.badge}`}>
                             อันดับ {idx + 1}
                           </span>
-                          <span className="text-xs text-muted-foreground">{((item.count / groupTotal) * 100).toFixed(0)}% ของ Top 2</span>
+                          <span className="text-xs text-muted-foreground">{((item.count / groupTotal) * 100).toFixed(0)}% ของคำสั่งในกลุ่มนี้</span>
                         </div>
                         <p className="mt-3 text-sm font-medium text-foreground">{item.prompt}</p>
                       </div>
@@ -232,56 +242,39 @@ export function AiMonitorPage() {
 
       <article className={sectionCardClass}>
         <div className={sectionHeaderClass}>
-          <div>
-            <h3 className={sectionTitleClass}>การใช้โทเคนแยกตามรุ่น AI</h3>
-          </div>
-          <Badge variant="secondary" className="rounded-full px-3 py-1">
-            Cost / Usage Share
-          </Badge>
+          <h3 className={sectionTitleClass}>ต้นทุน AI แยกตามรุ่น</h3>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {modelUsage.map((model, index) => {
-            const costShare = totalModelCost > 0 ? (model.costTHB / totalModelCost) * 100 : 0;
-            const usageShare = totalModelUsage > 0 ? (model.tokens / totalModelUsage) * 100 : 0;
-
-            return (
-              <div key={model.model} className={`${innerPanelClass} flex h-full flex-col`}>
-                <div className="mb-4 flex items-start justify-between gap-4">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-bold text-foreground">{model.model}</h4>
-                      <Badge variant="secondary" className="rounded-full px-2.5 py-1 text-[11px]">
-                        #{index + 1}
-                      </Badge>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className="block text-[14px] font-bold text-foreground">{formatCurrencyTHB(model.costTHB)}</span>
-                    <span className="block text-[10px] font-medium text-muted-foreground">{formatCurrencyUSD(model.costUSD)}</span>
-                    <span className="block text-[10px] font-medium text-muted-foreground">{model.pricing}</span>
-                  </div>
+        <div className="grid gap-4 xl:grid-cols-3">
+          {modelUsage.map((model) => (
+            <div
+              key={model.model}
+              className="rounded-xl border border-border/80 bg-gradient-to-br from-background via-background to-card p-5 shadow-sm transition-colors hover:border-border"
+            >
+              <p className="font-semibold text-foreground">{model.model}</p>
+              <div className="mt-4 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-foreground">Input</span>
+                  <span className="text-sm font-medium text-foreground">
+                    {model.unit === "minutes"
+                      ? `${formatNumber(model.inputTokens)} นาที`
+                      : `${(model.inputTokens / 1_000_000).toFixed(2)}M tokens`}
+                  </span>
                 </div>
-                <div className="mt-auto grid gap-2 sm:grid-cols-2">
-                  <div className="rounded-lg border border-border bg-card px-3 py-2">
-                    <p className="text-[11px] text-muted-foreground">สัดส่วนต้นทุน</p>
-                    <p className="text-sm font-semibold text-foreground">{costShare.toFixed(1)}%</p>
+                {model.outputTokens > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-foreground">Output</span>
+                    <span className="text-sm font-medium text-foreground">
+                      {(model.outputTokens / 1_000_000).toFixed(2)}M tokens
+                    </span>
                   </div>
-                  <div className="rounded-lg border border-border bg-card px-3 py-2">
-                    <p className="text-[11px] text-muted-foreground">{model.unitLabel}</p>
-                    <p className="text-sm font-semibold text-foreground">
-                      {model.unitLabel === "นาทีเสียง" ? formatNumber(model.tokens) : `${(model.tokens / 1_000_000).toFixed(2)}M`}
-                    </p>
-                  </div>
-                  <div className="rounded-lg border border-border bg-card px-3 py-2 sm:col-span-2">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-[11px] text-muted-foreground">สัดส่วนการใช้งาน</p>
-                      <p className="text-sm font-semibold text-foreground">{usageShare.toFixed(1)}%</p>
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
-            );
-          })}
+              <div className="mt-4 flex items-center justify-between border-t border-border/60 pt-4">
+                <span className="text-xs text-foreground">ต้นทุน</span>
+                <span className="text-lg font-bold text-foreground">{formatCurrencyTHB(model.costTHB)}</span>
+              </div>
+            </div>
+          ))}
         </div>
       </article>
     </DashboardPageShell>

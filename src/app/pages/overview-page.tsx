@@ -95,7 +95,7 @@ const statusDotClasses = {
   down: "bg-rose-400",
 } as const;
 
-const donutColors = ["hsl(var(--primary))", "#14b8a6", "#f59e0b", "#0284c7", "#8b5cf6", "#64748b"];
+const donutColors = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-4))", "hsl(var(--chart-3))", "hsl(var(--chart-5))", "hsl(var(--muted-foreground))"];
 
 const systemIcons = {
   ai: Activity,
@@ -167,54 +167,63 @@ function OverviewDonutCard({
   title: string;
   items: OverviewFeatureUsageItem[];
 }) {
-  const labelPositions = [
-    { dx: 0, dy: -132, anchor: "middle" as const },
-    { dx: -112, dy: 94, anchor: "end" as const },
-    { dx: 112, dy: 94, anchor: "start" as const },
-  ];
+  const chartConfig = items.reduce<ChartConfig>((acc, item, index) => {
+    acc[item.feature] = {
+      label: item.feature,
+      color: donutColors[index % donutColors.length],
+    };
+    return acc;
+  }, {} satisfies ChartConfig);
 
   return (
-    <article className="flex h-full flex-col rounded-xl border border-border bg-card p-4 shadow-sm">
-      <div>
-        <h3 className="text-base font-semibold">{title}</h3>
-      </div>
-      <div className="mt-1 flex flex-1 items-center justify-center">
-        <ResponsiveContainer width="100%" height={300}>
+    <Card className="flex h-full flex-col shadow-sm">
+      <CardHeader className="px-4 pb-0 pt-4">
+        <CardTitle className="text-base">{title}</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-1 flex-col items-center justify-center px-4 pb-4 pt-0">
+        <ChartContainer config={chartConfig} className="aspect-square w-full max-w-[280px]">
           <PieChart>
-            <Tooltip content={<FeatureUsageTooltip />} />
+            <ChartTooltip
+              content={<FeatureUsageTooltip />}
+              cursor={false}
+            />
             <Pie
               data={items}
               dataKey="value"
               nameKey="feature"
-              innerRadius={68}
-              outerRadius={96}
-              paddingAngle={4}
+              innerRadius="55%"
+              outerRadius="85%"
+              paddingAngle={3}
               stroke="hsl(var(--background))"
               strokeWidth={3}
               labelLine={false}
-              label={({ cx = 0, cy = 0, index = 0, name, value }) => {
-                const position = labelPositions[index] ?? labelPositions[0];
-                const x = Number(cx) + position.dx;
-                const y = Number(cy) + position.dy;
+              label={({ cx = 0, cy = 0, midAngle = 0, outerRadius: or = 0, name, value }) => {
+                const RADIAN = Math.PI / 180;
+                const radius = Number(or) + 18;
+                const x = Number(cx) + radius * Math.cos(-midAngle * RADIAN);
+                const y = Number(cy) + radius * Math.sin(-midAngle * RADIAN);
+                const anchor = x > Number(cx) ? "start" : "end";
 
                 return (
-                  <text x={x} y={y} textAnchor={position.anchor}>
-                    <tspan className="fill-muted-foreground text-xs font-medium">{name}</tspan>
-                    <tspan x={x} dy="1.15em" className="fill-foreground text-sm font-semibold">
-                      {value}%
-                    </tspan>
+                  <text x={x} y={y} textAnchor={anchor} dominantBaseline="central">
+                    <tspan className="fill-foreground text-sm font-semibold">{value}%</tspan>
+                    <tspan x={x} dy="1.2em" className="fill-muted-foreground text-[11px]">{name}</tspan>
                   </text>
                 );
               }}
             >
               {items.map((item, index) => (
-                <Cell key={item.feature} fill={donutColors[index % donutColors.length]} />
+                <Cell
+                  key={item.feature}
+                  fill={donutColors[index % donutColors.length]}
+                  className="outline-none focus:outline-none"
+                />
               ))}
             </Pie>
           </PieChart>
-        </ResponsiveContainer>
-      </div>
-    </article>
+        </ChartContainer>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -242,7 +251,7 @@ function OverviewInputChannelCard({
     },
     manualInput: {
       label: "Manual Input",
-      color: "#14b8a6",
+      color: "hsl(var(--chart-2))",
     },
   } satisfies ChartConfig;
 
@@ -299,7 +308,7 @@ function OverviewInputChannelCard({
                       item.feature === "Ai Input"
                         ? "hsl(var(--primary))"
                         : item.feature === "Manual Input"
-                          ? "#14b8a6"
+                          ? "hsl(var(--chart-2))"
                           : donutColors[index % donutColors.length],
                   }}
                   aria-hidden="true"
@@ -366,7 +375,7 @@ export function OverviewPage() {
                 delta={item.delta}
                 trend={item.trend}
                 note={item.note}
-                className="min-h-[126px] p-3.5 lg:p-4"
+                className="min-h-[132px] p-5"
               />
             ))}
           </div>
@@ -399,8 +408,8 @@ export function OverviewPage() {
               <AreaChart data={growthData} margin={{ left: 20, right: 12, top: 6, bottom: 0 }}>
                 <defs>
                   <linearGradient id="freeGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#94a3b8" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#94a3b8" stopOpacity={0.05} />
+                    <stop offset="5%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0.05} />
                   </linearGradient>
                   <linearGradient id="plusGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.45} />
@@ -419,7 +428,7 @@ export function OverviewPage() {
                 />
                 <YAxis hide tickLine={false} axisLine={false} />
                 <Tooltip content={<GrowthTooltip />} />
-                <Area type="natural" dataKey="free" stroke="#94a3b8" strokeWidth={2} fill="url(#freeGrad)" name="FREE" />
+                <Area type="natural" dataKey="free" stroke="hsl(var(--muted-foreground))" strokeWidth={2} fill="url(#freeGrad)" name="FREE" />
                 <Area
                   type="natural"
                   dataKey="plus"

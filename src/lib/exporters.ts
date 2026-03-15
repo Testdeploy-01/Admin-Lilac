@@ -17,9 +17,12 @@ export function exportCSV(filename: string, rows: Array<Record<string, string | 
   anchor.href = url;
   anchor.download = `${filename}.csv`;
   document.body.appendChild(anchor);
-  anchor.click();
-  document.body.removeChild(anchor);
-  URL.revokeObjectURL(url);
+  try {
+    anchor.click();
+  } finally {
+    document.body.removeChild(anchor);
+    URL.revokeObjectURL(url);
+  }
 }
 
 export function downloadText(filename: string, body: string, type: "txt" | "json") {
@@ -30,7 +33,10 @@ export function downloadText(filename: string, body: string, type: "txt" | "json
   anchor.href = url;
   anchor.download = `${filename}.${type}`;
   document.body.appendChild(anchor);
-  anchor.click();
-  document.body.removeChild(anchor);
-  URL.revokeObjectURL(url);
+  try {
+    anchor.click();
+  } finally {
+    document.body.removeChild(anchor);
+    URL.revokeObjectURL(url);
+  }
 }

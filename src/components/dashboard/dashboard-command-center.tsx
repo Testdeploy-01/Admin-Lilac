@@ -87,19 +87,6 @@ export function DashboardCommandCenter() {
       },
     }));
 
-    const userItems: DashboardCommandItem[] = managedUsers.map((user) => ({
-      id: `user-${user.id}`,
-      title: `${user.name} (${user.id})`,
-      subtitle: `ผู้ใช้ ${user.plan}`,
-      icon: <UserRound className="h-4 w-4 text-muted-foreground" />,
-      type: "user",
-      searchText: `${user.name} ${user.id} ${user.plan} ${user.favoriteCategory}`,
-      run: () => {
-        navigate(`/user-management?user=${encodeURIComponent(user.id)}`);
-        close();
-      },
-    }));
-
     const actionItems: DashboardCommandItem[] = [
       {
         id: "action-refresh",
@@ -128,14 +115,42 @@ export function DashboardCommandCenter() {
       },
     ];
 
-    return [...actionItems, ...routeItems, ...userItems];
+    // User items are searched lazily (see filtered memo) to avoid mapping 6k+ records upfront
+    return [...actionItems, ...routeItems];
   }, [close, currentRoute.titleTH, isOwner, navigate, pathname, triggerRefresh]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return items;
-    return items.filter((item) => `${item.title} ${item.subtitle} ${item.searchText}`.toLowerCase().includes(q));
-  }, [items, query]);
+
+    const matchedItems = items.filter((item) => `${item.title} ${item.subtitle} ${item.searchText}`.toLowerCase().includes(q));
+
+    // Only search users when query is >= 2 chars to avoid expensive iteration over 6k+ records
+    if (q.length >= 2) {
+      const matchedUsers: DashboardCommandItem[] = [];
+      for (const user of managedUsers) {
+        if (matchedUsers.length >= 20) break;
+        const haystack = `${user.name} ${user.id} ${user.plan} ${user.favoriteCategory}`.toLowerCase();
+        if (haystack.includes(q)) {
+          matchedUsers.push({
+            id: `user-${user.id}`,
+            title: `${user.name} (${user.id})`,
+            subtitle: `ผู้ใช้ ${user.plan}`,
+            icon: <UserRound className="h-4 w-4 text-muted-foreground" />,
+            type: "user",
+            searchText: haystack,
+            run: () => {
+              navigate(`/user-management?user=${encodeURIComponent(user.id)}`);
+              close();
+            },
+          });
+        }
+      }
+      return [...matchedItems, ...matchedUsers];
+    }
+
+    return matchedItems;
+  }, [items, query, navigate, close]);
 
   const renderGroup = (type: CommandItemType, heading: string) => {
     const groupItems = filtered.filter((item) => item.type === type);
@@ -187,4 +202,3 @@ export function DashboardCommandCenter() {
     </CommandDialog>
   );
 }
-

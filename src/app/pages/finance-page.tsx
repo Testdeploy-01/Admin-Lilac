@@ -214,9 +214,9 @@ function FinanceChartTooltip({
 }
 
 const planAccentColors = [
-  "bg-[#9d8bbd]", // Soft Lilac (Monthly)
-  "bg-[#8e78b2]", // Medium Lilac (Term)
-  "bg-[#7f68a8]", // Darker Lilac (Yearly)
+  "bg-primary/40",
+  "bg-primary/60",
+  "bg-primary/80",
 ];
 
 export function FinancePage() {
@@ -452,7 +452,7 @@ export function FinancePage() {
                      <div>
                        <p className="font-medium text-foreground">{row.label}</p>
                       {row.planKey === financeModel.leadingPlan.planKey && (
-                        <Badge className="mt-1 border-none bg-[#7f68a8] text-white hover:bg-[#7f68a8]/90">
+                        <Badge className="mt-1 border-none bg-primary text-primary-foreground hover:bg-primary/90">
                           แพ็กเกจยอดนิยม
                         </Badge>
                       )}

@@ -394,12 +394,12 @@ export const widgetQuickActions = [
  * 2. Users – Page 2
  * ────────────────────────────────────────────── */
 export const userStatsBar: StatsCardItem[] = [
-  { label: "ผู้ใช้ทั้งหมด", value: totalUsers.toLocaleString() },
-  { label: "ใช้งานใน 7 วัน", value: Math.round(totalUsers * 0.68).toLocaleString() },
-  { label: "สมาชิก FREE", value: freeUsers.toLocaleString() },
-  { label: "สมาชิก PLUS", value: plusUsers.toLocaleString() },
-  { label: "ผู้ใช้ใหม่วันนี้", value: Math.round(totalUsers * 0.008).toLocaleString() },
-  { label: "ยกเลิกใน 30 วัน", value: Math.round(totalUsers * 0.021).toLocaleString() },
+  { label: "ผู้ใช้ทั้งหมด", value: totalUsers.toLocaleString(), delta: "+5.2%", trend: "up", note: "ตั้งแต่เปิดตัว" },
+  { label: "ใช้งานใน 7 วัน", value: Math.round(totalUsers * 0.68).toLocaleString(), delta: "+2.8%", trend: "up", note: "~68% ของทั้งหมด" },
+  { label: "สมาชิก FREE", value: freeUsers.toLocaleString(), delta: "+4.1%", trend: "up", note: "เทียบกับเดือนก่อน" },
+  { label: "สมาชิก PLUS", value: plusUsers.toLocaleString(), delta: "+8.6%", trend: "up", note: "เทียบกับเดือนก่อน" },
+  { label: "ผู้ใช้ใหม่วันนี้", value: Math.round(totalUsers * 0.008).toLocaleString(), delta: "+12.3%", trend: "up", note: "เทียบกับเมื่อวาน" },
+  { label: "ยกเลิกใน 30 วัน", value: Math.round(totalUsers * 0.021).toLocaleString(), delta: "-1.4%", trend: "down", note: "เทียบกับ 30 วันก่อนหน้า" },
 ];
 
 export type ComparePlanBenchmarkRow = {
@@ -686,10 +686,10 @@ export const widgetInsightsMetrics = {
 
 export const unresolvedQueries = [
   { query: "ช่วยจองตั๋วเครื่องบินให้หน่อย", count: 89, category: "off-topic" },
-  { query: "ราคาทองวันนี้เท่าไหร่", count: 67, category: "ไลฟ์สไตล์" },
-  { query: "แปลโค้ด Python นี้ให้หน่อย", count: 45, category: "การเรียน" },
-  { query: "วิเคราะห์หุ้น xxx ให้หน่อย", count: 38, category: "การเงิน" },
-  { query: "เขียน essay ภาษาจีนให้หน่อย", count: 31, category: "การเรียน" },
+  { query: "ราคาทองวันนี้เท่าไหร่", count: 67, category: "off-topic" },
+  { query: "แปลโค้ด Python นี้ให้หน่อย", count: 45, category: "off-topic" },
+  { query: "วิเคราะห์หุ้น xxx ให้หน่อย", count: 38, category: "off-topic" },
+  { query: "เขียน essay ภาษาจีนให้หน่อย", count: 31, category: "off-topic" },
 ];
 
 export type FlaggedPrompt = {
@@ -799,9 +799,9 @@ export const aiTokenSummary = {
 };
 
 const aiPromptTemplates: Record<UserFeatureName, [string, string]> = {
-  การเงิน: ["สรุปรายจ่ายเดือนนี้ให้หน่อย", "ช่วยวางแผนการเงินรายเดือน"],
-  การเรียน: ["ช่วยสรุปเนื้อหาก่อนสอบ", "จัดตารางอ่านหนังสือสอบให้หน่อย"],
-  ไลฟ์สไตล์: ["ช่วยวางแผนวันพรุ่งนี้ให้หน่อย", "ตั้งเตือนงานสำคัญให้หน่อย"],
+  การเงิน: ["สรุปรายจ่ายเดือนนี้ให้หน่อย", "เดือนนี้ใช้จ่ายหมวดไหนเยอะสุด"],
+  การเรียน: ["สัปดาห์นี้มีการบ้านอะไรต้องส่งบ้าง", "วันนี้เรียนวิชาอะไร ห้องไหน"],
+  ไลฟ์สไตล์: ["พรุ่งนี้มีนัดอะไรบ้าง", "ตั้งเตือนงานสำคัญให้หน่อย"],
 };
 
 export const aiTopPromptsByFeatureByPeriod = Object.fromEntries(
@@ -836,33 +836,27 @@ const haikuAllocatedCostTHB = +(totalMonthlyAiCostTHB - whisperAllocatedCostTHB 
 export const aiModelUsage = [
   {
     model: "Claude Haiku 3.5",
-    description: "ประมวลผล input และ output ตาม token usage จริงจาก managedUsers",
-    pricing: "Input ฿25.60 / Output ฿128.00 ต่อ 1M tokens",
-    tokens: totalTokensPerMonth,
-    costUSD: haikuAllocatedCostTHB / USD_TO_THB,
+    inputTokens: totalInputTokensPerMonth,
+    outputTokens: totalOutputTokensPerMonth,
     costTHB: haikuAllocatedCostTHB,
-    breakdown: `Input ${(totalInputTokensPerMonth / 1_000_000).toFixed(2)}M / Output ${(totalOutputTokensPerMonth / 1_000_000).toFixed(2)}M tokens`,
-    unitLabel: "input + output",
+    costUSD: haikuAllocatedCostTHB / USD_TO_THB,
+    unit: "tokens" as const,
   },
   {
     model: "Cohere Embed v4",
-    description: "Embed input จากข้อความและเสียงตาม token usage จริงใน managedUsers",
-    pricing: "฿3.84 ต่อ 1M tokens",
-    tokens: totalInputTokensPerMonth,
-    costUSD: cohereAllocatedCostTHB / USD_TO_THB,
+    inputTokens: totalInputTokensPerMonth,
+    outputTokens: 0,
     costTHB: cohereAllocatedCostTHB,
-    breakdown: `${totalCommandsPerMonth.toLocaleString()} คำสั่ง / Input ${(totalInputTokensPerMonth / 1_000_000).toFixed(2)}M tokens`,
-    unitLabel: "input tokens",
+    costUSD: cohereAllocatedCostTHB / USD_TO_THB,
+    unit: "tokens" as const,
   },
   {
     model: "OpenAI Whisper",
-    description: "แปลงเสียงเป็นข้อความจากจำนวน voice commands จริง โดยใช้อัตราเฉลี่ย 8 วินาทีต่อครั้ง",
-    pricing: "฿0.19 ต่อนาที",
-    tokens: Math.round(whisperMinutesPerMonth),
-    costUSD: whisperAllocatedCostTHB / USD_TO_THB,
+    inputTokens: Math.round(whisperMinutesPerMonth),
+    outputTokens: 0,
     costTHB: whisperAllocatedCostTHB,
-    breakdown: `${totalVoiceCommands.toLocaleString()} คำสั่งเสียง / ${whisperMinutesPerMonth.toFixed(0)} นาที`,
-    unitLabel: "นาทีเสียง",
+    costUSD: whisperAllocatedCostTHB / USD_TO_THB,
+    unit: "minutes" as const,
   },
 ];
 
@@ -876,12 +870,13 @@ const aiModelPeriodWeights: Record<AiMonitorPeriod, Record<string, number>> = {
 export const aiModelUsageByPeriod = Object.fromEntries(
   (Object.keys(aiStatsByPeriod) as AiMonitorPeriod[]).map((period) => {
     const scaledModels = aiModelUsage.map((model) => {
-      const tokenRatio = model.unitLabel === "นาทีเสียง" ? aiPeriodCommandRatio[period] : aiPeriodCommandRatio[period] * aiModelPeriodWeights[period][model.model];
+      const tokenRatio = model.unit === "minutes" ? aiPeriodCommandRatio[period] : aiPeriodCommandRatio[period] * aiModelPeriodWeights[period][model.model];
       const costRatio = aiPeriodCostRatio[period] * aiModelPeriodWeights[period][model.model];
 
       return {
         ...model,
-        tokens: scaleByRatio(model.tokens, tokenRatio),
+        inputTokens: scaleByRatio(model.inputTokens, tokenRatio),
+        outputTokens: model.outputTokens > 0 ? scaleByRatio(model.outputTokens, tokenRatio) : 0,
         costTHB: +(model.costTHB * costRatio).toFixed(2),
         costUSD: +((model.costTHB * costRatio) / USD_TO_THB).toFixed(2),
       };
@@ -895,10 +890,10 @@ type UnresolvedQuery = typeof unresolvedQueries[number];
 
 const unresolvedQueriesMonth: UnresolvedQuery[] = [
   { query: "ช่วยจองตั๋วเครื่องบินให้หน่อย", count: 89, category: "off-topic" },
-  { query: "ราคาทองวันนี้เท่าไหร่", count: 67, category: "ไลฟ์สไตล์" },
-  { query: "แปลโค้ด Python นี้ให้หน่อย", count: 45, category: "การเรียน" },
-  { query: "วิเคราะห์หุ้น xxx ให้หน่อย", count: 38, category: "การเงิน" },
-  { query: "เขียน essay ภาษาจีนให้หน่อย", count: 31, category: "การเรียน" },
+  { query: "ราคาทองวันนี้เท่าไหร่", count: 67, category: "off-topic" },
+  { query: "แปลโค้ด Python นี้ให้หน่อย", count: 45, category: "off-topic" },
+  { query: "วิเคราะห์หุ้น xxx ให้หน่อย", count: 38, category: "off-topic" },
+  { query: "เขียน essay ภาษาจีนให้หน่อย", count: 31, category: "off-topic" },
 ];
 
 const unresolvedPeriodWeights = {
@@ -1262,4 +1257,3 @@ export const trialConversionTrend = [
   { week: "W3", trialStarted: 801, paid: 259 },
   { week: "W4", trialStarted: 876, paid: 294 },
 ];
-

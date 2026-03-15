@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 
 type DashboardUIContextValue = {
   refreshTick: number;
@@ -14,14 +14,16 @@ export function DashboardUIProvider({ children }: { children: ReactNode }) {
   const [refreshTick, setRefreshTick] = useState(0);
   const [commandOpen, setCommandOpen] = useState(false);
 
+  const triggerRefresh = useCallback(() => setRefreshTick((current) => current + 1), []);
+
   const value = useMemo<DashboardUIContextValue>(
     () => ({
       refreshTick,
-      triggerRefresh: () => setRefreshTick((current) => current + 1),
+      triggerRefresh,
       commandOpen,
       setCommandOpen,
     }),
-    [commandOpen, refreshTick],
+    [commandOpen, refreshTick, triggerRefresh],
   );
 
   return <DashboardUIContext.Provider value={value}>{children}</DashboardUIContext.Provider>;
@@ -34,4 +36,3 @@ export function useDashboardUI() {
   }
   return context;
 }
-

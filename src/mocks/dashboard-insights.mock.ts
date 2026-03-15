@@ -47,9 +47,9 @@ const newUsersDelta = newUsersYesterday
 const newUsersTrend = newUsersToday >= newUsersYesterday ? "up" : "down";
 
 export const overviewKpis: OverviewKpi[] = [
-  { label: "ผู้ใช้ทั้งหมด", value: totalUsers.toLocaleString(), delta: "+5.2%", trend: "up" },
-  { label: "ผู้ใช้งานวันนี้", value: dau.toLocaleString(), delta: "+3.1%", trend: "up" },
-  { label: "ผู้ใช้ใหม่วันนี้", value: newUsersToday.toLocaleString(), delta: newUsersDelta, trend: newUsersTrend },
+  { label: "ผู้ใช้ทั้งหมด", value: totalUsers.toLocaleString(), delta: "+5.2%", trend: "up", note: "ตั้งแต่เปิดตัว" },
+  { label: "ผู้ใช้งานวันนี้", value: dau.toLocaleString(), delta: "+3.1%", trend: "up", note: "~26% ของผู้ใช้ทั้งหมด" },
+  { label: "ผู้ใช้ใหม่วันนี้", value: newUsersToday.toLocaleString(), delta: newUsersDelta, trend: newUsersTrend, note: "เทียบกับเมื่อวาน" },
   {
     label: "ค่าใช้จ่าย AI วันนี้",
     value: new Intl.NumberFormat("th-TH", {
@@ -59,6 +59,7 @@ export const overviewKpis: OverviewKpi[] = [
     }).format(aiCostToday),
     delta: `~฿${aiCostPerActiveUser.toFixed(2)}/คน`,
     trend: "up",
+    note: "ประมาณการจาก Token",
   },
 ];
 
@@ -69,8 +70,9 @@ export const overviewRevenueKpi: OverviewKpi = {
     currency: "THB",
     maximumFractionDigits: 0,
   }).format(revenueToday),
-  delta: `ประมาณการตามเงื่อนไขแพ็กเกจ`,
+  delta: "+4.6%",
   trend: "up",
+  note: "ประมาณการตามเงื่อนไขแพ็กเกจ",
 };
 
 export const overviewTopFeaturesDonut: OverviewFeatureUsageItem[] = [
@@ -167,7 +169,7 @@ export const manualInputUsage = [
 
 export const compareEntryMethodShare = [
   { label: "AI Input", value: 78, colorClass: "bg-primary" },
-  { label: "Manual Input", value: 22, colorClass: "bg-slate-400" },
+  { label: "Manual Input", value: 22, colorClass: "bg-muted-foreground/40" },
 ];
 
 export const compareInputBreakdownByFeature = [

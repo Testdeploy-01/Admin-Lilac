@@ -12,15 +12,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { formatCurrencyTHB, formatNumber, formatPercent } from "@/lib/formatters";
+import { formatCurrencyTHB, formatNumber, formatPercent } from "../../lib/formatters";
 import {
   managedUsers,
   aiCostSummary,
 } from "@/mocks/dashboard-features.mock";
-import {
-  ChevronDown,
-} from "lucide-react";
 
 /* ──────────────────────────────────────────────
  * Types & Constants
@@ -205,58 +209,6 @@ function buildReportSummary(range: TimeRange, category: ReportCategory): ReportS
 }
 
 /* ──────────────────────────────────────────────
- * Dropdown component (inline, lightweight)
- * ────────────────────────────────────────────── */
-function FilterDropdown<T extends string>({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  value: T;
-  options: Record<T, string>;
-  onChange: (v: T) => void;
-}) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-muted/50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1"
-      >
-        <span className="text-muted-foreground text-xs">{label}:</span>
-        <span>{options[value]}</span>
-        <ChevronDown className={cn("h-3.5 w-3.5 text-muted-foreground transition-transform", open && "rotate-180")} />
-      </button>
-      {open && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute top-full left-0 z-50 mt-1 min-w-[160px] overflow-hidden rounded-lg border border-border bg-background shadow-lg">
-            {(Object.keys(options) as T[]).map((key) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => { onChange(key); setOpen(false); }}
-                className={cn(
-                  "flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-muted/60",
-                  key === value ? "bg-muted/40 font-medium text-foreground" : "text-muted-foreground"
-                )}
-              >
-                {key === value && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
-                {options[key]}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-/* ──────────────────────────────────────────────
  * Export Helpers
  * ────────────────────────────────────────────── */
 function exportCsv(summary: ReportSummary, range: TimeRange) {
@@ -321,6 +273,8 @@ function exportPdf(summary: ReportSummary, range: TimeRange) {
     printWindow.document.close();
     printWindow.focus();
     setTimeout(() => printWindow.print(), 300);
+  } else {
+    alert("ป๊อปอัปถูกบล็อก กรุณาอนุญาต popup สำหรับเว็บนี้แล้วลองอีกครั้ง");
   }
 }
 
@@ -363,18 +317,32 @@ export function ReportsPage() {
     >
       <div className={cn(sectionCardClass, "flex flex-wrap items-center gap-3 py-3 lg:py-4")}>
         <span className="text-sm font-medium text-foreground mr-1">ตัวกรอง</span>
-        <FilterDropdown
-          label="ช่วงเวลา"
-          value={timeRange}
-          options={timeRangeLabels}
-          onChange={setTimeRange}
-        />
-        <FilterDropdown
-          label="ประเภท"
-          value={category}
-          options={categoryLabels}
-          onChange={setCategory}
-        />
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-muted-foreground">ช่วงเวลา:</span>
+          <Select value={timeRange} onValueChange={(v) => setTimeRange(v as TimeRange)}>
+            <SelectTrigger className="w-[140px] h-9">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(Object.keys(timeRangeLabels) as TimeRange[]).map((key) => (
+                <SelectItem key={key} value={key}>{timeRangeLabels[key]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-muted-foreground">ประเภท:</span>
+          <Select value={category} onValueChange={(v) => setCategory(v as ReportCategory)}>
+            <SelectTrigger className="w-[160px] h-9">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(Object.keys(categoryLabels) as ReportCategory[]).map((key) => (
+                <SelectItem key={key} value={key}>{categoryLabels[key]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <div className="ml-auto hidden sm:block">
           <span className="text-xs text-muted-foreground mr-1">
             อัปเดตล่าสุด: {new Date().toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}

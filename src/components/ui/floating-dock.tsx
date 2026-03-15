@@ -131,7 +131,7 @@ const FloatingDockMobile = ({
         onClick={() => setOpen(!open)}
         className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card shadow-sm"
       >
-        <PanelBottomClose className="h-5 w-5 text-neutral-500 dark:text-neutral-400" />
+        <PanelBottomClose className="h-5 w-5 text-muted-foreground" />
       </button>
     </div>
   );
@@ -345,7 +345,7 @@ function IconContainer({
           {hovered && !showLogo && (
             <div
               className={cn(
-                "w-fit rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs whitespace-pre text-neutral-700 dark:border-neutral-900 dark:bg-neutral-800 dark:text-white",
+                "w-fit rounded-md border border-border bg-muted px-2 py-0.5 text-xs whitespace-pre text-foreground",
                 orientation === "vertical" ? "absolute left-full top-1/2 ml-2" : "absolute -top-8 left-1/2",
               )}
               style={orientation === "vertical" ? { transform: "translateY(-50%)" } : { transform: "translateX(-50%)" }}

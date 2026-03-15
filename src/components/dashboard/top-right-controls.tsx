@@ -1,4 +1,4 @@
-import { LogOut, Moon, Settings, Sun, User } from "lucide-react";
+import { LogOut, Moon, Sun } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -45,14 +45,6 @@ export function TopRightControls({
     .slice(0, 2)
     .toUpperCase();
 
-  const onOpenProfile = () => {
-    navigate("/user-management");
-  };
-
-  const onOpenSettings = () => {
-    navigate("/settings");
-  };
-
   const onLogout = () => {
     logout();
     navigate("/login", { replace: true });
@@ -84,19 +76,15 @@ export function TopRightControls({
           >
             <DropdownMenuLabel>
               <p className="truncate text-sm font-semibold text-foreground">{profile.name}</p>
-              <p className="truncate text-xs text-muted-foreground">{profile.email}</p>
+              <span className={cn(
+                "mt-1.5 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide",
+                isOwner
+                  ? "bg-[hsl(var(--primary)/0.15)] text-primary"
+                  : "bg-muted text-muted-foreground"
+              )}>
+                {isOwner ? "System Owner" : "Admin"}
+              </span>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={onOpenProfile} className="cursor-pointer">
-              <User className="h-4 w-4 text-muted-foreground" />
-              ดูโปรไฟล์
-            </DropdownMenuItem>
-            {isOwner && (
-              <DropdownMenuItem onSelect={onOpenSettings} className="cursor-pointer">
-                <Settings className="h-4 w-4 text-muted-foreground" />
-                ตั้งค่า
-              </DropdownMenuItem>
-            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={onLogout} className="cursor-pointer text-rose-600 focus:text-rose-700">
               <LogOut className="h-4 w-4" />
@@ -128,4 +116,3 @@ export function TopRightControls({
     </TooltipProvider>
   );
 }
-
