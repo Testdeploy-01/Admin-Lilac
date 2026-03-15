@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Check, X } from "lucide-react";
-import { useAuth } from "@/app/context/auth-context";
 import {
   adminAccounts,
   auditLog,
@@ -20,8 +19,7 @@ import {
 type TabKey = "admins" | "logs" | "plans";
 
 export function SettingsPage() {
-  const { isOwner } = useAuth();
-  const [tab, setTab] = useState<TabKey>(isOwner ? "admins" : "logs");
+  const [tab, setTab] = useState<TabKey>("admins");
   const [admins, setAdmins] = useState<AdminAccount[]>(adminAccounts);
   const [savedAt, setSavedAt] = useState("ยังไม่บันทึก");
   const [trialDays, setTrialDays] = useState(String(planPricingSettings.freeTrialDays));
@@ -31,19 +29,15 @@ export function SettingsPage() {
 
   const handleSave = () => setSavedAt(new Date().toLocaleString("th-TH"));
 
-  const description = isOwner
-    ? "จัดการผู้ดูแล ฟีเจอร์ และข้อมูล"
-    : "ดูบันทึกการใช้งาน แก้ไขราคาแพ็กเกจ และเปิด/ปิดฟีเจอร์";
-
   return (
-    <DashboardPageShell title="ตั้งค่าระบบ" description={description}>
+    <DashboardPageShell title="ตั้งค่าระบบ" description="จัดการผู้ดูแล ฟีเจอร์ และข้อมูล">
       <AppTabs
         value={tab}
         onValueChange={(value) => setTab(value as TabKey)}
         items={[
-          ...(isOwner ? [{ value: "admins" as const, label: "ผู้ดูแลและสิทธิ์" }] : []),
-          { value: "logs" as const, label: "บันทึกการใช้งาน" },
-          { value: "plans" as const, label: "แพ็กเกจและราคา" },
+          { value: "admins", label: "ผู้ดูแลและสิทธิ์" },
+          { value: "logs", label: "บันทึกการใช้งาน" },
+          { value: "plans", label: "แพ็กเกจและราคา" },
         ]}
       />
 

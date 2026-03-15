@@ -35,7 +35,7 @@ export function TopRightControls({
   profileMenuOffset = 4,
 }: TopRightControlsProps) {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { isOwner, logout } = useAuth();
 
   const initials = profile.name
     .split(" ")
@@ -91,10 +91,12 @@ export function TopRightControls({
               <User className="h-4 w-4 text-muted-foreground" />
               ดูโปรไฟล์
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={onOpenSettings} className="cursor-pointer">
-              <Settings className="h-4 w-4 text-muted-foreground" />
-              ตั้งค่า
-            </DropdownMenuItem>
+            {isOwner && (
+              <DropdownMenuItem onSelect={onOpenSettings} className="cursor-pointer">
+                <Settings className="h-4 w-4 text-muted-foreground" />
+                ตั้งค่า
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={onLogout} className="cursor-pointer text-rose-600 focus:text-rose-700">
               <LogOut className="h-4 w-4" />
@@ -126,3 +128,4 @@ export function TopRightControls({
     </TooltipProvider>
   );
 }
+
