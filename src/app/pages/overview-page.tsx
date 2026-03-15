@@ -332,6 +332,14 @@ export function OverviewPage() {
 
   useEffect(() => {
     if (isLoading) {
+      // While skeleton is visible, prefetch all other page chunks in parallel
+      import("./user-management-page");
+      import("./ai-monitor-page");
+      import("./finance-page");
+      import("./notifications-page");
+      import("./reports-page");
+      import("./settings-page");
+
       const timer = setTimeout(() => {
         setIsLoading(false);
         sessionStorage.setItem("hasVisitedOverview", "true");
