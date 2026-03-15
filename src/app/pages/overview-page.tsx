@@ -191,15 +191,15 @@ function OverviewDonutCard({
               data={items}
               dataKey="value"
               nameKey="feature"
-              innerRadius="55%"
-              outerRadius="85%"
+              innerRadius="48%"
+              outerRadius="68%"
               paddingAngle={3}
               stroke="hsl(var(--background))"
               strokeWidth={3}
               labelLine={false}
               label={({ cx = 0, cy = 0, midAngle = 0, outerRadius: or = 0, name, value }) => {
                 const RADIAN = Math.PI / 180;
-                const radius = Number(or) + 18;
+                const radius = Number(or) + 30;
                 const x = Number(cx) + radius * Math.cos(-midAngle * RADIAN);
                 const y = Number(cy) + radius * Math.sin(-midAngle * RADIAN);
                 const anchor = x > Number(cx) ? "start" : "end";

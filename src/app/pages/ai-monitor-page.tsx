@@ -2,18 +2,14 @@ import { useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { DashboardPageShell } from "@/components/dashboard/ui/dashboard-page-shell";
 import { MetricCard } from "@/components/dashboard/ui/metric-card";
-import { DataTableShell } from "@/components/dashboard/ui/data-table-shell";
 import { AppTabs } from "@/components/dashboard/ui/app-tabs";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   aiCommandSeriesByPeriod,
-  aiFeatureUsageSummaryByPeriod,
   aiModelUsageByPeriod,
   aiStatsByPeriod,
   aiTopPromptsByFeatureByPeriod,
   type AiMonitorPeriod,
-  unresolvedQueriesByPeriod,
 } from "../../mocks/dashboard-features.mock";
 import { formatCurrencyTHB, formatNumber } from "../../lib/formatters";
 
@@ -60,9 +56,7 @@ export function AiMonitorPage() {
 
   const periodStats = aiStatsByPeriod[period];
   const commandSeries = aiCommandSeriesByPeriod[period];
-  const featureUsage = aiFeatureUsageSummaryByPeriod[period];
   const topPromptsByFeature = aiTopPromptsByFeatureByPeriod[period];
-  const unresolvedQueries = unresolvedQueriesByPeriod[period];
   const modelUsage = aiModelUsageByPeriod[period];
 
   const statsCards = [
@@ -124,82 +118,6 @@ export function AiMonitorPage() {
           </div>
         </div>
       </article>
-
-      <div className="grid gap-4 xl:grid-cols-[1.15fr_1fr]">
-        <DataTableShell caption="การใช้ AI ตามฟีเจอร์" minWidthClass="min-w-[760px]" className="h-full">
-          <div className={sectionHeaderClass}>
-            <div>
-              <h3 className={sectionTitleClass}>การใช้ AI ตามฟีเจอร์</h3>
-            </div>
-            <Badge variant="secondary" className="rounded-full px-3 py-1">
-              อันดับตามคำสั่ง
-            </Badge>
-          </div>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>อันดับ</TableHead>
-                <TableHead>ฟีเจอร์</TableHead>
-                <TableHead>คำสั่ง</TableHead>
-                <TableHead>สัดส่วน</TableHead>
-                <TableHead>ต้นทุน AI</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {featureUsage.map((item, index) => (
-                <TableRow key={item.feature}>
-                  <TableCell>
-                    <span className="inline-flex rounded-full border border-border bg-background px-2.5 py-1 text-xs font-semibold text-foreground">
-                      #{index + 1}
-                    </span>
-                  </TableCell>
-                  <TableCell className="font-medium text-foreground">{item.feature}</TableCell>
-                  <TableCell className="font-semibold text-foreground">{formatNumber(item.commands)}</TableCell>
-                  <TableCell>
-                    <span className="rounded-full border border-border bg-background px-2.5 py-1 text-xs font-semibold text-foreground">
-                      {item.sharePercent}%
-                    </span>
-                  </TableCell>
-                  <TableCell className="font-semibold text-foreground">{formatCurrencyTHB(item.costTHB)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </DataTableShell>
-
-        <DataTableShell caption="รายการคำถามที่ AI ตอบไม่ได้" minWidthClass="min-w-[520px]" className="h-full">
-          <div className={sectionHeaderClass}>
-            <div>
-              <h3 className={sectionTitleClass}>คำถามที่ AI ตอบไม่ได้</h3>
-            </div>
-            <Badge variant="secondary" className="rounded-full px-3 py-1">
-              คำถามนอกขอบเขตของ AI
-            </Badge>
-          </div>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>คำถาม</TableHead>
-                <TableHead>ครั้ง</TableHead>
-                <TableHead>ฟีเจอร์</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {unresolvedQueries.map((query) => (
-                <TableRow key={query.query}>
-                  <TableCell className="font-medium text-foreground">{query.query}</TableCell>
-                  <TableCell className="font-semibold text-foreground">{query.count}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className="rounded-full px-2.5 py-1">
-                      {query.category === "off-topic" ? "นอกขอบเขต" : query.category}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </DataTableShell>
-      </div>
 
       <div className="grid gap-4 xl:grid-cols-3">
         {topPromptsByFeature.map((group, groupIndex) => {

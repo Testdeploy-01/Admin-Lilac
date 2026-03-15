@@ -186,19 +186,26 @@ export function LoginPage() {
               transition={{ delay: 0.15, duration: 0.4 }}
               className="mb-8 flex flex-col items-center gap-4"
             >
-              {/* Logo with glow ring */}
+              {/* Logo with glow */}
               <div className="relative">
-                <div
-                  className="absolute inset-0 scale-150 rounded-full opacity-20 blur-2xl"
+                <motion.div
+                  className="absolute inset-0 scale-[2] rounded-full opacity-25 blur-3xl"
                   style={{ background: "hsl(var(--primary))" }}
+                  animate={{ opacity: [0.15, 0.3, 0.15], scale: [1.8, 2.2, 1.8] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                 />
-                <div className="relative flex h-[72px] w-[72px] items-center justify-center rounded-2xl border border-border/40 bg-gradient-to-br from-card to-background shadow-lg">
-                  <img
-                    src="/Logo.png"
-                    alt="Lilac Admin Logo"
-                    className="h-12 w-12 object-contain drop-shadow-md"
-                  />
-                </div>
+                <motion.img
+                  src="/Logo.png"
+                  alt="Lilac Admin Logo"
+                  className="relative h-20 w-20 object-contain"
+                  initial={{ scale: 0, rotate: -60 }}
+                  animate={{ scale: 1, rotate: 0, y: [0, -6, 0] }}
+                  transition={{
+                    scale: { type: "spring", stiffness: 160, damping: 14, delay: 0.1 },
+                    rotate: { type: "spring", stiffness: 160, damping: 14, delay: 0.1 },
+                    y: { duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.7 },
+                  }}
+                />
               </div>
 
               {/* Title */}
@@ -332,7 +339,7 @@ export function LoginPage() {
           className="mt-6 text-center text-xs text-muted-foreground/60"
         >
           สำหรับผู้ดูแลระบบเท่านั้น · Powered by{" "}
-          <span className="font-medium text-primary/70">Lilac AI</span>
+          <span className="font-medium text-primary/70">Lilac</span>
         </motion.p>
       </motion.div>
     </div>

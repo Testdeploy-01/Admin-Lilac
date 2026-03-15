@@ -78,7 +78,7 @@ export type UserTableRowExpanded = {
   signupChannel: "เบอร์โทร" | "Google" | "Apple" | "LINE";
   signupDate: string;
   lastActive: string;
-  favoriteCategory: "AI Chat" | "การเรียน" | "การเงิน" | "ปฏิทิน" | "วิดเจ็ต" | "ไลฟ์สไตล์";
+  favoriteCategory: "การเงิน" | "การเรียน" | "ไลฟ์สไตล์";
   systemAlert: string;
   inputVoiceTokens: number;
   inputTextTokens: number;
@@ -113,7 +113,7 @@ const FIRST_NAMES = [
   "Mook", "Win", "Air", "Pin", "First", "Kwan", "Mint", "Ple", "View", "Gam",
 ];
 const LAST_INITIALS = ["K.", "P.", "C.", "R.", "T.", "L.", "S.", "W.", "M.", "B.", "N.", "J.", "D.", "A.", "H."];
-const CATEGORIES: Array<UserTableRowExpanded["favoriteCategory"]> = ["AI Chat", "การเรียน", "การเงิน", "ปฏิทิน", "วิดเจ็ต", "ไลฟ์สไตล์"];
+const CATEGORIES: Array<UserTableRowExpanded["favoriteCategory"]> = ["การเงิน", "การเรียน", "ไลฟ์สไตล์"];
 const SIGNUP_CHANNELS: Array<UserTableRowExpanded["signupChannel"]> = ["เบอร์โทร", "Google", "Apple", "LINE"];
 const FEATURE_BUCKETS: UserFeatureName[] = ["การเงิน", "การเรียน", "ไลฟ์สไตล์"];
 const ALERTS = ["ปกติ", "ปกติ", "ปกติ", "ปกติ", "ต้องติดตาม", "ใช้โทเคนสูงผิดปกติ", "ต้นทุน AI สูง", "ปกติ"];
@@ -242,12 +242,10 @@ const plusMonthly = managedUsers.filter((u) => u.plan === "PLUS_MONTHLY").length
 const plusTerm = managedUsers.filter((u) => u.plan === "PLUS_TERM").length;
 const plusYearly = managedUsers.filter((u) => u.plan === "PLUS_YEARLY").length;
 const totalAiCalls = managedUsers.reduce((s, u) => s + u.aiCallsTotal, 0);
-const totalWidgetInstalls = managedUsers.reduce((s, u) => s + u.widgetInstalls, 0);
 
 // MRR calculation from real plan mix
 const mrr = (plusMonthly * 79) + (plusTerm * Math.round(259 / 4)) + (plusYearly * Math.round(699 / 12));
 const arr = mrr * 12;
-const conversionRate = ((plusUsers / totalUsers) * 100).toFixed(1);
 const dau = Math.round(totalUsers * 0.26);
 const arpu = Math.round(mrr / Math.max(plusUsers, 1));
 const ltv = Math.round(arpu * 14);
@@ -297,15 +295,6 @@ export const systemAlerts: SystemAlert[] = [
   },
 ];
 
-// 1.2 Stat Cards (5 cards)
-export const overviewKpis = [
-  { label: "ผู้ใช้ทั้งหมด", value: totalUsers.toLocaleString(), delta: "+5.2%", trend: "up" as TrendType },
-  { label: "ผู้ใช้งานวันนี้ (DAU)", value: dau.toLocaleString(), delta: "+3.1%", trend: "up" as TrendType },
-  { label: "สมาชิก PLUS", value: plusUsers.toLocaleString(), delta: `${conversionRate}% อัปเกรด`, trend: "up" as TrendType },
-  { label: "AI Calls วันนี้", value: Math.round(totalAiCalls / 30).toLocaleString(), delta: `~${(totalAiCalls / 30 / dau).toFixed(1)}/คน`, trend: "up" as TrendType },
-  { label: "ผู้ใช้งานที่ติดตั้งวิดเจ็ต", value: Math.round(totalWidgetInstalls / 30).toLocaleString(), delta: `${((managedUsers.filter((u) => u.widgetInstalls > 0).length / totalUsers) * 100).toFixed(0)}% ใช้งาน`, trend: "up" as TrendType },
-];
-
 // 1.3 User Growth Chart (FREE vs PLUS)
 export const overviewGrowthFreeVsPlus = (() => {
   const data: Array<{ month: string; free: number; plus: number }> = [];
@@ -347,12 +336,9 @@ export const weeklyDropoffUsers = [
 
 // 1.6 Feature Usage Donut
 export const featureUsageDonut = [
-  { feature: "AI Chat", value: 31 },
-  { feature: "การเรียน", value: 24 },
-  { feature: "การเงิน", value: 18 },
-  { feature: "ปฏิทิน", value: 11 },
-  { feature: "วิดเจ็ต", value: 10 },
-  { feature: "อื่นๆ", value: 6 },
+  { feature: "การเรียน", value: 45 },
+  { feature: "การเงิน", value: 32 },
+  { feature: "ไลฟ์สไตล์", value: 23 },
 ];
 
 // 1.7 Conversion Funnel
@@ -396,8 +382,8 @@ export const widgetQuickActions = [
 export const userStatsBar: StatsCardItem[] = [
   { label: "ผู้ใช้ทั้งหมด", value: totalUsers.toLocaleString(), delta: "+5.2%", trend: "up", note: "ตั้งแต่เปิดตัว" },
   { label: "ใช้งานใน 7 วัน", value: Math.round(totalUsers * 0.68).toLocaleString(), delta: "+2.8%", trend: "up", note: "~68% ของทั้งหมด" },
-  { label: "สมาชิก FREE", value: freeUsers.toLocaleString(), delta: "+4.1%", trend: "up", note: "เทียบกับเดือนก่อน" },
-  { label: "สมาชิก PLUS", value: plusUsers.toLocaleString(), delta: "+8.6%", trend: "up", note: "เทียบกับเดือนก่อน" },
+  { label: "สมาชิก FREE", value: freeUsers.toLocaleString(), delta: "+4.1%", trend: "up", note: "ของทั้งหมด" },
+  { label: "สมาชิก PLUS", value: plusUsers.toLocaleString(), delta: "+8.6%", trend: "up", note: "ของทั้งหมด" },
   { label: "ผู้ใช้ใหม่วันนี้", value: Math.round(totalUsers * 0.008).toLocaleString(), delta: "+12.3%", trend: "up", note: "เทียบกับเมื่อวาน" },
   { label: "ยกเลิกใน 30 วัน", value: Math.round(totalUsers * 0.021).toLocaleString(), delta: "-1.4%", trend: "down", note: "เทียบกับ 30 วันก่อนหน้า" },
 ];
@@ -507,7 +493,7 @@ const freeCostPerUserPerMonthTHB = freeMonthlyAiCostTHB / Math.max(freeUsers, 1)
 const plusCostPerUserPerMonthTHB = plusMonthlyAiCostTHB / Math.max(plusUsers, 1);
 const monthlyFailureRate = Math.min(0.08, ((totalVoiceCommands / Math.max(totalAiCalls, 1)) * 0.04) + ((freeUsers / Math.max(totalUsers, 1)) * 0.05));
 const aiSuccessRate = +(100 - (monthlyFailureRate * 100)).toFixed(1);
-const plusPriceTHB = 99;
+const plusPriceTHB = PLAN_PRICES.PLUS_MONTHLY;
 const rollingYearLabels = ["เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค.", "ม.ค.", "ก.พ.", "มี.ค."];
 const rollingYearMultipliers = [0.84, 0.87, 0.9, 0.92, 0.95, 0.97, 1, 1.02, 1.04, 1.07, 1.05, 1.09];
 
@@ -1010,7 +996,7 @@ export const transactionHistory = managedUsers
   .slice(0, 20)
   .map((u, i) => ({
     id: `TXN-${String(i + 1).padStart(4, "0")}`,
-    date: `2026-03-0${Math.min(4, (i % 4) + 1)}`,
+    date: `2026-03-${String(11 - (i % 4)).padStart(2, "0")}`,
     user: u.name,
     userId: u.id,
     amount: PLAN_PRICES[u.plan],
@@ -1068,9 +1054,9 @@ export type BroadcastLogRow = {
 };
 
 export const broadcastLogs: BroadcastLogRow[] = [
-  { id: "NTF-001", title: "แจ้งเตือนระบบชำระเงิน", category: "การเงิน", type: "Push Notification", audience: "ผู้ใช้ทั้งหมด", sentAt: "2026-03-03 10:20", status: "Sent", metrics: { sent: 6456, delivered: 6320, opened: 3120, clicked: 890 } },
-  { id: "NTF-002", title: "โปรโมชัน Plus+ สุดสัปดาห์", category: "สำคัญ", type: "In-App Banner", audience: "FREE users ทั้งหมด", sentAt: "2026-03-02 19:11", status: "Sent", metrics: { sent: 2453, delivered: 2410, opened: 1680, clicked: 520 } },
-  { id: "NTF-003", title: "ลองใช้วิดเจ็ตสิ!", category: "ระบบ", type: "In-App Modal", audience: "ยังไม่เคยติดตั้งวิดเจ็ต", sentAt: "2026-03-01 08:00", status: "Sent", metrics: { sent: 1200, delivered: 1180, opened: 780, clicked: 340 } },
+  { id: "NTF-001", title: "แจ้งเตือนระบบชำระเงิน", category: "การเงิน", type: "Push Notification", audience: "ผู้ใช้ทั้งหมด", sentAt: "2026-03-11 10:20", status: "Sent", metrics: { sent: 6456, delivered: 6320, opened: 3120, clicked: 890 } },
+  { id: "NTF-002", title: "โปรโมชัน Plus+ สุดสัปดาห์", category: "สำคัญ", type: "In-App Banner", audience: "ผู้ใช้ FREE ทั้งหมด", sentAt: "2026-03-10 19:11", status: "Sent", metrics: { sent: 2453, delivered: 2410, opened: 1680, clicked: 520 } },
+  { id: "NTF-003", title: "ลองใช้วิดเจ็ตสิ!", category: "ระบบ", type: "In-App Modal", audience: "ยังไม่เคยติดตั้งวิดเจ็ต", sentAt: "2026-03-09 08:00", status: "Sent", metrics: { sent: 1200, delivered: 1180, opened: 780, clicked: 340 } },
   { id: "NTF-004", title: "Win-back: มาใช้ PLUS อีกครั้ง", category: "สำคัญ", type: "Push Notification", audience: "ยกเลิก PLUS 30 วัน (win-back)", sentAt: "", status: "Draft" },
 ];
 
@@ -1173,12 +1159,12 @@ export type AuditLogEntry = {
 };
 
 export const auditLog: AuditLogEntry[] = [
-  { id: "AUD-01", timestamp: "2026-03-04 14:30", adminName: "Theodore", avatar: "https://ui.shadcn.com/avatars/01.png", action: "แก้ไขราคาแพ็กเกจ", details: "PLUS รายเดือน ฿59 → ฿79" },
-  { id: "AUD-02", timestamp: "2026-03-04 12:15", adminName: "Natthaphon", avatar: "https://ui.shadcn.com/avatars/02.png", action: "เปลี่ยนแพ็กเกจผู้ใช้", targetUserId: "U-0042", targetUserName: "Somsak P.", details: "FREE → PLUS รายเดือน" },
-  { id: "AUD-03", timestamp: "2026-03-04 10:00", adminName: "Pimchanok", avatar: "https://ui.shadcn.com/avatars/03.png", action: "ระงับบัญชีผู้ใช้", targetUserId: "U-1293", targetUserName: "Wichai S.", details: "เหตุผล: พฤติกรรมไม่เหมาะสม" },
-  { id: "AUD-04", timestamp: "2026-03-03 18:45", adminName: "Theodore", avatar: "https://ui.shadcn.com/avatars/01.png", action: "เปิดฟีเจอร์", details: "Voice Input · เปิดใช้งานแล้ว" },
-  { id: "AUD-05", timestamp: "2026-03-03 15:20", adminName: "Natthaphon", avatar: "https://ui.shadcn.com/avatars/02.png", action: "ส่งการแจ้งเตือน", targetUserName: "ผู้ใช้ทุกคน", details: "NTF-003 · \"อัปเดตระบบชำระเงินคืนนี้\"" },
-  { id: "AUD-06", timestamp: "2026-03-03 11:00", adminName: "Pimchanok", avatar: "https://ui.shadcn.com/avatars/03.png", action: "ตอบกลับ Feedback", targetUserId: "U-0891", targetUserName: "Anong K.", details: "\"ขอบคุณที่แจ้งมานะคะ ทีมกำลังแก้ไขอยู่\"" },
+  { id: "AUD-01", timestamp: "2026-03-11 14:30", adminName: "Theodore", avatar: "https://ui.shadcn.com/avatars/01.png", action: "แก้ไขราคาแพ็กเกจ", details: "PLUS รายเดือน ฿59 → ฿79" },
+  { id: "AUD-02", timestamp: "2026-03-11 12:15", adminName: "Natthaphon", avatar: "https://ui.shadcn.com/avatars/02.png", action: "เปลี่ยนแพ็กเกจผู้ใช้", targetUserId: "U-0042", targetUserName: "Somsak P.", details: "FREE → PLUS รายเดือน" },
+  { id: "AUD-03", timestamp: "2026-03-11 10:00", adminName: "Pimchanok", avatar: "https://ui.shadcn.com/avatars/03.png", action: "ระงับบัญชีผู้ใช้", targetUserId: "U-1293", targetUserName: "Wichai S.", details: "เหตุผล: พฤติกรรมไม่เหมาะสม" },
+  { id: "AUD-04", timestamp: "2026-03-10 18:45", adminName: "Theodore", avatar: "https://ui.shadcn.com/avatars/01.png", action: "เปิดฟีเจอร์", details: "Voice Input · เปิดใช้งานแล้ว" },
+  { id: "AUD-05", timestamp: "2026-03-10 15:20", adminName: "Natthaphon", avatar: "https://ui.shadcn.com/avatars/02.png", action: "ส่งการแจ้งเตือน", targetUserName: "ผู้ใช้ทุกคน", details: "NTF-003 · \"อัปเดตระบบชำระเงินคืนนี้\"" },
+  { id: "AUD-06", timestamp: "2026-03-10 11:00", adminName: "Pimchanok", avatar: "https://ui.shadcn.com/avatars/03.png", action: "ตอบกลับ Feedback", targetUserId: "U-0891", targetUserName: "Anong K.", details: "\"ขอบคุณที่แจ้งมานะคะ ทีมกำลังแก้ไขอยู่\"" },
 ];
 
 // 6.4 API & Integration Config
@@ -1197,7 +1183,7 @@ export const defaultSystemSettings = {
 
 export const defaultApiSettings = {
   anthropicKey: "sk-ant-xxxxx-xxxxx",
-  defaultModel: "claude-sonnet-4" as string,
+  defaultModel: "claude-haiku-3.5" as string,
   maxTokensPerRequest: 4096,
   rateLimitPerUser: 100,
   wakeWordSensitivity: 0.7,

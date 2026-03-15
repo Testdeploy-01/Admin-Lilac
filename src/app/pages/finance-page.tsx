@@ -372,7 +372,7 @@ export function FinancePage() {
         <MetricCard
           label="FREE → PLUS"
           value={formatPercent(financeModel.trialToPaidRate)}
-          note="อัตราการแปลงสมาชิก"
+          note="อัตราการเปลี่ยนเป็นสมาชิก"
           delta={financeModel.mockDeltas.conversion.value}
           trend={financeModel.mockDeltas.conversion.trend}
           className="min-h-[132px] p-5"

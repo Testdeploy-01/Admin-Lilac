@@ -82,8 +82,8 @@ export const overviewTopFeaturesDonut: OverviewFeatureUsageItem[] = [
 ];
 
 export const overviewInputChannelDonut: OverviewFeatureUsageItem[] = [
-  { feature: "Ai Input", value: 60, note: "สั่งบันทึกด้วยเสียงหรือพิมพ์" },
-  { feature: "Manual Input", value: 40, note: "กรอกข้อมูลด้วยตัวเองโดยไม่ผ่าน AI" },
+  { feature: "AI Input", value: 62, note: "สั่งบันทึกด้วยเสียงหรือพิมพ์" },
+  { feature: "Manual Input", value: 38, note: "กรอกข้อมูลด้วยตัวเองโดยไม่ผ่าน AI" },
 ];
 
 export const overviewSystemStatus: OverviewSystemStatus[] = [
@@ -168,9 +168,9 @@ export const manualInputUsage = [
 ];
 
 export const compareEntryMethodShare = [
-  { label: "AI Input", value: 78, colorClass: "bg-primary" },
-  { label: "Manual Input", value: 22, colorClass: "bg-muted-foreground/40" },
-];
+  { label: "AI Input", value: 62, colorClass: "bg-primary" },
+  { label: "Manual Input", value: 38, colorClass: "bg-muted-foreground/40" },
+] as const;
 
 export const compareInputBreakdownByFeature = [
   {
