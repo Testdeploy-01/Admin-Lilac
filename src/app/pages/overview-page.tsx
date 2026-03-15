@@ -388,7 +388,7 @@ export function OverviewPage() {
             ))}
           </div>
 
-      <div className="grid items-stretch gap-4 xl:grid-cols-[1fr_1.6fr_1fr]">
+      <div className="grid items-stretch gap-4 md:grid-cols-2 xl:grid-cols-[1fr_1.6fr_1fr]">
         <OverviewDonutCard
           title="ฟีเจอร์ที่ใช้บ่อย"
           items={overviewTopFeaturesDonut}
@@ -456,7 +456,7 @@ export function OverviewPage() {
         />
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-2">
         <article className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <div className="flex items-center justify-between gap-3">
             <div>

@@ -119,7 +119,7 @@ export function AiMonitorPage() {
         </div>
       </article>
 
-      <div className="grid gap-4 xl:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {topPromptsByFeature.map((group, groupIndex) => {
           const groupTotal = group.prompts.reduce((sum, item) => sum + item.count, 0);
           const accent = featureAccentColors[groupIndex % featureAccentColors.length];
@@ -162,7 +162,7 @@ export function AiMonitorPage() {
         <div className={sectionHeaderClass}>
           <h3 className={sectionTitleClass}>ต้นทุน AI แยกตามรุ่น</h3>
         </div>
-        <div className="grid gap-4 xl:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {modelUsage.map((model) => (
             <div
               key={model.model}

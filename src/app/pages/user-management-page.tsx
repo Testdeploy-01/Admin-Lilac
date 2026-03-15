@@ -516,7 +516,7 @@ export function UserManagementPage() {
                 ))}
               </div>
               <Separator className="my-6" />
-              <div className="grid gap-4 xl:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {compareInputBreakdownByFeature.map((section) => (
                   <article key={section.category} className="rounded-xl border border-border/70 bg-background/40 p-4">
                     <h4 className="text-sm font-semibold">{section.category}</h4>
@@ -549,7 +549,7 @@ export function UserManagementPage() {
               <div>
                 <h3 className="text-base font-semibold">การใช้วิดเจ็ต</h3>
               </div>
-              <div className="mt-5 grid gap-4 xl:grid-cols-3">
+              <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {compareWidgetUsage.map((item) => (
                   <div key={item.label} className="rounded-xl border border-border/70 bg-background/40 p-4">
                     <p className="text-sm font-medium text-foreground">{item.label}</p>
