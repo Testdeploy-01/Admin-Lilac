@@ -3,6 +3,7 @@ import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./app/context/auth-context";
 import { DashboardLayout } from "./app/layout/dashboard-layout";
 import { RequireAuth, RequireOwner } from "./app/routes/require-owner";
+import { GenericPageSkeleton } from "./components/dashboard/ui/generic-page-skeleton";
 
 const LoginPage = lazy(() => import("./app/pages/login-page").then((m) => ({ default: m.LoginPage })));
 const OverviewPage = lazy(() => import("./app/pages/overview-page").then((m) => ({ default: m.OverviewPage })));
@@ -15,7 +16,7 @@ const SettingsPage = lazy(() => import("./app/pages/settings-page").then((m) => 
 
 /** Minimal generic fallback for chunk loading to prevent layout jumps */
 function ChunkSuspense({ children }: { children: React.ReactNode }) {
-  return <Suspense fallback={<div className="min-h-screen bg-background" />}>{children}</Suspense>;
+  return <Suspense fallback={<GenericPageSkeleton />}>{children}</Suspense>;
 }
 
 function App() {
