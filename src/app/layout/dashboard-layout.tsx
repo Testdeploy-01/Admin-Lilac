@@ -123,18 +123,7 @@ function DashboardLayoutFrame({ theme, pathname, onToggleTheme }: DashboardLayou
           </div>
         </aside>
 
-        {/* Mobile View TopRightControls (FloatingDockNav handles its own mobile view) */}
-        <div className="md:hidden">
-          <TopRightControls
-            theme={theme}
-            onToggleTheme={onToggleTheme}
-            profile={activeProfile}
-            profileMenuSide="top"
-            profileMenuAlign="end"
-            profileMenuOffset={8}
-            className="fixed bottom-[max(1.5rem,env(safe-area-inset-bottom))] left-[max(0.75rem,env(safe-area-inset-left))] z-40 sm:bottom-6 sm:left-4"
-          />
-        </div>
+
 
         <main className="flex-1 overflow-auto bg-background px-4 pt-[var(--dashboard-top-gap)] pb-[var(--dashboard-bottom-gap)] sm:px-6 sm:pt-[var(--dashboard-top-gap)] sm:pb-[var(--dashboard-bottom-gap)] md:pl-[var(--dock-main-offset)] lg:pr-8 lg:pl-[var(--dock-main-offset)] lg:pt-[var(--dashboard-top-gap)] lg:pb-[var(--dashboard-bottom-gap)]">
           {/* Overlay to handle blur cleanly without lagging the first hover calculation */}
@@ -152,9 +141,14 @@ function DashboardLayoutFrame({ theme, pathname, onToggleTheme }: DashboardLayou
         </main>
         <DashboardCommandCenter />
 
-        {/* Mobile view of the dock */}
+        {/* Mobile view of the dock — includes profile avatar + theme toggle */}
         <div className="md:hidden">
-          <FloatingDockNav onHoverChange={handleDockHoverChange} />
+          <FloatingDockNav
+            onHoverChange={handleDockHoverChange}
+            profile={activeProfile}
+            theme={theme}
+            onToggleTheme={onToggleTheme}
+          />
         </div>
       </div>
     </div>

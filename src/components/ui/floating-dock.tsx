@@ -32,6 +32,8 @@ type DockItem = {
   variant?: "default" | "logo" | "avatar";
   badge?: number;
   align?: "default" | "bottom";
+  /** Only show this item in the mobile dock, not the desktop sidebar */
+  mobileOnly?: boolean;
 };
 
 type DockOrientation = "horizontal" | "vertical";
@@ -200,7 +202,7 @@ const FloatingDockDesktop = ({
       }}
     >
       <LayoutGroup id={`dock-active-indicator-${dockInstanceId}`}>
-        {items.map((item) => (
+        {items.filter((item) => !item.mobileOnly).map((item) => (
           <IconContainer
             pointer={pointer}
             hoverProgress={hoverProgress}

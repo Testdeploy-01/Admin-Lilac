@@ -4,15 +4,19 @@ import {
   ClipboardList,
   CreditCard,
   LayoutDashboard,
+  Moon,
   Settings,
+  Sun,
   Users,
   type LucideIcon,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { FloatingDock } from "@/components/ui/floating-dock";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/app/context/auth-context";
 import { pendingUsersCount } from "@/mocks/dashboard-features.mock";
+import type { AdminProfile } from "@/types/admin-profile";
 
 type DockItem = {
   title: string;
@@ -35,6 +39,8 @@ type DockRenderItem = {
   align?: "default" | "bottom";
   badge?: number;
   onMouseEnter?: () => void;
+  onClick?: () => void;
+  mobileOnly?: boolean;
 };
 
 
@@ -72,6 +78,10 @@ function isRouteActive(pathname: string, prefixes: string[]) {
 
 type FloatingDockNavProps = {
   onHoverChange?: (hovered: boolean) => void;
+  /** Mobile-only: show profile avatar + theme toggle inside the dock */
+  profile?: AdminProfile;
+  theme?: "light" | "dark";
+  onToggleTheme?: () => void;
 };
 
 export function DockBrandLogo() {
@@ -89,7 +99,7 @@ export function DockBrandLogo() {
   );
 }
 
-export function FloatingDockNav({ onHoverChange }: FloatingDockNavProps) {
+export function FloatingDockNav({ onHoverChange, profile, theme, onToggleTheme }: FloatingDockNavProps) {
   const { pathname } = useLocation();
   const { isOwner } = useAuth();
 
@@ -121,9 +131,42 @@ export function FloatingDockNav({ onHoverChange }: FloatingDockNavProps) {
     ? rightDockItems
     : rightDockItems.filter((item) => item.href !== "/settings");
 
+  // Mobile-only: profile avatar (navigates to /settings)
+  const mobileProfileItem: DockRenderItem | null = profile
+    ? {
+        title: "โปรไฟล์",
+        variant: "avatar",
+        mobileOnly: true,
+        href: "/settings",
+        icon: (
+          <Avatar className="h-full w-full">
+            <AvatarImage src={profile.avatarUrl || ""} alt={profile.name} />
+            <AvatarFallback className="bg-primary/20 text-[10px] font-semibold text-foreground">
+              {profile.name.split(" ").filter(Boolean).map((p) => p[0]).join("").slice(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+        ),
+      }
+    : null;
+
+  // Mobile-only: theme toggle button
+  const mobileThemeItem: DockRenderItem | null =
+    onToggleTheme != null && theme != null
+      ? {
+          title: theme === "dark" ? "โหมดสว่าง" : "โหมดมืด",
+          mobileOnly: true,
+          icon: theme === "dark"
+            ? <Sun className="h-full w-full text-muted-foreground" />
+            : <Moon className="h-full w-full text-muted-foreground" />,
+          onClick: onToggleTheme,
+        }
+      : null;
+
   const items: DockRenderItem[] = [
     ...leftDockItems.map(toRenderItem),
     ...filteredRightItems.map(toRenderItem),
+    ...(mobileProfileItem ? [mobileProfileItem] : []),
+    ...(mobileThemeItem ? [mobileThemeItem] : []),
   ];
 
   return (
