@@ -110,7 +110,7 @@ export function TopRightControls({
               )}
             </Button>
           </TooltipTrigger>
-          <TooltipContent>{theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}</TooltipContent>
+          <TooltipContent>{theme === "dark" ? "เปลี่ยนเป็นโหมดสว่าง" : "เปลี่ยนเป็นโหมดมืด"}</TooltipContent>
         </Tooltip>
       </div>
     </TooltipProvider>

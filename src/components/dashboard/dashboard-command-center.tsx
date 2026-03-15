@@ -182,11 +182,11 @@ export function DashboardCommandCenter() {
         <CommandInput value={query} onValueChange={setQuery} placeholder="พิมพ์เพื่อค้นหา หน้า ผู้ใช้ หรือคำสั่ง..." />
         <CommandList>
           <CommandEmpty>ไม่พบผลลัพธ์ที่ตรงกับคำค้นหา</CommandEmpty>
-          {renderGroup("action", "Quick Actions")}
+          {renderGroup("action", "คำสั่งด่วน")}
           <CommandSeparator />
-          {renderGroup("route", "Routes")}
+          {renderGroup("route", "หน้าต่างๆ")}
           <CommandSeparator />
-          {renderGroup("user", "Users")}
+          {renderGroup("user", "ผู้ใช้")}
         </CommandList>
         <div className="border-t border-border px-3 py-2 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-2">

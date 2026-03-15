@@ -46,9 +46,9 @@ export const dashboardRouteMeta: DashboardRouteMeta[] = [
   {
     key: "finance",
     path: "/finance",
-    titleTH: "การเงิน",
+    titleTH: "การสมัครสมาชิก",
     group: "การจัดการ",
-    searchKeywords: ["finance", "mrr", "arr", "revenue", "churn", "arpu", "ltv", "transaction", "plus funnel", "upgrade path"],
+    searchKeywords: ["finance", "mrr", "arr", "revenue", "churn", "arpu", "ltv", "transaction", "plus funnel", "upgrade path", "การเงิน", "การสมัครสมาชิก"],
     exportKey: "finance",
   },
   {

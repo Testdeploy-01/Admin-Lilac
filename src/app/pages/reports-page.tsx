@@ -421,7 +421,7 @@ export function ReportsPage() {
         minWidthClass="min-w-[800px]"
         toolbar={
           <div className="flex items-center justify-between gap-3 px-1 mb-4">
-            <h3 className="text-base font-semibold text-foreground">รายละเอียดตามช่วยเวลา</h3>
+            <h3 className="text-base font-semibold text-foreground">รายละเอียดตามช่วงเวลา</h3>
             <Badge variant="secondary" className="rounded-full px-3 py-1 shrink-0">
               {summary.rows.length} แถว
             </Badge>
