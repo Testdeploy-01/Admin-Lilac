@@ -14,7 +14,6 @@ import {
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FloatingDock } from "@/components/ui/floating-dock";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -141,52 +140,65 @@ export function FloatingDockNav({ onHoverChange, profile, theme, onToggleTheme }
     ? rightDockItems
     : rightDockItems.filter((item) => item.href !== "/settings");
 
+  // Mobile-only items: profile avatar (DropdownMenu popup) + theme toggle
+  const mobileExtraItems: DockRenderItem[] = [];
+  if (profile) {
+    const initials = profile.name
+      .split(" ")
+      .filter(Boolean)
+      .map((p) => p[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+
+    mobileExtraItems.push({
+      title: "โปรไฟล์",
+      variant: "avatar",
+      mobileOnly: true,
+      icon: <MobileProfileDropdown profile={profile} initials={initials} />,
+    });
+
+    if (onToggleTheme) {
+      mobileExtraItems.push({
+        title: theme === "dark" ? "โหมดสว่าง" : "โหมดมืด",
+        mobileOnly: true,
+        icon: theme === "dark" ? (
+          <Sun className="h-full w-full text-muted-foreground" />
+        ) : (
+          <Moon className="h-full w-full text-muted-foreground" />
+        ),
+        onClick: onToggleTheme,
+      });
+    }
+  }
+
   const items: DockRenderItem[] = [
     ...leftDockItems.map(toRenderItem),
     ...filteredRightItems.map(toRenderItem),
+    ...mobileExtraItems,
   ];
 
   return (
-    <>
-      <FloatingDock
-        items={items}
-        desktopClassName="z-30"
-        mobileClassName="fixed right-4 bottom-6 z-30"
-        desktopOrientation="vertical"
-        onDockHoverChange={onHoverChange}
-      />
-      {/* Mobile-only: profile dropdown + theme toggle rendered beside the dock */}
-      {profile && (
-        <MobileProfileControls
-          profile={profile}
-          theme={theme}
-          onToggleTheme={onToggleTheme}
-        />
-      )}
-    </>
+    <FloatingDock
+      items={items}
+      desktopClassName="z-30"
+      mobileClassName="fixed right-4 bottom-6 z-30"
+      desktopOrientation="vertical"
+      onDockHoverChange={onHoverChange}
+    />
   );
 }
 
-/** Profile dropdown + theme toggle for mobile, positioned bottom-left */
-function MobileProfileControls({
+/** Profile dropdown popup for mobile dock — avatar trigger + DropdownMenu */
+function MobileProfileDropdown({
   profile,
-  theme,
-  onToggleTheme,
+  initials,
 }: {
   profile: AdminProfile;
-  theme?: "light" | "dark";
-  onToggleTheme?: () => void;
+  initials: string;
 }) {
   const navigate = useNavigate();
   const { isOwner, logout } = useAuth();
-
-  const initials = profile.name
-    .split(" ")
-    .filter(Boolean)
-    .map((p) => p[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
 
   const onLogout = () => {
     logout();
@@ -194,64 +206,45 @@ function MobileProfileControls({
   };
 
   return (
-    <div className="fixed bottom-6 left-4 z-30 flex flex-col items-center gap-2 md:hidden">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-11 w-11 rounded-full bg-card/85 p-0.5 shadow-lg backdrop-blur"
-            aria-label="Open profile menu"
-          >
-            <Avatar className="h-9 w-9">
-              <AvatarImage src={profile.avatarUrl || ""} alt={profile.name} />
-              <AvatarFallback className="bg-primary/20 text-[10px] font-semibold text-foreground">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          side="top"
-          align="start"
-          sideOffset={8}
-          collisionPadding={16}
-          className="w-52 rounded-xl"
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card shadow-sm"
+          aria-label="Open profile menu"
         >
-          <DropdownMenuLabel>
-            <p className="truncate text-sm font-semibold text-foreground">{profile.name}</p>
-            <span className={cn(
-              "mt-1.5 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide",
-              isOwner
-                ? "bg-[hsl(var(--primary)/0.15)] text-primary"
-                : "bg-muted text-muted-foreground"
-            )}>
-              {isOwner ? "System Owner" : "Admin"}
-            </span>
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={onLogout} className="cursor-pointer text-rose-600 focus:text-rose-700">
-            <LogOut className="h-4 w-4" />
-            ออกจากระบบ
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      {onToggleTheme && (
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={onToggleTheme}
-          className="h-11 w-11 rounded-full bg-card/85 shadow-lg backdrop-blur"
-          aria-label="Toggle theme"
-        >
-          {theme === "dark" ? (
-            <Sun className="h-5 w-5" />
-          ) : (
-            <Moon className="h-5 w-5" />
-          )}
-        </Button>
-      )}
-    </div>
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={profile.avatarUrl || ""} alt={profile.name} />
+            <AvatarFallback className="bg-primary/20 text-[10px] font-semibold text-foreground">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        side="top"
+        align="end"
+        sideOffset={8}
+        collisionPadding={16}
+        className="w-52 rounded-xl"
+      >
+        <DropdownMenuLabel>
+          <p className="truncate text-sm font-semibold text-foreground">{profile.name}</p>
+          <span className={cn(
+            "mt-1.5 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide",
+            isOwner
+              ? "bg-[hsl(var(--primary)/0.15)] text-primary"
+              : "bg-muted text-muted-foreground"
+          )}>
+            {isOwner ? "System Owner" : "Admin"}
+          </span>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={onLogout} className="cursor-pointer text-rose-600 focus:text-rose-700">
+          <LogOut className="h-4 w-4" />
+          ออกจากระบบ
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

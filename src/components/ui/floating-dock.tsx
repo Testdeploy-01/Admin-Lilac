@@ -98,27 +98,30 @@ const FloatingDockMobile = ({
                 transition={{ delay: (items.length - 1 - idx) * 0.05 }}
                 className="relative"
               >
-                <DockLink
-                  href={item.href}
-                  onClick={(event) => {
-                    item.onClick?.(event);
-                    setOpen(false);
-                  }}
-                  disabled={item.disabled}
-                  className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card shadow-sm"
-                >
-                  <div
-                    className={cn(
-                      item.variant === "logo"
-                        ? "h-full w-full overflow-hidden rounded-full"
-                        : item.variant === "avatar"
+                {item.variant === "avatar" ? (
+                  // Avatar items handle their own click (e.g. DropdownMenu popup)
+                  <>{item.icon}</>
+                ) : (
+                  <DockLink
+                    href={item.href}
+                    onClick={(event) => {
+                      item.onClick?.(event);
+                      setOpen(false);
+                    }}
+                    disabled={item.disabled}
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card shadow-sm"
+                  >
+                    <div
+                      className={cn(
+                        item.variant === "logo"
                           ? "h-full w-full overflow-hidden rounded-full"
                           : "h-4 w-4",
-                    )}
-                  >
-                    {item.icon}
-                  </div>
-                </DockLink>
+                      )}
+                    >
+                      {item.icon}
+                    </div>
+                  </DockLink>
+                )}
                 {item.badge && item.badge > 0 ? (
                   <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white">
                     {item.badge}
