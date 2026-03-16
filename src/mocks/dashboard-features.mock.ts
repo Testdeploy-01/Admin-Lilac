@@ -1203,7 +1203,7 @@ export const planPricingSettings = {
   freeTrialDays: 7,
   requireCreditCard: false,
   gracePeriodDays: 3,
-  freeDailyAiLimit: 20,
+  freeDailyAiLimit: 15,
   plusUnlimitedVoice: true,
 };
 
